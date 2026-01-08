@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1><%= projectName %></h1>
+      <nav>
+        <ul>
+          <li><a href="/" class="active">Dashboard</a></li>
+          <li><a href="/api/sensor/data">Senzory</a></li>
+          <li><a href="#">Příkazy</a></li>
+          <li><a href="#">Nastavení</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main>
+      <div class="welcome-section">
+        <h2>Vítejte v IoT Dashboardu</h2>
+        <p>Systém pro monitoring a ovládání IoT zařízení</p>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>Teplota</h3>
+          <div class="stat-value" id="temperature">--°C</div>
+          <small>Aktuální hodnota</small>
+        </div>
+
+        <div class="stat-card">
+          <h3>Vlhkost</h3>
+          <div class="stat-value" id="humidity">--%</div>
+          <small>Aktuální hodnota</small>
+        </div>
+
+        <div class="stat-card">
+          <h3>Status</h3>
+          <div class="stat-value status-online">Online</div>
+          <small>Stav systému</small>
+        </div>
+
+        <div class="stat-card">
+          <h3>Alerty</h3>
+          <div class="stat-value">0</div>
+          <small>Aktivní upozornění</small>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h3>Rychlé informace</h3>
+        <ul>
+          <li>✅ Server běží na portu 3000</li>
+          <li>✅ MVC struktura implementována</li>
+          <li>⏳ Připraveno pro napojení senzorů</li>
+          <li>⏳ Připraveno pro ovládací příkazy</li>
+        </ul>
+      </div>
+    </main>
+
+    <footer>
+      <p>&copy; 2026 Projekt IoT SK1 White | Node.js Dashboard</p>
+    </footer>
+  </div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
