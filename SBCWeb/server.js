@@ -10,12 +10,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // View engine setup
 app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', path.join(__dirname, './src/views'));
 
 // Routes
-const indexRoutes = require('./routes/index');
+const indexRoutes = require('./src/routes/indexRouter');
+const telemetryRoutes = require('./src/routes/telemetryRouter');
 
 app.use('/', indexRoutes);
+app.use('/telemetry', telemetryRoutes);
 
 // Error handling
 app.use((req, res) => {

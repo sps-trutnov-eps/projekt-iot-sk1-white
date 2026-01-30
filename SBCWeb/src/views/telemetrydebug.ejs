@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>telemetry debug</title>
+</head>>
+<body>
+
+    <h1>Telemetry Debug</h1>
+    <div id="data">
+        <p>Čekám...</p>
+    </div>   
+</body>
+<script>
+    async function loadData() {
+        const res = await fetch('/telemetry/getdata/');
+        const data = await res.json();
+        document.getElementById('data').innerHTML = JSON.stringify(data, null, 2);
+
+    }
+    setInterval(loadData,500);
+    loadData();
+</script>
+</html>
