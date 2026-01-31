@@ -1,0 +1,151 @@
+/* Dashboard Custom Styles */
+
+/* Header buttons */
+.header-btn {
+  @apply flex items-center space-x-2 px-4 py-2 rounded-lg text-silver-700 hover:bg-ash-grey-100 transition;
+}
+
+/* Navigation items */
+.nav-item {
+  @apply transition-all duration-200;
+}
+
+.nav-item:not(.active):hover {
+  @apply bg-midnight-violet-800 text-ash-grey-50;
+}
+
+/* Time range buttons */
+.timerange-btn {
+  @apply transition-all duration-200;
+}
+
+/* Custom scrollbar for sidebar */
+aside::-webkit-scrollbar {
+  width: 6px;
+}
+
+aside::-webkit-scrollbar-track {
+  background: #1c141f;
+}
+
+aside::-webkit-scrollbar-thumb {
+  background: #514158;
+  border-radius: 3px;
+}
+
+aside::-webkit-scrollbar-thumb:hover {
+  background: #6d5775;
+}
+
+/* Smooth transitions */
+.transition-sidebar {
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Loading spinner animation */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.fa-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Responsive table */
+@media (max-width: 768px) {
+  table {
+    font-size: 0.875rem;
+  }
+  
+  th, td {
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+/* Chart area */
+#chartArea {
+  min-height: 320px;
+}
+
+/* Activity list items animation */
+.activity-item {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Notification animation */
+.notification-enter {
+  transform: translateX(400px);
+}
+
+.notification-enter-active {
+  transform: translateX(0);
+  transition: transform 300ms ease-out;
+}
+
+.notification-exit {
+  transform: translateX(0);
+}
+
+.notification-exit-active {
+  transform: translateX(400px);
+  transition: transform 300ms ease-in;
+}
+
+/* Stat cards hover effect */
+.stat-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Sensor table row hover */
+#sensorTable tr:hover {
+  background-color: #f2f3f1;
+}
+
+/* MCU item chevron rotation */
+.fa-chevron-down {
+  transition: transform 0.2s ease;
+}
+
+.rotate-180 {
+  transform: rotate(180deg);
+}
+
+/* Sidebar overlay fade */
+#sidebarOverlay {
+  transition: opacity 0.3s ease;
+}
+
+#sidebarOverlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Status indicator pulse */
+.status-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

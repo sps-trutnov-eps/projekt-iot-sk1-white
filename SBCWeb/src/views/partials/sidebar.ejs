@@ -1,0 +1,106 @@
+<!-- Sidebar -->
+<aside id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-midnight-violet-900 shadow-2xl transform transition-transform duration-300 ease-in-out z-40">
+  <div class="flex flex-col h-full">
+    <!-- Sidebar Header -->
+    <div class="p-6 border-b border-midnight-violet-800">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-gradient-to-br from-vintage-grape-400 to-midnight-violet-500 rounded-lg shadow-lg"></div>
+          <span class="text-ash-grey-50 font-bold text-lg">IoT Control</span>
+        </div>
+        <button id="closeSidebar" class="text-ash-grey-300 hover:text-ash-grey-50 lg:hidden">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="flex-1 overflow-y-auto p-4">
+      <div class="space-y-2">
+        <!-- Dashboard -->
+        <a href="#" class="nav-item active flex items-center space-x-3 px-4 py-3 rounded-lg bg-vintage-grape-800 text-ash-grey-50">
+          <i class="fas fa-home w-5"></i>
+          <span>Dashboard</span>
+        </a>
+
+        <!-- MCUs Section -->
+        <div class="pt-4 pb-2">
+          <div class="flex items-center justify-between px-4 mb-2">
+            <span class="text-ash-grey-400 text-xs font-semibold uppercase tracking-wider">MCUs</span>
+            <button id="addMCU" class="text-vintage-grape-400 hover:text-vintage-grape-300 transition">
+              <i class="fas fa-plus-circle"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- MCU List -->
+        <div id="mcuList" class="space-y-1">
+            
+          <!-- Sample MCUs -->
+          <div class="mcu-item">
+            <button class="w-full flex items-center justify-between px-4 py-2 rounded-lg text-ash-grey-300 hover:bg-midnight-violet-800 transition group">
+              <div class="flex items-center space-x-3">
+                <i class="fas fa-microchip text-vintage-grape-400"></i>
+                <span>ESP32-Main</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span class="w-2 h-2 bg-green-400 rounded-full"></span>
+                <i class="fas fa-chevron-down text-xs"></i>
+              </div>
+            </button>
+
+            <!-- Sensors -->
+            <div class="sensor-list ml-8 mt-1 space-y-1">
+              <div class="flex items-center justify-between px-4 py-2 text-sm text-ash-grey-400 hover:text-ash-grey-200 cursor-pointer">
+                <div class="flex items-center space-x-2">
+                  <i class="fas fa-thermometer-half text-xs"></i>
+                  <span>Temperature</span>
+                </div>
+                <span class="text-xs">22.5°C</span>
+              </div>
+              <div class="flex items-center justify-between px-4 py-2 text-sm text-ash-grey-400 hover:text-ash-grey-200 cursor-pointer">
+                <div class="flex items-center space-x-2">
+                  <i class="fas fa-tint text-xs"></i>
+                  <span>Humidity</span>
+                </div>
+                <span class="text-xs">65%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mcu-item">
+            <button class="w-full flex items-center justify-between px-4 py-2 rounded-lg text-ash-grey-300 hover:bg-midnight-violet-800 transition group">
+              <div class="flex items-center space-x-3">
+                <i class="fas fa-microchip text-vintage-grape-400"></i>
+                <span>ESP8266-01</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span class="w-2 h-2 bg-yellow-400 rounded-full"></span>
+                <i class="fas fa-chevron-down text-xs"></i>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Add Sensor Button -->
+        <button id="addSensor" class="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-vintage-grape-400 hover:bg-midnight-violet-800 border border-dashed border-vintage-grape-700 hover:border-vintage-grape-500 transition mt-4">
+          <i class="fas fa-plus w-5"></i>
+          <span>Add MCU</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Sidebar Footer -->
+    <div class="p-4 border-t border-midnight-violet-800">
+      <div class="flex items-center space-x-3 px-4 py-2">
+        <div class="w-8 h-8 bg-vintage-grape-600 rounded-full flex items-center justify-center">
+          <span class="text-ash-grey-50 text-sm font-semibold">U</span>
+        </div>
+        <div class="flex-1">
+          <p class="text-ash-grey-50 text-sm font-medium">User</p>
+          <p class="text-ash-grey-400 text-xs">yezec@t15.local</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</aside>

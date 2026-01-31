@@ -1,0 +1,21 @@
+<!-- Chart Area -->
+<div class="lg:col-span-2 bg-white rounded-lg shadow-sm border border-ash-grey-200 p-6">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-xl font-bold text-midnight-violet-900">Sensor Data Overview</h2>
+    <div class="flex space-x-2">
+      <button data-timerange="24h" class="timerange-btn px-3 py-1 text-sm bg-vintage-grape-100 text-vintage-grape-800 rounded-md">24h</button>
+      <button data-timerange="7d" class="timerange-btn px-3 py-1 text-sm text-silver-600 hover:bg-ash-grey-100 rounded-md">7d</button>
+      <button data-timerange="30d" class="timerange-btn px-3 py-1 text-sm text-silver-600 hover:bg-ash-grey-100 rounded-md">30d</button>
+    </div>
+  </div>
+  <!-- Sensor Selector -->
+  <div class="mb-4">
+    <label for="sensorSelector" class="block text-sm font-medium text-silver-700 mb-2">Select Sensor:</label>
+    <select id="sensorSelector" class="w-full md:w-auto px-4 py-2 bg-ash-grey-50 border border-ash-grey-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-vintage-grape-500 focus:border-transparent">
+      <option value="">Loading sensors...</option>
+    </select>
+  </div>
+  <div id="chartArea" class="h-80 flex items-center justify-center border-2 border-dashed border-ash-grey-200 rounded-lg">
+    <p class="text-silver-500">Select a sensor to view data</p>
+  </div>
+</div>
