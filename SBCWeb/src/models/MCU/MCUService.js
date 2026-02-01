@@ -9,53 +9,19 @@ class MCUService {
         if(!data.name || data.name.trim() ===''){
             throw new Error('Name je povinné pole');
         }
-
+        //IP
         const ipAddress = data.ipAddress || data.ip_address;
         if (!ipAddress || ipAddress.trim() === '') {
             throw new Error('IP adresa je povinná');
         }
         
-        const parts = ipAddress.split('.');
-
-        if (parts.length !== 4) {
-            throw new Error('IP adresa musí mít přesně 4 oktety');
-        }
-
-        for (let part of parts) {
-            //0-9
-            if (!/^\d+$/.test(part)) {
-                throw new Error('IP adresa může obsahovat pouze čísla');
-            }
-            
-            const num = parseInt(part, 10);
-            if (num < 0 || num > 255) {
-                throw new Error('Každý oktet IP adresy musí být 0-255');
-            }
-        }
-
+        //MAC
         const macAddress = data.mac_address || data.macAddress;
 
         if (!macAddress || macAddress.trim() === '') {
             throw new Error('MAC adresa je povinná');
         }
 
-        const macParts = macAddress.split(/[:-]/);
-
-        if (macParts.length !== 6) {
-            throw new Error('IP adresa musí mít přesně 4 oktety');
-        }
-
-        for (let part of macParts) {
-            
-            
-            if (part.length !== 2) {
-        throw new Error('Každý oktet MAC adresy musí mít přesně 2 znaky');
-        }
-        //0-9 A-F
-        if (!/^[0-9A-Fa-f]{2}$/.test(part)) {
-            throw new Error('MAC adresa může obsahovat pouze hexadecimální znaky (0-9, A-F)');
-        }
-        }
         
         const mcu = new MCU({
             name: data.name.trim(),
@@ -70,7 +36,7 @@ class MCUService {
         const id = MCURepository.create(dbData);
         
         mcu.id = id;
-        
+
         return mcu;
         
     }

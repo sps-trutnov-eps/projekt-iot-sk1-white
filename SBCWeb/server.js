@@ -19,7 +19,7 @@ const MCURoutes = require('./src/routes/MCURouter')
 
 app.use('/', indexRoutes);
 app.use('/telemetry', telemetryRoutes);
-app.use('/MCU', MCURoutes)
+app.use('/mcu', MCURoutes)
 
 // Error handling
 app.use((req, res) => {
