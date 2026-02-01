@@ -1,0 +1,131 @@
+<!-- Add MCU Modal -->
+<div id="addMCUModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+  <div class="bg-white rounded-lg shadow-2xl max-w-md w-full transform transition-all">
+    <!-- Modal Header -->
+    <div class="flex items-center justify-between px-6 py-4 border-b border-ash-grey-200">
+      <h2 class="text-xl font-bold text-midnight-violet-900">Add New MCU</h2>
+      <button id="closeAddMCUModal" class="text-silver-600 hover:text-silver-800 transition">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <form id="addMCUForm" class="px-6 py-4">
+      <!-- MCU Name -->
+      <div class="mb-4">
+        <label for="mcuName" class="block text-sm font-medium text-silver-700 mb-2">
+          MCU Name <span class="text-red-500">*</span>
+        </label>
+        <input 
+          type="text" 
+          id="mcuName" 
+          name="name"
+          class="w-full px-4 py-2 bg-ash-grey-50 border border-ash-grey-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-vintage-grape-500 focus:border-transparent"
+          placeholder="e.g., ESP32-Main"
+          required
+        >
+      </div>
+
+      <!-- MCU Type -->
+      <div class="mb-4">
+        <label for="mcuType" class="block text-sm font-medium text-silver-700 mb-2">
+          Type <span class="text-red-500">*</span>
+        </label>
+        <select 
+          id="mcuType" 
+          name="type"
+          class="w-full px-4 py-2 bg-ash-grey-50 border border-ash-grey-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-vintage-grape-500 focus:border-transparent"
+          required
+        >
+          <option value="">Select type...</option>
+          <option value="ESP32">ESP32</option>
+          <option value="ESP8266">ESP8266</option>
+          <option value="Arduino">Arduino</option>
+          <option value="Raspberry Pi">Raspberry Pi</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <!-- IP Address -->
+      <div class="mb-4">
+        <label for="mcuIpAddress" class="block text-sm font-medium text-silver-700 mb-2">
+          IP Address
+        </label>
+        <input 
+          type="text" 
+          id="mcuIpAddress" 
+          name="ipAddress"
+          class="w-full px-4 py-2 bg-ash-grey-50 border border-ash-grey-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-vintage-grape-500 focus:border-transparent"
+          placeholder="e.g., 192.168.1.100"
+          pattern="^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}$"
+        >
+      </div>
+
+      <!-- MAC Address -->
+      <div class="mb-4">
+        <label for="mcuMacAddress" class="block text-sm font-medium text-silver-700 mb-2">
+          MAC Address
+        </label>
+        <input 
+          type="text" 
+          id="mcuMacAddress" 
+          name="macAddress"
+          class="w-full px-4 py-2 bg-ash-grey-50 border border-ash-grey-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-vintage-grape-500 focus:border-transparent"
+          placeholder="e.g., AA:BB:CC:DD:EE:FF"
+        >
+      </div>
+
+      <!-- Location -->
+      <div class="mb-4">
+        <label for="mcuLocation" class="block text-sm font-medium text-silver-700 mb-2">
+          Location
+        </label>
+        <input 
+          type="text" 
+          id="mcuLocation" 
+          name="location"
+          class="w-full px-4 py-2 bg-ash-grey-50 border border-ash-grey-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-vintage-grape-500 focus:border-transparent"
+          placeholder="e.g., Living Room"
+        >
+      </div>
+
+      <!-- Description -->
+      <div class="mb-6">
+        <label for="mcuDescription" class="block text-sm font-medium text-silver-700 mb-2">
+          Description
+        </label>
+        <textarea 
+          id="mcuDescription" 
+          name="description"
+          rows="3"
+          class="w-full px-4 py-2 bg-ash-grey-50 border border-ash-grey-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-vintage-grape-500 focus:border-transparent resize-none"
+          placeholder="Optional description..."
+        ></textarea>
+      </div>
+
+      <!-- Error Message -->
+      <div id="mcuFormError" class="hidden mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded-lg text-sm">
+        <i class="fas fa-exclamation-circle mr-2"></i>
+        <span id="mcuFormErrorText"></span>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex items-center justify-end space-x-3 pt-4 border-t border-ash-grey-200">
+        <button 
+          type="button"
+          id="cancelAddMCU"
+          class="px-4 py-2 text-silver-700 hover:bg-ash-grey-100 rounded-lg transition"
+        >
+          Cancel
+        </button>
+        <button 
+          type="submit"
+          class="px-6 py-2 bg-vintage-grape-600 hover:bg-vintage-grape-700 text-white font-medium rounded-lg transition flex items-center space-x-2"
+        >
+          <i class="fas fa-plus"></i>
+          <span>Add MCU</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

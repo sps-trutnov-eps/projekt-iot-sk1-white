@@ -1,4 +1,4 @@
-const MCUModel = require('../models/MCU/MCUmodel'); // ← CHYBÍ!
+const MCUModel = require('../models/MCU/MCUService');
 
 const addMCU = (req, res) => {
   try {
@@ -10,4 +10,4 @@ const addMCU = (req, res) => {
 };
 
 
-module.exports = { addMCU};
+module.exports = {addMCU};
