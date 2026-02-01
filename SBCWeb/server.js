@@ -15,9 +15,11 @@ app.set('views', path.join(__dirname, './src/views'));
 // Routes
 const indexRoutes = require('./src/routes/indexRouter');
 const telemetryRoutes = require('./src/routes/telemetryRouter');
+const MCURoutes = require('./src/routes/MCURouter')
 
 app.use('/', indexRoutes);
 app.use('/telemetry', telemetryRoutes);
+app.use('/MCU', MCURoutes)
 
 // Error handling
 app.use((req, res) => {
