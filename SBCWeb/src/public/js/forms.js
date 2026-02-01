@@ -40,10 +40,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 type: document.getElementById('mcuType').value,
                 ipAddress: document.getElementById('mcuIP').value,
                 macAddress: document.getElementById('mcuMAC').value,
-                mcuLocation: document.getElementById('mcuLocation').value,
+                location: document.getElementById('mcuLocation').value,
                 description: document.getElementById('mcuDescription').value
             };
             
+        console.log('📦 Sending data:', formData); // Debug
+
+
             try {
                 const response = await fetch('/mcu/add', {
                     method: 'POST',

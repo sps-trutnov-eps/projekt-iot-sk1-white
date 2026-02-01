@@ -24,18 +24,21 @@ class MCUService {
 
         
         const mcu = new MCU({
-            name: data.name.trim(),
-            ipAddress: ipAddress.trim(),
-            macAddress: macAddress.trim(),
-            description: data.description?.trim() || null,
+            name: data.name,
+            type: data.type,
+            ipAddress: data.ipAddress || data.ip_address,
+            macAddress: data.macAddress || data.mac_address,
+            location: data.location || data.mcuLocation,
+            description: data.description,
             apiKey: this.generateApiKey()
         });
         
         const dbData = mcu.toDatabase();
+        const result = MCURepository.create(dbData);
 
-        const id = MCURepository.create(dbData);
+        const newId = result.lastID || result.id || result;
         
-        mcu.id = id;
+        mcu.id = newId;
 
         return mcu;
         

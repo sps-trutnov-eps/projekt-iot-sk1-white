@@ -4,7 +4,7 @@ const MCU = require('./MCU');
 class MCURepository{
     static create(mcuData) {
         const query = `
-            INSERT INTO devices (name, type, ip_address, mac_address, location, description, api_key)
+            INSERT INTO mcus (name, type, ip_address, mac_address, location, description, api_key)
             VALUES (?, ?, ?, ?, ?, ?, ?)
         `;
         
@@ -19,16 +19,7 @@ class MCURepository{
             mcuData.api_key
         );
         
-        return new MCU({
-            device_id: result.lastInsertRowid,
-            name: mcuData.name,
-            type: mcuData.type,
-            ip_address: mcuData.ip_address,
-            mac_address: mcuData.mac_address,
-            location: mcuData.location,
-            description: mcuData.description,
-            api_key: mcuData.api_key
-        });
+        return result.lastInsertRowid;
     }
 
     static findById(id){

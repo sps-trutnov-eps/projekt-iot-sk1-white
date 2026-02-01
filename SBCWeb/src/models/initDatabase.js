@@ -1,7 +1,7 @@
 const db = require('./database');
 
 db.exec(`
-  CREATE TABLE IF NOT EXISTS devices (
+  CREATE TABLE IF NOT EXISTS mcus (
     device_id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     type TEXT,
