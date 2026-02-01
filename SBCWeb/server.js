@@ -6,7 +6,7 @@ const PORT = 3000;
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, './src/public')));
 
 // View engine setup
 app.set('view engine', 'ejs');
