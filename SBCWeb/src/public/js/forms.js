@@ -4,11 +4,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeModal = document.getElementById('closeModal');
     const cancelBtn = document.getElementById('cancelBtn');
 
-    if (addMCUBtn && addMCUModal) {
-        addMCUBtn.addEventListener('click', () => {
+    if (addMCUModal) {
+        if(addMCUBtn){
+            addMCUBtn.addEventListener('click', () => {
             addMCUModal.classList.remove('hidden');
             console.log("opening MCUmodal");
         });
+
+        }
+        
+        if(closeModal){
+            closeModal.addEventListener('click', () => {
+            addMCUModal.classList.add('hidden');
+            console.log("opening MCUmodal");
+        });
+        }
+
+        
+        
     }
+
+
 
 });
