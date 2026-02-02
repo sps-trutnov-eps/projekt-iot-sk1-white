@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(addMCUBtn){
             addMCUBtn.addEventListener('click', () => {
             addMCUModal.classList.remove('hidden');
+            hideError();
             console.log("opening MCUmodal");
         });
         }
@@ -31,6 +32,19 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("opening MCUmodal");
         });
         } 
+        // error message
+        function showError(message){
+            const errorDiv = document.getElementById('errorMessage');
+            const errorText = errorDiv.querySelector('p');
+        
+            errorText.textContent = message;
+            errorDiv.classList.remove('hidden');
+        }
+
+        function hideError(){
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.classList.add('hidden');
+        }
 
         //odeslání formuláře
         if(submitBtn){
@@ -50,6 +64,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
             try {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Přidávám...';
                 const response = await fetch('/mcu/add', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -63,13 +79,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     alert('MCU bylo úspěšně vytvořeno!');
                     addMCUModal.classList.add('hidden');
                     document.getElementById('addMCUForm').reset();
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-plus"></i> Add MCU';
                 } else {
                     // Chyba - zobraz chybovou hlášku
-                    alert('Chyba: ' + data.message);
+                    showError(data.message);
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-plus"></i> Add MCU';
                 }
                 
             } catch (error) {
-                alert('Chyba při odesílání: ' + error.message);
+                showError(data.message);
             }
         });
     }
