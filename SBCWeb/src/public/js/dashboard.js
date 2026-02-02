@@ -1,65 +1,36 @@
-// Sidebar functionality
-console.log('Dashboard inicializován');
+// TODO: Implementuj sidebar toggle funkci
+// Elementy:
+// - sidebar: document.getElementById('sidebar')
+// - mainContent: document.getElementById('mainContent')
+// - toggleSidebarBtn: document.getElementById('toggleSidebarBtn')
+// - overlay: document.getElementById('sidebarOverlay')
 
-// State management
-const state = {
-  sidebarOpen: window.innerWidth >= 1024
-};
 
-// DOM Elements
 const sidebar = document.getElementById('sidebar');
-const sidebarOverlay = document.getElementById('sidebarOverlay');
-const toggleSidebarBtn = document.getElementById('toggleSidebar');
-const closeSidebarBtn = document.getElementById('closeSidebar');
-const logoutBtn = document.getElementById('logout');
+const mainContent = document.getElementById('mainContent');
+const toggleSidebarDesktop = document.getElementById('toggleSidebarDesktop');
+const overlay = document.getElementById('sidebarOverlay');
 
-// Toggle Sidebar
-function toggleSidebar() {
-  state.sidebarOpen = !state.sidebarOpen;
+// Sidebar toggle funkce
+let sidebarVisible = false; // Sidebar je defaultně schovaný
+
+toggleSidebarDesktop.addEventListener('click', function() {
+  sidebarVisible = !sidebarVisible;
   
-  if (state.sidebarOpen) {
-    sidebar.classList.remove('-translate-x-full');
-    if (window.innerWidth < 1024) {
-      sidebarOverlay.classList.remove('hidden');
-    }
-  } else {
-    sidebar.classList.add('-translate-x-full');
-    sidebarOverlay.classList.add('hidden');
-  }
-}
-
-// Close Sidebar (mobile)
-function closeSidebar() {
-  state.sidebarOpen = false;
-  sidebar.classList.add('-translate-x-full');
-  sidebarOverlay.classList.add('hidden');
-}
-
-// Event Listeners
-toggleSidebarBtn?.addEventListener('click', toggleSidebar);
-closeSidebarBtn?.addEventListener('click', closeSidebar);
-sidebarOverlay?.addEventListener('click', closeSidebar);
-
-// Handle window resize
-window.addEventListener('resize', () => {
-  if (window.innerWidth >= 1024) {
-    sidebar.classList.remove('-translate-x-full');
-    sidebarOverlay.classList.add('hidden');
-    state.sidebarOpen = true;
-  } else {
-    if (!state.sidebarOpen) {
-      sidebar.classList.add('-translate-x-full');
-    }
-  }
-});
-
-
-// Initial sidebar state
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('Sidebar loaded');
+  // 1. Skrytí/zobrazení sidebaru
+  sidebar.classList.toggle('-translate-x-full');
   
-  if (window.innerWidth < 1024) {
-    sidebar.classList.add('-translate-x-full');
-    state.sidebarOpen = false;
+  // 2. Změna marginu main contentu
+  mainContent.classList.toggle('lg:ml-64');
+  mainContent.classList.toggle('lg:ml-0');
+  
+  // 3. Otočení šipek
+  const icon = toggleSidebarDesktop.querySelector('i');
+  if (sidebarVisible) {
+    icon.classList.remove('fa-angles-right');
+    icon.classList.add('fa-angles-left');
+  } else {
+    icon.classList.remove('fa-angles-left');
+    icon.classList.add('fa-angles-right');
   }
 });

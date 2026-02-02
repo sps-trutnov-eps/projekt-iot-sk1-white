@@ -23,6 +23,7 @@
           MCU Name <span class="text-red-500">*</span>
         </label>
         <input 
+          id="mcuName"
           type="text" 
           name="name" 
           required
@@ -37,6 +38,7 @@
           Type <span class="text-red-500">*</span>
         </label>
         <select 
+          id="mcuType"
           name="type" 
           required
           class="w-full px-4 py-2 border border-ash-grey-300 rounded-lg focus:ring-2 focus:ring-vintage-grape-500 focus:border-transparent"
@@ -56,9 +58,9 @@
           IP Address
         </label>
         <input 
+          id="mcuIP"
           type="text" 
           name="ipAddress"
-          pattern="^(\d{1,3}\.){3}\d{1,3}$"
           class="w-full px-4 py-2 border border-ash-grey-300 rounded-lg focus:ring-2 focus:ring-vintage-grape-500 focus:border-transparent"
           placeholder="192.168.1.100"
         >
@@ -68,12 +70,12 @@
       <!-- MAC Address -->
       <div>
         <label class="block text-sm font-medium text-midnight-violet-900 mb-2">
-          MAC Address
+          MAC Address <span class="text-red-500">*</span>
         </label>
         <input 
+          id="mcuMAC"
           type="text" 
           name="macAddress"
-          pattern="^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"
           class="w-full px-4 py-2 border border-ash-grey-300 rounded-lg focus:ring-2 focus:ring-vintage-grape-500 focus:border-transparent"
           placeholder="AA:BB:CC:DD:EE:FF"
         >
@@ -86,6 +88,7 @@
           Location
         </label>
         <input 
+          id="mcuLocation"
           type="text" 
           name="location"
           class="w-full px-4 py-2 border border-ash-grey-300 rounded-lg focus:ring-2 focus:ring-vintage-grape-500 focus:border-transparent"
@@ -99,6 +102,7 @@
           Description
         </label>
         <textarea 
+          id="mcuDescription"
           name="description"
           rows="3"
           class="w-full px-4 py-2 border border-ash-grey-300 rounded-lg focus:ring-2 focus:ring-vintage-grape-500 focus:border-transparent resize-none"
@@ -117,6 +121,7 @@
         </button>
         <button 
           type="submit"
+          id="submitBtn"
           class="px-6 py-2 bg-vintage-grape-600 text-white rounded-lg hover:bg-vintage-grape-700 transition"
         >
           <i class="fas fa-plus mr-2"></i>
