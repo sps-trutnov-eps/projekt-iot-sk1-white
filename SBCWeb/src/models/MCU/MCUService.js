@@ -11,16 +11,13 @@ class MCUService {
         }
         //IP
         const ipAddress = data.ipAddress || data.ip_address;
-        if (!ipAddress || ipAddress.trim() === '') {
-            throw new Error('IP adresa je povinná');
-        }
+        
+        this.checkIP(ipAddress);
         
         //MAC
         const macAddress = data.mac_address || data.macAddress;
 
-        if (!macAddress || macAddress.trim() === '') {
-            throw new Error('MAC adresa je povinná');
-        }
+        this.checkMAC(macAddress);
 
         
         const mcu = new MCU({
@@ -92,6 +89,50 @@ class MCUService {
     // HELPER - vygenerovat API klíč
     static generateApiKey() {
         return 'api_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    }
+
+    // HELPER - IP, MAC check
+    static checkMAC(mac){
+        if(!mac || mac.trim() ==="" || typeof mac !== "string"){
+            throw new Error('Neplatná hodnota zadané MAC adresy');
+        }
+
+        const normalized = mac.trim().replace(/[-.]/g, ':');
+
+        const parts = normalized.split(":");
+
+        if (parts.length !== 6){
+            throw new Error('Neplatná délka zadané MAC adresy');
+        } 
+
+        if (!parts.every(part => part.length === 2 && /^[0-9A-Fa-f]{2}$/.test(part))) {
+        throw new Error('Neplatná MAC adresa – bloky musí být 2 hex číslice');
+        }
+
+        return true;
+    }
+
+    static checkIP(ip){
+        if(!ip || ip.trim() ==="" || typeof ip!=="string"){
+            throw new Error('Neplatná hodnota zadané IP adresy');
+        }
+
+        const normalized = ip.trim();
+
+        const parts = normalized.split(".");
+
+        if (parts.length !== 4){
+            throw new Error('Neplatná délka zadané IP adresy');
+        }
+
+        if (!parts.every(part => {
+        const n = Number(part);
+        return part === n.toString() && n >= 0 && n <= 255;
+        })) {
+            throw new Error('Neplatná IP adresa – bloky musí být čísla od 0 do 255.');
+        }
+
+        return true;
     }
 }
 

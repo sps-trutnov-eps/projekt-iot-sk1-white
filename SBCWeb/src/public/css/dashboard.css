@@ -2,7 +2,7 @@
 
 /* Header buttons */
 .header-btn {
-  @apply flex items-center space-x-2 px-4 py-2 rounded-lg text-silver-700 hover:bg-ash-grey-100 transition;
+  @apply flex items-center space-x-2 px-4 py-2 rounded-lg text-silver-700 hover:bg-vintage-grape-400 hover:text-white transition;
 }
 
 /* Navigation items */

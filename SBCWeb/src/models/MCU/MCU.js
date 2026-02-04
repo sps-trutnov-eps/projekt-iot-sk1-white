@@ -1,6 +1,6 @@
 class MCU {
   constructor(data) {
-    this.id = data.id || null;
+    this.id = data.id || data.device_id || null;
     this.type = data.type
     this.name = data.name;
     this.ipAddress = data.ip_address || data.ipAddress;

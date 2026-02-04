@@ -13,8 +13,8 @@
 - [x] Přidat MCURepository.findByMac()
 - [x] Přidat MCUController.getAllMCUs()
 - [x] Přidat MCUController.getMCU()
-- [ ] Přidat MCUController.updateMCU()
-- [ ] Přidat MCUController.deleteMCU()
+- [x] Přidat MCUController.updateMCU()
+- [x] Přidat MCUController.deleteMCU()
 - [ ] Přidat MCURouter routes: GET /mcu, GET /mcu/:id, PUT /mcu/:id, DELETE /mcu/:id
 - [ ] Import MCU z CSV/JSON (endpoint + funkce)
 

@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
- 
+    
     /*
     MCU formulář
     */
@@ -18,8 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         if(mcuModal.submitBtn){
+            console.log("loaded")
             mcuModal.submitBtn.addEventListener('click', async (e) =>{
               e.preventDefault();
+              console.log("aha")
 
                 const formData = {
                     name: document.getElementById('mcuName').value,
@@ -34,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     submitBtn.disabled = true;
                     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Přidávám...';
                     
-                    const response = await fetch('/mcu/add', {
+                    const response = await fetch('/add', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(formData)
