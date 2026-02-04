@@ -1,0 +1,138 @@
+<!-- Sidebar pro MCU stránku -->
+<aside id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-midnight-violet-900 shadow-2xl transition-all duration-300 ease-in-out z-40">
+  <div class="flex flex-col h-full">
+    
+    <!-- Header -->
+    <div class="p-6 border-b border-midnight-violet-800">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-gradient-to-br from-vintage-grape-400 to-midnight-violet-500 rounded-lg shadow-lg flex-shrink-0"></div>
+          <span class="text-ash-grey-50 font-bold text-lg">IoT Control</span>
+        </div>
+        <button id="closeSidebar" class="text-ash-grey-300 hover:text-ash-grey-50 lg:hidden">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="p-4 border-b border-midnight-violet-800">
+      <h3 class="text-xs font-semibold text-ash-grey-400 uppercase tracking-wider mb-3">Přehled</h3>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-midnight-violet-800 rounded-lg p-3 text-center">
+          <div id="totalMCU" class="text-2xl font-bold text-ash-grey-50">0</div>
+          <div class="text-xs text-ash-grey-400">Celkem</div>
+        </div>
+        <div class="bg-midnight-violet-800 rounded-lg p-3 text-center">
+          <div id="onlineMCU" class="text-2xl font-bold text-green-400">0</div>
+          <div class="text-xs text-ash-grey-400">Online</div>
+        </div>
+        <div class="bg-midnight-violet-800 rounded-lg p-3 text-center">
+          <div id="offlineMCU" class="text-2xl font-bold text-red-400">0</div>
+          <div class="text-xs text-ash-grey-400">Offline</div>
+        </div>
+        <div class="bg-midnight-violet-800 rounded-lg p-3 text-center">
+          <div id="warningMCU" class="text-2xl font-bold text-yellow-400">0</div>
+          <div class="text-xs text-ash-grey-400">Varování</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Filters -->
+    <div class="p-4 border-b border-midnight-violet-800">
+      <h3 class="text-xs font-semibold text-ash-grey-400 uppercase tracking-wider mb-3">Rychlé filtry</h3>
+      <div class="space-y-1">
+        <button class="quick-filter active w-full flex items-center justify-between px-3 py-2 rounded-lg text-ash-grey-300 hover:bg-midnight-violet-800 transition" data-filter="all">
+          <span class="flex items-center space-x-2">
+            <i class="fas fa-list w-4"></i>
+            <span>Všechna zařízení</span>
+          </span>
+          <span class="text-xs bg-midnight-violet-700 px-2 py-0.5 rounded-full" id="countAll">0</span>
+        </button>
+        <button class="quick-filter w-full flex items-center justify-between px-3 py-2 rounded-lg text-ash-grey-300 hover:bg-midnight-violet-800 transition" data-filter="online">
+          <span class="flex items-center space-x-2">
+            <span class="w-2 h-2 bg-green-400 rounded-full"></span>
+            <span>Online</span>
+          </span>
+          <span class="text-xs bg-green-900 text-green-300 px-2 py-0.5 rounded-full" id="countOnline">0</span>
+        </button>
+        <button class="quick-filter w-full flex items-center justify-between px-3 py-2 rounded-lg text-ash-grey-300 hover:bg-midnight-violet-800 transition" data-filter="offline">
+          <span class="flex items-center space-x-2">
+            <span class="w-2 h-2 bg-red-400 rounded-full"></span>
+            <span>Offline</span>
+          </span>
+          <span class="text-xs bg-red-900 text-red-300 px-2 py-0.5 rounded-full" id="countOffline">0</span>
+        </button>
+        <button class="quick-filter w-full flex items-center justify-between px-3 py-2 rounded-lg text-ash-grey-300 hover:bg-midnight-violet-800 transition" data-filter="warning">
+          <span class="flex items-center space-x-2">
+            <span class="w-2 h-2 bg-yellow-400 rounded-full"></span>
+            <span>Vyžaduje pozornost</span>
+          </span>
+          <span class="text-xs bg-yellow-900 text-yellow-300 px-2 py-0.5 rounded-full" id="countWarning">0</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Filter by Type -->
+    <div class="p-4 border-b border-midnight-violet-800">
+      <h3 class="text-xs font-semibold text-ash-grey-400 uppercase tracking-wider mb-3">Podle typu</h3>
+      <div class="space-y-1">
+        <button class="type-filter w-full flex items-center justify-between px-3 py-2 rounded-lg text-ash-grey-300 hover:bg-midnight-violet-800 transition" data-type="ESP32">
+          <span class="flex items-center space-x-2">
+            <i class="fas fa-microchip w-4 text-vintage-grape-400"></i>
+            <span>ESP32</span>
+          </span>
+          <span class="text-xs bg-midnight-violet-700 px-2 py-0.5 rounded-full" id="countESP32">0</span>
+        </button>
+        <button class="type-filter w-full flex items-center justify-between px-3 py-2 rounded-lg text-ash-grey-300 hover:bg-midnight-violet-800 transition" data-type="ESP8266">
+          <span class="flex items-center space-x-2">
+            <i class="fas fa-microchip w-4 text-vintage-grape-400"></i>
+            <span>ESP8266</span>
+          </span>
+          <span class="text-xs bg-midnight-violet-700 px-2 py-0.5 rounded-full" id="countESP8266">0</span>
+        </button>
+        <button class="type-filter w-full flex items-center justify-between px-3 py-2 rounded-lg text-ash-grey-300 hover:bg-midnight-violet-800 transition" data-type="Arduino">
+          <span class="flex items-center space-x-2">
+            <i class="fas fa-microchip w-4 text-vintage-grape-400"></i>
+            <span>Arduino</span>
+          </span>
+          <span class="text-xs bg-midnight-violet-700 px-2 py-0.5 rounded-full" id="countArduino">0</span>
+        </button>
+        <button class="type-filter w-full flex items-center justify-between px-3 py-2 rounded-lg text-ash-grey-300 hover:bg-midnight-violet-800 transition" data-type="Raspberry Pi">
+          <span class="flex items-center space-x-2">
+            <i class="fas fa-raspberry-pi w-4 text-vintage-grape-400"></i>
+            <span>Raspberry Pi</span>
+          </span>
+          <span class="text-xs bg-midnight-violet-700 px-2 py-0.5 rounded-full" id="countRaspberry">0</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="p-4 flex-1">
+      <h3 class="text-xs font-semibold text-ash-grey-400 uppercase tracking-wider mb-3">Akce</h3>
+      <div class="space-y-2">
+        <button id="sidebarAddMCU" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-vintage-grape-400 hover:bg-midnight-violet-800 border border-dashed border-vintage-grape-700 hover:border-vintage-grape-500 transition">
+          <i class="fas fa-plus w-4"></i>
+          <span>Přidat MCU</span>
+        </button>
+        <button id="refreshAll" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-ash-grey-300 hover:bg-midnight-violet-800 transition">
+          <i class="fas fa-sync-alt w-4"></i>
+          <span>Obnovit vše</span>
+        </button>
+        <button id="exportList" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-ash-grey-300 hover:bg-midnight-violet-800 transition">
+          <i class="fas fa-download w-4"></i>
+          <span>Exportovat seznam</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigation Footer -->
+    <div class="p-4 border-t border-midnight-violet-800">
+      <a href="/dashboard" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-ash-grey-300 hover:bg-midnight-violet-800 transition">
+        <i class="fas fa-arrow-left w-4"></i>
+        <span>Zpět na Dashboard</span>
+      </a>
+    </div>
+  </div>
+</aside>

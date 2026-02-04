@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard - <%= projectName %></title>
+  <title>MCU Controllers - <%= projectName %></title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -25,36 +25,43 @@
 </head>
 <body class="bg-ash-grey-50 min-h-screen">
   
-  <%- include('partials/common/sidebar') %>
+  <%- include('partials/mcus/sidebar') %>
 
   <!-- Main Content -->
   <div id="mainContent" class="lg:ml-64 transition-all duration-300">
     
-    <%- include('partials/dashboard/header') %>
+    <%- include('partials/mcus/header') %>
 
-    <!-- Dashboard Content -->
+    <!-- MCU List Content -->
     <main class="p-6">
-      <%- include('partials/dashboard/stats') %>
+      
+      <%- include('partials/mcus/searchBar') %>
 
-      <!-- Main Content Area -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <%- include('partials/dashboard/chart') %>
-        <%- include('partials/dashboard/activity') %>
+      <!-- MCU Cards List -->
+      <div id="mcuGrid" class="flex flex-col gap-3 w-full">
+        
+        <!-- MCU karty budou generovány pomocí JavaScript -->
+        
+        <%- include('partials/mcus/emptyState') %>
+
       </div>
 
-      <%- include('partials/dashboard/sensorTable') %>
+      <%- include('partials/mcus/addCardButton') %>
+
     </main>
   </div>
 
   <!-- Overlay for mobile sidebar -->
   <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden lg:hidden"></div>
 
-  <!-- ADD MCU MODAL -->
+  <!-- Add/Edit MCU Modal -->
   <%- include('partials/common/formMCU') %>
 
+  <!-- Delete Confirmation Modal -->
+  <%- include('partials/common/deleteModal') %>
 
-  <script src="/js/pages/dashboard.js"></script>
   <script src="/js/components/modals.js"></script>
   <script src="/js/components/forms.js"></script>
+  <script src="/js/pages/mcus.js"></script>
 </body>
 </html>

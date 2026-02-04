@@ -1,0 +1,30 @@
+<!-- Search & Filter Bar -->
+<div class="bg-white rounded-xl shadow-sm border border-ash-grey-200 p-4 mb-6">
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div class="relative flex-1 max-w-md">
+      <input 
+        type="text" 
+        id="searchMCU" 
+        placeholder="Hledat MCU..." 
+        class="w-full pl-10 pr-4 py-2 bg-ash-grey-50 border border-ash-grey-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-vintage-grape-500 focus:border-transparent"
+      >
+      <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-silver-400"></i>
+    </div>
+    
+    <div class="flex items-center space-x-3">
+      <select id="filterType" class="px-4 py-2 bg-ash-grey-50 border border-ash-grey-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-vintage-grape-500">
+        <option value="">Všechny typy</option>
+        <option value="ESP32">ESP32</option>
+        <option value="ESP8266">ESP8266</option>
+        <option value="Arduino">Arduino</option>
+        <option value="Raspberry Pi">Raspberry Pi</option>
+      </select>
+      
+      <select id="filterStatus" class="px-4 py-2 bg-ash-grey-50 border border-ash-grey-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-vintage-grape-500">
+        <option value="">Všechny stavy</option>
+        <option value="online">Online</option>
+        <option value="offline">Offline</option>
+      </select>
+    </div>
+  </div>
+</div>
