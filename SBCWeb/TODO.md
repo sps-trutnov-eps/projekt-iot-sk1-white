@@ -5,14 +5,14 @@
 - [x] Zobrazovat backend chyby v modalu místo alert()
 
 ## Backend - MCU CRUD
-- [ ] Dopsat MCUService.getMCU()
-- [ ] Dopsat MCUService.getAllMCUs()
-- [ ] Dopsat MCUService.updateMCU()
-- [ ] Dopsat MCUService.deleteMCU()
-- [ ] Přidat MCURepository.delete()
-- [ ] Přidat MCURepository.findByMac()
-- [ ] Přidat MCUController.getAllMCUs()
-- [ ] Přidat MCUController.getMCU()
+- [x] Dopsat MCUService.getMCU()
+- [x] Dopsat MCUService.getAllMCUs()
+- [x] Dopsat MCUService.updateMCU()
+- [x] Dopsat MCUService.deleteMCU()
+- [x] Přidat MCURepository.delete()
+- [x] Přidat MCURepository.findByMac()
+- [x] Přidat MCUController.getAllMCUs()
+- [x] Přidat MCUController.getMCU()
 - [ ] Přidat MCUController.updateMCU()
 - [ ] Přidat MCUController.deleteMCU()
 - [ ] Přidat MCURouter routes: GET /mcu, GET /mcu/:id, PUT /mcu/:id, DELETE /mcu/:id

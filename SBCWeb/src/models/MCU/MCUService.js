@@ -45,7 +45,7 @@ class MCUService {
     }
 
     // READ - získat jedno MCU
-    static getMCU(id) {
+    static findById(id) {
         const mcu = MCURepository.findById(id);
         
         if(!mcu){
