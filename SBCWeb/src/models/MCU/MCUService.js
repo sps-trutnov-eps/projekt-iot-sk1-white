@@ -63,29 +63,17 @@ class MCUService {
     // UPDATE - aktualizovat MCU
     static updateMCU(id, data) {
 
-        if(!data.name || data.name.trim() ===''){
-            throw new Error('Name je povinné pole');
-        }
-        //IP
-        const ipAddress = data.ipAddress || data.ip_address;
-        if (!ipAddress || ipAddress.trim() === '') {
-            throw new Error('IP adresa je povinná');
-        }
-        
-        //MAC
-        const macAddress = data.mac_address || data.macAddress;
+        const mcu = MCURepository.findById(id);
 
-        if (!macAddress || macAddress.trim() === '') {
-            throw new Error('MAC adresa je povinná');
-        }
+
 
         const updateData = {
-            name: data.name,
-            type: data.type,
-            ip_address: ipAddress,
-            mac_address: macAddress,
-            location: data.location,
-            description: data.description
+            name: data.name ?? mcu.name,
+            type: data.type ?? mcu.type,
+            ip_address: data.ipAddress ?? mcu.ipAddress,
+            mac_address: data.macAddress ?? mcu.macAddress,
+            location: data.location ?? mcu.location,
+            description: data.description ?? mcu.description
         }
 
         return MCURepository.update(id, updateData);
@@ -95,11 +83,11 @@ class MCUService {
     // DELETE - smazat MCU
     static deleteMCU(id) {
         const success = MCURepository.delete(id);
-        if (!mcu) {
+        if (!success) {
             throw new Error('MCU s daným ID nebylo nalezeno');
         }
-        MCURepository.delete(id);
-        return mcu;
+        
+        return success;
     }
     // HELPER - vygenerovat API klíč
     static generateApiKey() {
