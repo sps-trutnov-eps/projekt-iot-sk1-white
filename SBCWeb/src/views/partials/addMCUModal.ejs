@@ -1,16 +1,16 @@
 <!-- Add MCU Modal -->
-<div id="addMCUModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+<div id="MCUModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
   <div class="bg-white rounded-lg shadow-2xl max-w-md w-full transform transition-all">
     <!-- Modal Header -->
     <div class="flex items-center justify-between px-6 py-4 border-b border-ash-grey-200">
       <h2 class="text-xl font-bold text-midnight-violet-900">Add New MCU</h2>
-      <button id="closeAddMCUModal" class="text-silver-600 hover:text-silver-800 transition">
+      <button id="MCUClose" class="text-silver-600 hover:text-silver-800 transition">
         <i class="fas fa-times text-xl"></i>
       </button>
     </div>
 
     <!-- Modal Body -->
-    <form id="addMCUForm" class="px-6 py-4">
+    <form id="MCUForm" class="px-6 py-4">
       <!-- MCU Name -->
       <div class="mb-4">
         <label for="mcuName" class="block text-sm font-medium text-silver-700 mb-2">
@@ -48,12 +48,12 @@
 
       <!-- IP Address -->
       <div class="mb-4">
-        <label for="mcuIpAddress" class="block text-sm font-medium text-silver-700 mb-2">
+        <label for="mcuIP" class="block text-sm font-medium text-silver-700 mb-2">
           IP Address
         </label>
         <input 
           type="text" 
-          id="mcuIpAddress" 
+          id="mcuIP" 
           name="ipAddress"
           class="w-full px-4 py-2 bg-ash-grey-50 border border-ash-grey-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-vintage-grape-500 focus:border-transparent"
           placeholder="e.g., 192.168.1.100"
@@ -63,12 +63,12 @@
 
       <!-- MAC Address -->
       <div class="mb-4">
-        <label for="mcuMacAddress" class="block text-sm font-medium text-silver-700 mb-2">
+        <label for="mcuMAC" class="block text-sm font-medium text-silver-700 mb-2">
           MAC Address
         </label>
         <input 
           type="text" 
-          id="mcuMacAddress" 
+          id="mcuMAC" 
           name="macAddress"
           class="w-full px-4 py-2 bg-ash-grey-50 border border-ash-grey-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-vintage-grape-500 focus:border-transparent"
           placeholder="e.g., AA:BB:CC:DD:EE:FF"
@@ -104,22 +104,23 @@
       </div>
 
       <!-- Error Message -->
-      <div id="mcuFormError" class="hidden mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded-lg text-sm">
+      <div id="MCUError" class="hidden mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded-lg text-sm">
         <i class="fas fa-exclamation-circle mr-2"></i>
-        <span id="mcuFormErrorText"></span>
+        <p></p>
       </div>
 
       <!-- Modal Footer -->
       <div class="flex items-center justify-end space-x-3 pt-4 border-t border-ash-grey-200">
         <button 
           type="button"
-          id="cancelAddMCU"
+          id="MCUCancel"
           class="px-4 py-2 text-silver-700 hover:bg-ash-grey-100 rounded-lg transition"
         >
           Cancel
         </button>
         <button 
           type="submit"
+          id="MCUSubmit"
           class="px-6 py-2 bg-vintage-grape-600 hover:bg-vintage-grape-700 text-white font-medium rounded-lg transition flex items-center space-x-2"
         >
           <i class="fas fa-plus"></i>

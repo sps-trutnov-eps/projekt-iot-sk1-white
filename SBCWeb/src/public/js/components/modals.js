@@ -10,8 +10,8 @@ const Modal = {
         const cancelBtn = document.getElementById(`${name}Cancel`)
         const submitBtn = document.getElementById(`${name}Submit`)
         const errorDiv = document.getElementById(`${name}Error`);
-        const errorText = errorDiv.querySelector('p');
-
+        const errorText = errorDiv?.querySelector('p');
+        const openModal = document.getElementById(`${name}Open`)
 
         if (!modal) {
             console.warn(`Modal #${name}Modal nenalezen`);
@@ -42,13 +42,19 @@ const Modal = {
 
 
         const showError = (message) => {
-            errorText.textContent = message;
-            errorDiv.classList.remove('hidden');
+            if(errorText){
+                errorText.textContent = message;
+                errorDiv.classList.remove('hidden');
+            }
+        
         };
 
         const hideError = () =>{
-            errorText.textContent = '';
-            errorDiv.classList.add('hidden');
+            if(errorDiv){
+                errorText.textContent = '';
+                errorDiv.classList.add('hidden');
+            }
+
         }
 
 
@@ -61,13 +67,17 @@ const Modal = {
             cancelBtn.addEventListener("click", close);
         }
 
+        if(openModal){
+            openModal.addEventListener("click", open);
+        }
+
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
                 close();
             }
         });
 
-        return { open, close, modal, form, submitBtn, showError, hideError};
+        return { open, close, modal, form, submitBtn, cancelBtn, openModal, closeBtn, showError, hideError};
     }
 }
 
