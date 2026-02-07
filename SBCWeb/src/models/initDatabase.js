@@ -1,4 +1,5 @@
 const db = require('./database');
+function initDB() {
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS mcus (
@@ -39,10 +40,17 @@ db.exec(`
 `);
 
 db.exec(`
-  CREATE TABLE IF NOT EEXISTS types(
+  CREATE TABLE IF NOT EXISTS types(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   type TEXT UNIQUE NOT NULL
   )
   `);
 
+}
+
+initDB();
+
+
 console.log('Databáze inicializována');
+
+module.exports = initDB;

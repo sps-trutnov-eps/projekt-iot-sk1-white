@@ -1,7 +1,12 @@
+
 const express = require('express');
 const path = require('path');
 const app = express();
 const PORT = 3000;
+
+const db = require('./src/models/database');
+const initDB = require('./src/models/initDatabase');
+initDB();
 
 // Middleware
 app.use(express.json());
@@ -21,6 +26,8 @@ app.use('/', indexRoutes);
 app.use('/api', telemetryRoutes);
 app.use('/', MCURoutes)
 
+initDB();
+
 // Error handling
 app.use((req, res) => {
   res.status(404).render('404', { title: '404 - Stránka nenalezena' });
@@ -29,3 +36,4 @@ app.use((req, res) => {
 app.listen(PORT, () => {
   console.log(`Server běží na http://localhost:${PORT}`);
 });
+
