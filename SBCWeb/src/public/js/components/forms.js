@@ -31,11 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 2500);
     }
 
-    
-
-    openToast("test");
-
-
 
     /*
     MCU formulář
@@ -81,7 +76,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     if (data.success) {
                         // Úspěch - zobraz zprávu a zavři modal
-                        alert('MCU bylo úspěšně vytvořeno!');
+                        if(toast && toastMsg){
+                            openToast(data.message);
+                        }
+                        else{
+                            showError("nebylo možné zobrazit alert");
+                        }
                         mcuModal.close();
                         submitBtn.disabled = false;
                         submitBtn.innerHTML = '<i class="fas fa-plus"></i> Add MCU';
@@ -93,7 +93,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     
                 } catch (error) {
-                    mcuModal.showError('Něco se pokazilo. Zkuste to znovu.');
+                    console.log(error)
+                    mcuModal.showError(error);
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = '<i class="fas fa-plus"></i> Add MCU';
                 }
