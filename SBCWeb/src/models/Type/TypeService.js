@@ -1,13 +1,28 @@
+const Type = require('./Type');
 const TypeRepository = require('./TypeRepository');
 
 class TypeService{
     static createType(data){
-        if(!data.name || data.name.trim() === ''){
+
+        if(!data.type || data.type.trim() === ''){
+            console.log("error");
             throw new Error('Jméno typu je povinné pole.');
+            
         }
+        
 
+        const type = new Type({
+            type: data.type 
+        });
+        
+        const dbData = type.toDatabase();
 
-        const type = TypeRepository.create(data);
+        const result = TypeRepository.create(dbData);
+        console.log('bagr')
+        // result může být objekt nebo číslo -> zjistit id podobně jako u MCUService
+        const newId = result && (result.lastID || result.id || result) ;
+        type.id = newId;
+
         return type;
     }
 
@@ -28,7 +43,7 @@ class TypeService{
 }
 
 
-
+module.exports = TypeService;
 
 
 

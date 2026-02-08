@@ -21,10 +21,13 @@ app.set('views', path.join(__dirname, './src/views'));
 const indexRoutes = require('./src/routes/indexRouter');
 const telemetryRoutes = require('./src/routes/telemetryRouter');
 const MCURoutes = require('./src/routes/MCURouter')
+const typeRoutes = require('./src/routes/typeRouter')
 
 app.use('/', indexRoutes);
+app.use('/mcu', MCURoutes)
 app.use('/api', telemetryRoutes);
-app.use('/', MCURoutes)
+app.use('/type', typeRoutes);
+
 
 initDB();
 

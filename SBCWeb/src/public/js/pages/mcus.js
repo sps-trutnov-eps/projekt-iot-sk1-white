@@ -2,6 +2,9 @@
     Type formulář
     */
     const typeModal = Modal.register('Type');
+    const toast = document.getElementById("toast");
+    const toastMsg = document.getElementById("toast-message");
+
     
     if(typeModal){
         const {openModal, submitBtn, showError, hideError } = typeModal;
@@ -20,8 +23,7 @@
               e.preventDefault();
 
                 const formData = {
-                    type: document.getElementById('mcuName').value,
-                    
+                    type: document.getElementById('typeName').value,
                 };
 
                 try {

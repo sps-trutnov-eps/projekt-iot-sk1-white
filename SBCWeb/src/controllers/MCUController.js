@@ -1,6 +1,6 @@
 const MCUService = require('../models/MCU/MCUService');
 
-const addMCU = (req, res) => {
+const createMCU = (req, res) => {
   try {
     const newMCU = MCUService.createMCU(req.body);
     res.status(201).json({
@@ -66,4 +66,4 @@ const updateMCU = (req,res) => {
 
 }
 
-module.exports = {addMCU, getMCU, getALLMCUs, deleteMCU, updateMCU};
+module.exports = {createMCU, getMCU, getALLMCUs, deleteMCU, updateMCU};

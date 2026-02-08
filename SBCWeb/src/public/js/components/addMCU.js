@@ -32,7 +32,7 @@
                     submitBtn.disabled = true;
                     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Přidávám...';
                     
-                    const response = await fetch('/add', {
+                    const response = await fetch('/mcu/add', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(formData)

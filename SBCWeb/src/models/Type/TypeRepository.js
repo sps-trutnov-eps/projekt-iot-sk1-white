@@ -3,17 +3,26 @@ const Type = require('./Type.js');
 
 class TypeRepository{
     static create(data) {
+
         const query = `
             INSERT INTO types (type)
             VALUES (?)
         `;
         
         const stmt = db.prepare(query);
-        const result = stmt.run(
-            data.type
-        );
-        
-        return result.lastInsertRowid;
+        // ...existing code...
+        const value = data.type ?? data.name;
+        if (!value) {
+            throw new Error('TypeRepository.create: no value to insert (data.type/data.name missing)');
+        }
+
+        try {
+            const result = stmt.run(value);
+            return result;
+        } catch (error) {
+            console.error('TypeRepository.create SQL error:', error && (error.stack || error), { query, value });
+            throw error;
+        }
     }
 
     static findById(id){
