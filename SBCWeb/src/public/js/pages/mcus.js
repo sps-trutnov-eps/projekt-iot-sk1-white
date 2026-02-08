@@ -49,6 +49,13 @@
                         typeModal.close();
                         submitBtn.disabled = false;
                         submitBtn.innerHTML = '<i class="fas fa-plus"></i> Add Type';
+                        const result = await fetchData('/type/types');
+                        if (result) {
+                            populateSelector(result);
+                        } else {
+                            console.warn('Žádná data nebyla načtena.');
+                        }
+                        
                     } else {
                         // Chyba - zobraz chybovou hlášku
                         showError(data.message);

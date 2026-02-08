@@ -17,13 +17,25 @@ async function fetchData(url) {
 
 function populateSelector(typesArray) {
   const selectElement = document.getElementById('typeSelector');
+  if (!selectElement) return;
 
+  selectElement.innerHTML = '';
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = 'Vyberte typ';
+  placeholder.disabled = true;
+  placeholder.selected = true;
+  selectElement.appendChild(placeholder);
+
+  const seen = new Set();
   typesArray.forEach(function(item) {
+    const id = item.id ?? item._id ?? item.type ?? String(item);
+    if (seen.has(id)) return; // dedupe
+    seen.add(id);
+
     const option = document.createElement('option');
-    
-    option.value = item.id; 
-    option.textContent = item.type;
-    
+    option.value = id;
+    option.textContent = item.type ?? String(item);
     selectElement.appendChild(option);
   });
 }
