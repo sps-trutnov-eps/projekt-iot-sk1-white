@@ -39,7 +39,7 @@ const getALLMCUs = (req,res) =>{
   try{
     const MCUs = MCUService.getAllMCUs();
     res.json({
-      controllers: MCUs
+      result: MCUs
     })
   }
   catch(error){

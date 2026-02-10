@@ -41,12 +41,20 @@ function populateSelector(selecotrId,typesArray) {
 }
 
 document.addEventListener('DOMContentLoaded', async function() {
-  const result = await fetchData('/type/types');
-  console.log(result);
-  if (result) {
-    populateSelector("TypeSelectorSearchBar",result);
-    populateSelector("TypeSelectorMCUForm",result);
+  // načtení typů //
+  const types = await fetchData('/type/types');
+  if (types) {
+    populateSelector("TypeSelectorSearchBar",types);
+    populateSelector("TypeSelectorMCUForm",types);
   } else {
-    console.warn('Žádná data nebyla načtena.');
+    console.warn('Žádné typy nebyla načtena.');
   }
+  // načtení MCU //
+  const mcus = await fetchData('/mcu/mcus');
+  if (mcus) {
+    console.log(mcus);
+  } else {
+    console.warn('Žádná mcu nebyla načtena.');
+  }
+
 });
