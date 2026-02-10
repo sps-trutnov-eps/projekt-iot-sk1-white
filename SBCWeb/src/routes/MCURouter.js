@@ -5,8 +5,6 @@ const MCUController = require('../controllers/MCUController.js');
 // Hlavní stránka
 router.post('/add', MCUController.createMCU)
 
-router.get('/mcus', (req, res) => {
-    res.render('mcus', { projectName: 'IoT Control' });
-});
+router.get('/mcu', MCUController.renderMCU);
 
 module.exports = router;

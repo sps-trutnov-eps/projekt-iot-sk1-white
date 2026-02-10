@@ -1,5 +1,14 @@
 const MCUService = require('../models/MCU/MCUService');
 
+const renderMCU = (req, res) =>{
+  try{
+    res.render('mcus', { projectName: 'IoT Control' });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+}
+
+
 const createMCU = (req, res) => {
   try {
     const newMCU = MCUService.createMCU(req.body);
@@ -67,4 +76,4 @@ const updateMCU = (req,res) => {
 
 }
 
-module.exports = {createMCU, getMCU, getALLMCUs, deleteMCU, updateMCU};
+module.exports = {createMCU, getMCU, getALLMCUs, deleteMCU, updateMCU, renderMCU};
