@@ -42,6 +42,8 @@
                     
                     if (data.success) {
                         // Úspěch - zobraz zprávu a zavři modal
+                        window.refreshMCUs();
+
                         if(toast && toastMsg){
                             openToast(data.message);
                         }

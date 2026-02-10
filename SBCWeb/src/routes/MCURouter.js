@@ -9,4 +9,6 @@ router.get('/mcu', MCUController.renderMCU);
 
 router.get('/mcus', MCUController.getALLMCUs);
 
+router.post('/delete', MCUController.deleteMCU);
+
 module.exports = router;

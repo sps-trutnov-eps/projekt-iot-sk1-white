@@ -73,12 +73,15 @@ class MCURepository{
 
     static updateLastSeen(id) {
         const query = `UPDATE mcus SET last_seen = datetime('now') WHERE device_id = ?`;
-        db.prepare(query).run(id);
+        const result = db.prepare(query).run(id);
+        return result;
     }
+
 
     static delete(id) {
         const query = `DELETE FROM mcus WHERE device_id = ?`
-        db.prepare(query).run(id);
+        const result = db.prepare(query).run(id);
+        return result;
     }
 
 

@@ -1,3 +1,4 @@
+const MCU = require('../models/MCU/MCU');
 const MCUService = require('../models/MCU/MCUService');
 
 const renderMCU = (req, res) =>{
@@ -47,18 +48,24 @@ const getALLMCUs = (req,res) =>{
   }
 }
 
-const deleteMCU = (req,res) => {
-  try{
-    const id = req.params.id
-    MCUService.deleteMCU(id);
-    res.json({
-      message: "MCU bylo úspěšně smazáno."
-    })
+const deleteMCU = (req, res) => {
+  try {
+    const id = req.body.id;
+    if (!id) {
+      return res.status(400).json({ message: "Id je povinné k vyhledání." });
+    }
+    const result = MCUService.deleteMCU(id);
+    if (!result || result.changes === 0) {
+      return res.status(404).json({ message: "MCU nenalezeno." });
+    }
+    res.json({ 
+      success: true,
+      message: "MCU bylo úspěšně smazáno." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
   }
-  catch(error){
-res.status(400).json({ message: error.message });
-  }
-}
+};
 
 
 const updateMCU = (req,res) => {

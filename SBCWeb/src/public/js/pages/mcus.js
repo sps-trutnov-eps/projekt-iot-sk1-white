@@ -5,7 +5,32 @@
     const toast = document.getElementById("toast");
     const toastMsg = document.getElementById("toast-message");
 
-    
+    document.addEventListener('click', async function(e) {
+    const btn = e.target.closest('.delete-mcu-btn');
+    if (!btn) return;
+
+    const mcuId = btn.dataset.id;
+    if (!mcuId) {
+        window.openToastError && window.openToastError('Chybí ID MCU.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/mcu/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: mcuId })
+        });
+        const data = await response.json();
+        if (data.success) {
+            await window.refreshMCUs();
+        } else {
+        }
+    } catch (error) {
+        window.openToastError && window.openToastError('Chyba při mazání MCU.');
+    }
+});
+
     if(typeModal){
         const {openModal, submitBtn, showError, hideError } = typeModal;
         
@@ -54,8 +79,7 @@
                             populateSelector(result);
                         } else {
                             console.warn('Žádná data nebyla načtena.');
-                        }
-                        
+                        }                        
                     } else {
                         // Chyba - zobraz chybovou hlášku
                         showError(data.message);

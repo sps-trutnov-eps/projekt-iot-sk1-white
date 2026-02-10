@@ -3,11 +3,8 @@ async function fetchData(url) {
   try {
     const response = await fetch(url);
     const jsonData = await response.json();
+    return jsonData.result || [];
     
-    if (jsonData.result && jsonData.result.length > 0) {
-      return jsonData.result;
-    }
-    return null;
 
   } catch (error) {
     console.error('Chyba při načítání dat:', error);
@@ -107,6 +104,12 @@ function renderMCUGrid(mcusArray) {
   });
 }
 
+window.refreshMCUs = async function() {
+    const mcus = await fetchData('/mcu/mcus');
+    if (mcus) renderMCUGrid(mcus);
+};
+
+
 
 document.addEventListener('DOMContentLoaded', async function() {
   // načtení typů //
@@ -118,12 +121,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     console.warn('Žádné typy nebyla načtena.');
   }
   // načtení MCU //
-  const mcus = await fetchData('/mcu/mcus');
-  if (mcus) {
-    console.log(mcus);
-    renderMCUGrid(mcus);
-  } else {
-    console.warn('Žádná mcu nebyla načtena.');
-  }
+  if (window.refreshMCUs) await window.refreshMCUs();
 
 });
