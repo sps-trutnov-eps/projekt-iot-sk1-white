@@ -28,7 +28,12 @@ const Modal = {
             modal.classList.add('hidden');
             if(form){
                 form.reset();
-            };
+            } else {
+                const inputs = modal.querySelectorAll('input, textarea, select');
+                inputs.forEach(input => {
+                    input.value = '';
+                });
+            }
         };
 
 
@@ -37,7 +42,12 @@ const Modal = {
             modal.classList.add('hidden');
             if(form){
                 form.reset();
-            };
+            } else {
+                const inputs = modal.querySelectorAll('input, textarea, select');
+                inputs.forEach(input => {
+                    input.value = '';
+                });
+            }
         };
 
 

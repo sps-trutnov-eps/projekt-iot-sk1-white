@@ -94,6 +94,10 @@ if (deleteTypeModal) {
                 if (data.success) {
                     await window.refreshTypes();
                     deleteTypeModal.close();
+                    typeModal.close();
+                    if (toast && toastMsg) {
+                    openToast(data.message);
+                    }
                 } else {
                     deleteTypeModal.showError(data.message || 'Chyba při mazání.');
                 }
@@ -147,7 +151,6 @@ if (typeModal) {
                     if (toast && toastMsg) {
                         openToast(data.message);
                     } else {
-                        // Zde musíme specifikovat, kterému modalu chybu ukázat
                         typeModal.showError("nebylo možné zobrazit alert");
                     }
                     typeModal.close();
