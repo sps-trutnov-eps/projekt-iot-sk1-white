@@ -1,33 +1,37 @@
-<div id="deleteModal" class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-midnight-violet-950/40 backdrop-blur-sm hidden">
+<div id="deletetypeModal" class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-midnight-violet-950/40 backdrop-blur-sm hidden">
     
     <div class="relative w-full max-w-md flex flex-col bg-silver-50 rounded-xl shadow-2xl overflow-hidden">
         
         <div class="flex items-center justify-between p-6 border-b border-ash-grey-200 bg-white shrink-0">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-trash-alt text-red-600 text-lg"></i>
+                    <i class="fas fa-tag text-red-600 text-lg"></i>
                 </div>
-                <h2 class="text-xl font-bold tracking-tight text-midnight-violet-900">Smazat MCU?</h2>
+                <h2 class="text-xl font-bold tracking-tight text-midnight-violet-900">Smazat typ?</h2>
             </div>
-            <button type="button" id="deleteClose" class="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-lg hover:bg-ash-grey-100">
+            <button type="button" id="deletetypeClose" class="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-lg hover:bg-ash-grey-100">
                 <i class="fas fa-times text-xl"></i>
             </button>
         </div>
 
         <div class="p-8 bg-silver-50 text-center md:text-left">
             <p class="text-gray-600 leading-relaxed">
-                Tato akce je <span class="font-bold text-red-600">nevratná</span>. Všechna data spojená s tímto mikrokontrolérem budou trvale odstraněna ze systému.
+                Opravdu chcete odstranit tento <span class="font-bold text-midnight-violet-900">typ zařízení</span>? 
+                <br><br>
+                Tato akce může ovlivnit zobrazení stávajících MCU, které mají tento typ přiřazen. Akce je <span class="font-bold text-red-600">nevratná</span>.
             </p>
         </div>
 
         <div class="p-6 border-t border-ash-grey-200 bg-white flex flex-col sm:flex-row justify-end gap-3 shrink-0">
-            <button type="button" id="deleteCancel" 
+            <button type="button" id="deletetypeCancel" 
                 class="order-2 sm:order-1 px-6 py-2.5 rounded-lg bg-ash-grey-200 text-ash-grey-800 font-medium hover:bg-ash-grey-300 transition-colors">
                 Zrušit
             </button>
-            <button type="button" id="deleteSubmit" 
+            <button type="button" id="deletetypeSubmit" 
                 class="order-1 sm:order-2 px-6 py-2.5 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-colors flex items-center justify-center gap-2">
                 <i class="fas fa-trash-alt"></i>
                 Potvrdit smazání
             </button>
         </div>
+    </div>
+</div>

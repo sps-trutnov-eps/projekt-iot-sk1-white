@@ -125,6 +125,55 @@ function dedupeTypes(typesArray) {
   });
 }
 
+function populateTypeList(typesArray) {
+  const container = document.getElementById('typeListContainer');
+  if (!container) return;
+
+  // Pokud nejsou žádná data
+  if (!typesArray || !typesArray.length) {
+    container.innerHTML = `
+      <div class="p-8 text-center text-silver-500 bg-white/50 rounded-lg border border-dashed border-ash-grey-300">
+        <i class="fas fa-tag mb-2 text-2xl opacity-20"></i>
+        <p class="text-sm">Zatím nebyly definovány žádné typy.</p>
+      </div>
+    `;
+    return;
+  }
+
+  // Funkce pro ošetření XSS (stejná jako u MCU gridu)
+  const escape = (str) => String(str || '').replace(/[&<>"']/g, m => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[m]));
+
+  // Sestavení seznamu
+  container.innerHTML = `
+    <div class="divide-y divide-ash-grey-200 border border-ash-grey-200 rounded-lg bg-white overflow-hidden">
+      ${typesArray.map(typeObj => `
+        <div class="flex items-center justify-between p-4 hover:bg-ash-grey-50 transition-colors group">
+          <div class="flex items-center gap-3">
+            <div class="w-2 h-2 rounded-full bg-vintage-grape-400 opacity-50 group-hover:opacity-100 transition-opacity"></div>
+            <span class="font-medium text-midnight-violet-900">${escape(typeObj.type)}</span>
+          </div>
+          
+          <button 
+            class="delete-type-btn w-8 h-8 flex items-center justify-center rounded-lg text-silver-400 hover:text-red-500 hover:bg-red-50 transition-all" 
+            data-id="${typeObj.id}" 
+            title="Smazat typ"
+          >
+            <i class="fas fa-trash-alt text-xs"></i>
+          </button>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+window.refreshTypes = async () => {
+    const types = await fetchData('/type/types');
+    populateTypeList(types); // zavolání naší nové funkce
+};
+
+
 document.addEventListener('DOMContentLoaded', async function() {
   // načtení typů //
   const types = await fetchData('/type/types');
@@ -132,6 +181,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     const dedupedTypes = dedupeTypes(types);
     populateSelector("TypeSelectorSearchBar",dedupedTypes);
     populateSelector("TypeSelectorMCUForm",dedupedTypes);
+    refreshTypes();
   } else {
     console.warn('Žádné typy nebyla načtena.');
   }

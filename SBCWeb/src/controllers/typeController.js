@@ -30,12 +30,14 @@ const getAllTypes = (req,res) =>{
 
 const deleteType = (req,res) =>{
     try {
-        res.status(400).json({ 
-            success: error.message,
-            message: "Nový typ MCU byl úspěšně vytvořen.",
-            data: newType
+        const id = req.body.id;
+        TypeService.deleteType(id);
+        res.status(200).json({ 
+            success: true,
+            message: "Typ byl úspěšně smazán.",
         });
     } catch (error) {
+        console.log(error);
         res.status(404).json({ 
             message: error.message
         });
