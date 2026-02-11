@@ -40,7 +40,7 @@
 
       <!-- MCU Cards List -->
       <div id="mcuGrid" class="flex flex-col gap-3 w-full">
-        
+          
 
       </div>
 
@@ -53,14 +53,15 @@
   <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden lg:hidden"></div>
 
   <!-- Add/Edit MCU Modal -->
-  <%- include('partials/common/formMCU') %>
 
-  <%- include('partials/common/formMCU') %>
+  <%- include('partials/common/mcuModal') %>
   <%- include('partials/mcus/addTypeModal') %>
 
   <!-- Delete Confirmation Modal -->
   <%- include('partials/common/deleteModal') %>
 
+  <%- include('partials/mcus/typesModal')%>
+  <%- include('partials/common/deleteModal') %>
   <script src="/js/components/toast.js"></script>
   <script src="/js/components/modals.js"></script>
   <script src="/js/components/addMCU.js"></script>

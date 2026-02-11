@@ -110,13 +110,23 @@ window.refreshMCUs = async function() {
 };
 
 
+function dedupeTypes(typesArray) {
+  const seen = new Set();
+  return typesArray.filter(item => {
+    const id = item.id ?? item._id ?? item.type ?? String(item);
+    if (seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+}
 
 document.addEventListener('DOMContentLoaded', async function() {
   // načtení typů //
   const types = await fetchData('/type/types');
   if (types) {
-    populateSelector("TypeSelectorSearchBar",types);
-    populateSelector("TypeSelectorMCUForm",types);
+    const dedupedTypes = dedupeTypes(types);
+    populateSelector("TypeSelectorSearchBar",dedupedTypes);
+    populateSelector("TypeSelectorMCUForm",dedupedTypes);
   } else {
     console.warn('Žádné typy nebyla načtena.');
   }

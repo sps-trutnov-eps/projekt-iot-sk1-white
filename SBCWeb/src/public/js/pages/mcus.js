@@ -1,35 +1,66 @@
 /*
     Type formulář
     */
-    const typeModal = Modal.register('Type');
-    const toast = document.getElementById("toast");
-    const toastMsg = document.getElementById("toast-message");
+const typeModal = Modal.register('Type');
+const toast = document.getElementById("toast");
+const toastMsg = document.getElementById("toast-message");
 
-    document.addEventListener('click', async function(e) {
-    const btn = e.target.closest('.delete-mcu-btn');
-    if (!btn) return;
+// Registrace delete modalu
+const deleteModal = Modal.register('delete');
 
-    const mcuId = btn.dataset.id;
-    if (!mcuId) {
-        window.openToastError && window.openToastError('Chybí ID MCU.');
-        return;
-    }
+if (deleteModal) {
+    const { open, close, hideError, showError, submitBtn } = deleteModal;
+    
+    let mcuIdToDelete = null;
 
-    try {
-        const response = await fetch('/mcu/delete', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: mcuId })
-        });
-        const data = await response.json();
-        if (data.success) {
-            await window.refreshMCUs();
-        } else {
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('.delete-mcu-btn');
+        if (!btn) return;
+
+        mcuIdToDelete = btn.dataset.id;
+
+        if (!mcuIdToDelete) {
+            window.openToastError && window.openToastError('Chybí ID MCU.');
+            return;
         }
-    } catch (error) {
-        window.openToastError && window.openToastError('Chyba při mazání MCU.');
+
+        console.log("Připraveno ke smazání ID:", mcuIdToDelete);
+        open(); 
+        hideError(); 
+    });
+
+    if (submitBtn) {
+        submitBtn.addEventListener('click', async () => {
+            if (!mcuIdToDelete) return;
+
+            try {
+                submitBtn.disabled = true;
+                
+                const response = await fetch('/mcu/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: mcuIdToDelete }) 
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    await window.refreshMCUs();
+                    close();
+                } else {
+                    showError(data.message || 'Chyba při mazání.');
+                }
+            } catch (error) {
+                showError('Server neodpovídá.');
+                console.error(error);
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
     }
-});
+}
+
+
 
     if(typeModal){
         const {openModal, submitBtn, showError, hideError } = typeModal;
