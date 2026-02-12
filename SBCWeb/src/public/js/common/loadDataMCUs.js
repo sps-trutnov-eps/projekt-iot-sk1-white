@@ -77,22 +77,24 @@ function renderMCUGrid(mcusArray) {
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[m]));
 
-    // *** LOGIKA ČASU *** //
+    // *** ZÍSKÁNÍ NÁZVU TYPU ***
+    // Pokud máme mapu a v ní ID existuje, použijeme název. Jinak necháme ID.
+    const typeName = window.typeMap && window.typeMap[mcu.type] 
+        ? window.typeMap[mcu.type] 
+        : mcu.type;
+
+    // *** LOGIKA ČASU (Beze změny) *** //
     const lastSeenDate = new Date(mcu.lastSeen + (mcu.lastSeen.includes('Z') ? '' : 'Z'));
     const diffMs = now - lastSeenDate;
-    
-    
     const diffMins = Math.floor(diffMs / (1000 * 60));
     const diffHours = Math.floor(diffMins / 60);
 
     let lastSeenDisplay = '';
     let timeColorClass = '';
-    let iconColorClass = '';
 
-    // 1. Vyhodnocení formátu
     if (isNaN(lastSeenDate.getTime())) {
       lastSeenDisplay = 'Nikdy';
-    } else if (diffMins === 0) { // Musí to být nula, aby to bylo "nyní"
+    } else if (diffMins === 0) {
       lastSeenDisplay = 'nyní';
     } else if (diffMins < 60) {
       lastSeenDisplay = `před ${diffMins} min.`;
@@ -102,22 +104,16 @@ function renderMCUGrid(mcusArray) {
       lastSeenDisplay = lastSeenDate.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' });
     }
 
-    // 2. Barvy 
-    if (diffMins < 10) {
-      timeColorClass = 'text-green-600';
-    } else {
-      timeColorClass = 'text-red-500';
-    }
+    if (diffMins < 10) timeColorClass = 'text-green-600';
+    else timeColorClass = 'text-red-500';
 
     const statusColor = diffMins < 10 ? 'bg-green-400' : 'bg-red-400';
     const pulseEffect = diffMins < 10 ? 'animate-pulse' : '';
-    // ********************* //
 
     return `
       <div class="mcu-card bg-white rounded-lg shadow-sm border border-ash-grey-200 hover:shadow-md transition-shadow mb-4" 
            data-id="${mcu.id}" 
-           data-type="${escape(mcu.type)}">
-        <div class="flex items-center p-4">
+           data-type="${escape(mcu.type)}"> <div class="flex items-center p-4">
           <div class="flex items-center space-x-4">
             <div class="relative">
               <div class="w-12 h-12 bg-gradient-to-br from-midnight-violet-700 to-vintage-grape-600 rounded-xl flex items-center justify-center">
@@ -127,7 +123,9 @@ function renderMCUGrid(mcusArray) {
             </div>
             <div class="min-w-[140px]">
               <h3 class="font-semibold text-midnight-violet-900">${escape(mcu.name)}</h3>
-              <span class="text-xs text-silver-500">${escape(mcu.type)}</span>
+              
+              <span class="text-xs text-silver-500">${escape(typeName)}</span>
+            
             </div>
           </div>
           
@@ -165,6 +163,7 @@ function renderMCUGrid(mcusArray) {
       </div>
     `;
   }).join('');
+  
   applyFilters();
 }
 

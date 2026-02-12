@@ -348,6 +348,13 @@ async function refreshTypeStats() {
 
         if (!types || !mcus) return;
 
+        window.typeMap = {};
+        if (types && Array.isArray(types)) {
+            types.forEach(t => {
+                window.typeMap[t.id] = t.type;
+            });
+        }
+
         const counts = mcus.reduce((acc, mcu) => {
             acc[mcu.type] = (acc[mcu.type] || 0) + 1;
             return acc;
