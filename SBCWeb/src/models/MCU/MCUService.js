@@ -65,8 +65,9 @@ class MCUService {
 
         const mcu = MCURepository.findById(id);
 
-
-
+        this.checkIP(data.ipAddress);
+        this.checkMAC(data.macAddress);
+        
         const updateData = {
             name: data.name ?? mcu.name,
             type: data.type ?? mcu.type,
