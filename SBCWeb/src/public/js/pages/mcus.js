@@ -302,3 +302,4 @@ async function getMcuStats() {
     }
 }
 
+console.log(getMcuStats());

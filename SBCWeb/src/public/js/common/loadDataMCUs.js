@@ -70,13 +70,50 @@ function renderMCUGrid(mcusArray) {
     return;
   }
 
-  grid.innerHTML = mcusArray.map(mcu => {
+  const now = new Date();
 
+  grid.innerHTML = mcusArray.map(mcu => {
     const escape = (str) => String(str || '').replace(/[&<>"']/g, m => ({
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[m]));
 
-    const statusColor = mcu.online ? 'bg-green-400' : 'bg-gray-300';
+    // *** LOGIKA ČASU *** //
+    const lastSeenDate = new Date(mcu.lastSeen + (mcu.lastSeen.includes('Z') ? '' : 'Z'));
+    const diffMs = now - lastSeenDate;
+    
+    
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMins / 60);
+
+    let lastSeenDisplay = '';
+    let timeColorClass = '';
+    let iconColorClass = '';
+
+    // 1. Vyhodnocení formátu
+    if (isNaN(lastSeenDate.getTime())) {
+      lastSeenDisplay = 'Nikdy';
+    } else if (diffMins === 0) { // Musí to být nula, aby to bylo "nyní"
+      lastSeenDisplay = 'nyní';
+    } else if (diffMins < 60) {
+      lastSeenDisplay = `před ${diffMins} min.`;
+    } else if (diffHours < 24) {
+      lastSeenDisplay = `před ${diffHours} hod.`;
+    } else {
+      lastSeenDisplay = lastSeenDate.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' });
+    }
+
+    // 2. Barvy 
+    if (diffMins < 10) {
+      timeColorClass = 'text-green-600';
+      iconColorClass = 'text-green-400';
+    } else {
+      timeColorClass = 'text-red-500';
+      iconColorClass = 'text-red-400';
+    }
+
+    const statusColor = diffMins < 10 ? 'bg-green-400' : 'bg-red-400';
+    const pulseEffect = diffMins < 10 ? 'animate-pulse' : '';
+    // ********************* //
 
     return `
       <div class="mcu-card bg-white rounded-lg shadow-sm border border-ash-grey-200 hover:shadow-md transition-shadow mb-4" 
@@ -88,7 +125,7 @@ function renderMCUGrid(mcusArray) {
               <div class="w-12 h-12 bg-gradient-to-br from-midnight-violet-700 to-vintage-grape-600 rounded-xl flex items-center justify-center">
                 <i class="fas fa-microchip text-xl text-white"></i>
               </div>
-              <span class="absolute -bottom-1 -right-1 w-4 h-4 ${statusColor} border-2 border-white rounded-full"></span>
+              <span class="absolute -bottom-1 -right-1 w-4 h-4 ${statusColor} ${pulseEffect} border-2 border-white rounded-full"></span>
             </div>
             <div class="min-w-[140px]">
               <h3 class="font-semibold text-midnight-violet-900">${escape(mcu.name)}</h3>
@@ -110,8 +147,8 @@ function renderMCUGrid(mcusArray) {
               <span class="text-silver-700 truncate">${escape(mcu.location)}</span>
             </div>
             <div class="flex items-center space-x-2">
-              <i class="fas fa-clock text-silver-400 w-4"></i>
-              <span class="text-silver-700">${escape(mcu.lastSeen)}</span>
+              <i class="fas fa-clock ${diffMins >= 10 ? 'text-red-400' : 'text-silver-400'} w-4"></i>
+              <span class="${timeColorClass}">${lastSeenDisplay}</span>
             </div>
           </div>
 
@@ -120,10 +157,10 @@ function renderMCUGrid(mcusArray) {
               <i class="fas fa-chart-line"></i>
             </button>
             <button class="edit-mcu-btn w-9 h-9 text-silver-600 hover:bg-ash-grey-100 rounded-lg flex items-center justify-center transition" data-id="${mcu.id}" title="Upravit">
-              <i class="fas fa-pen"></i>
+              <i class="fas fa-pen text-sm"></i>
             </button>
             <button class="delete-mcu-btn w-9 h-9 text-red-500 hover:bg-red-50 rounded-lg flex items-center justify-center transition" data-id="${mcu.id}" title="Smazat">
-              <i class="fas fa-trash"></i>
+              <i class="fas fa-trash text-sm"></i>
             </button>
           </div>
         </div>
