@@ -254,76 +254,75 @@ editModal.submitBtn.addEventListener("click", async () =>{
     5. Sidebar
    ============================================================ */
 
-const refreshAll = document.getElementById('refreshAll');
+/**
+ * GLOBÁLNÍ STAV FILTRŮ
+ * Ukládáme si, co má uživatel zrovna vybráno.
+ */
+window.currentFilters = {
+    type: 'all',   // ID typu z DB nebo 'all'
+    status: 'all'  // 'all', 'online', 'offline'
+};
 
-refreshAll.addEventListener('click', async (e) => {
-    e.preventDefault();
-
-    const icon = refreshAll.querySelector('i');
+/**
+ * 1. POUŽITÍ FILTRŮ (Apply Filters)
+ * Prochází všechny karty a schovává ty, které nesplňují VŠECHNA kritéria.
+ */
+function applyFilters() {
+    const cards = document.querySelectorAll('.mcu-card');
     
-    if (icon) icon.classList.add('fa-spin');
-    refreshAll.classList.add('opacity-50', 'pointer-events-none');
+    cards.forEach(card => {
+        // Data z karty (nastavená v renderMCUGrid)
+        const typeId = card.dataset.type; 
+        // Online stav poznáme podle přítomnosti zelené barvy indikátoru
+        const isOnline = card.querySelector('.bg-green-400') !== null;
 
-    try {
-
-        await Promise.all([
-            window.refreshMCUs(),
-            window.refreshTypes(),
-            window.refreshSidebarStats()
-        ]);
+        // Logika "AND": Musí odpovídat typu I statusu
+        const matchesType = window.currentFilters.type === 'all' || typeId === String(window.currentFilters.type);
         
-        refreshAll.classList.add('text-green-500');
-        setTimeout(() => refreshAll.classList.remove('text-green-500'), 500);
+        let matchesStatus = true;
+        if (window.currentFilters.status === 'online') matchesStatus = isOnline;
+        if (window.currentFilters.status === 'offline') matchesStatus = !isOnline;
 
-    } catch (error) {
-        console.error("Chyba při celkovém refreshy:", error);
-    } finally {
-        if (icon) icon.classList.remove('fa-spin');
-        refreshAll.classList.remove('opacity-50', 'pointer-events-none');
-    }
-});
+        // Přidání/odebrání třídy hidden
+        card.classList.toggle('hidden', !(matchesType && matchesStatus));
+    });
+}
 
-async function getMcuStatus() {
+/**
+ * 2. REFRESH STATISTIK STATUSŮ (Online/Offline/Total)
+ */
+async function refreshSidebarStats() {
     try {
         const mcus = await fetchData('/mcu/mcus');
-        if (!mcus || !Array.isArray(mcus)) return { online: 0, offline: 0, total: 0 };
+        if (!mcus || !Array.isArray(mcus)) return;
 
-        const now = Date.now(); 
+        const now = Date.now();
         const tenMinutesInMs = 10 * 60 * 1000;
 
-        let onlineCount = 0;
-        let offlineCount = 0;
-
-        mcus.forEach(mcu => {
-
+        const stats = mcus.reduce((acc, mcu) => {
             const lastSeenDate = new Date(mcu.lastSeen + (mcu.lastSeen.includes('Z') ? '' : 'Z'));
-            const lastSeenTime = lastSeenDate.getTime();
+            const diff = now - lastSeenDate.getTime();
+            
+            const isOnline = diff > 0 && diff < tenMinutesInMs;
+            if (isOnline) acc.online++; else acc.offline++;
+            return acc;
+        }, { online: 0, offline: 0 });
 
-            const timeDifference = now - lastSeenTime;
+        const elAll = document.getElementById('countAll');
+        const elOnline = document.getElementById('countOnline');
+        const elOffline = document.getElementById('countOffline');
 
-
-
-            if (timeDifference > 0 && timeDifference < tenMinutesInMs) {
-                onlineCount++;
-            } else {
-                offlineCount++;
-            }
-        });
-
-        return {
-            online: onlineCount,
-            offline: offlineCount,
-            total: mcus.length
-        };
-
-    } catch (error) {
-        console.error("Chyba při výpočtu statistik:", error);
-        return { online: 0, offline: 0, total: 0 };
+        if (elAll) elAll.textContent = mcus.length;
+        if (elOnline) elOnline.textContent = stats.online;
+        if (elOffline) elOffline.textContent = stats.offline;
+    } catch (err) {
+        console.error("Chyba statistik statusů:", err);
     }
 }
 
-
-
+/**
+ * 3. DYNAMICKÝ REFRESH TYPŮ V SIDEBARU
+ */
 async function refreshTypeStats() {
     const container = document.getElementById('dynamicTypeFilters');
     if (!container) return;
@@ -336,19 +335,19 @@ async function refreshTypeStats() {
 
         if (!types || !mcus) return;
 
-        // 1. Spočítáme výskyty MCU podle jejich type ID
         const counts = mcus.reduce((acc, mcu) => {
             acc[mcu.type] = (acc[mcu.type] || 0) + 1;
             return acc;
         }, {});
 
-        // 2. Základní HTML s "Všechny typy" (vždy viditelné)
+        // Speciální řádek "Všechny typy"
+        const isAllActive = window.currentFilters.type === 'all' ? 'bg-midnight-violet-800 text-white active' : '';
         let html = `
-            <button class="type-filter w-full flex items-center justify-between px-1 py-1.5 rounded-lg text-ash-grey-400 hover:bg-midnight-violet-800 hover:text-white transition group" 
+            <button class="type-filter w-full flex items-center justify-between px-1 py-1.5 rounded-lg text-ash-grey-400 hover:bg-midnight-violet-800 hover:text-white transition group ${isAllActive}" 
                 data-type-id="all">
                 <div class="flex items-center space-x-2.5 overflow-hidden flex-1">
                     <i class="fas fa-layer-group text-[10px] text-vintage-grape-400 group-hover:text-vintage-grape-300 flex-shrink-0"></i>
-                    <span class="sidebar-text text-[14px] whitespace-nowrap overflow-hidden text-ellipsis flex-1 text-left">
+                    <span class="sidebar-text text-[14px] whitespace-nowrap overflow-hidden text-ellipsis flex-1 text-left font-medium">
                         Všechny typy
                     </span>
                 </div>
@@ -358,102 +357,105 @@ async function refreshTypeStats() {
             </button>
         `;
 
-        // 3. Přidáme jen ty typy, které mají count > 0
+        // Generování pouze aktivních typů (> 0)
         html += types
             .filter(t => (counts[t.id] || 0) > 0)
-            .map(t => `
-                <button class="type-filter w-full flex items-center justify-between px-1 py-1.5 rounded-lg text-ash-grey-400 hover:bg-midnight-violet-800 hover:text-white transition group" 
-                    data-type-id="${t.id}">
-                    <div class="flex items-center space-x-2.5 overflow-hidden flex-1">
-                        <i class="fas fa-microchip text-[10px] text-vintage-grape-400 group-hover:text-vintage-grape-300 flex-shrink-0"></i>
-                        <span class="sidebar-text text-[14px] whitespace-nowrap overflow-hidden text-ellipsis flex-1 text-left">
-                            ${t.type}
+            .map(t => {
+                const isActive = String(window.currentFilters.type) === String(t.id) ? 'bg-midnight-violet-800 text-white active' : '';
+                return `
+                    <button class="type-filter w-full flex items-center justify-between px-1 py-1.5 rounded-lg text-ash-grey-400 hover:bg-midnight-violet-800 hover:text-white transition group ${isActive}" 
+                        data-type-id="${t.id}">
+                        <div class="flex items-center space-x-2.5 overflow-hidden flex-1">
+                            <i class="fas fa-microchip text-[10px] text-vintage-grape-400 group-hover:text-vintage-grape-300 flex-shrink-0"></i>
+                            <span class="sidebar-text text-[14px] whitespace-nowrap overflow-hidden text-ellipsis flex-1 text-left">
+                                ${t.type}
+                            </span>
+                        </div>
+                        <span class="text-[12px] bg-midnight-violet-700 text-ash-grey-300 px-2 py-0.5 rounded-md min-w-[22px] text-center ml-4">
+                            ${counts[t.id]}
                         </span>
-                    </div>
-                    <span class="text-[12px] bg-midnight-violet-700 text-ash-grey-300 px-2 py-0.5 rounded-md min-w-[22px] text-center ml-4">
-                        ${counts[t.id]}
-                    </span>
-                </button>
-            `).join('');
+                    </button>
+                `;
+            }).join('');
 
         container.innerHTML = html;
-
-        // Aktivujeme logiku klikání
         attachFilterListeners();
-
-    } catch (error) {
-        console.error("Chyba při generování sidebaru:", error);
+    } catch (err) {
+        console.error("Chyba generování typů:", err);
     }
 }
 
-
-
-    function attachFilterListeners() {
+/**
+ * 4. PŘIPOJENÍ EVENT LISTENERŮ
+ */
+function attachFilterListeners() {
+    // Sekce Typy (dynamická)
     document.querySelectorAll('.type-filter').forEach(btn => {
         btn.onclick = () => {
-            const typeId = btn.dataset.typeId;
-            setActiveStyle(btn);
-            
-            if (typeId === 'all') {
-                filterMCUGrid('all');
-            } else {
-                filterMCUGrid('type', typeId);
-            }
+            window.currentFilters.type = btn.dataset.typeId;
+            updateActiveUI(btn, '.type-filter');
+            applyFilters();
         };
     });
-    
 
+    // Sekce Rychlé filtry (statická)
     document.querySelectorAll('.quick-filter').forEach(btn => {
         btn.onclick = () => {
-            const val = btn.dataset.filter;
-            setActiveStyle(btn);
-            filterMCUGrid(val === 'all' ? 'all' : 'status', val);
+            window.currentFilters.status = btn.dataset.filter;
+            updateActiveUI(btn, '.quick-filter');
+            applyFilters();
         };
     });
 }
 
-function filterMCUGrid(criteria, value) {
-    const cards = document.querySelectorAll('.mcu-card');
-    
-    cards.forEach(card => {
-        if (criteria === 'all') {
-            card.classList.remove('hidden');
-            return;
-        }
-
-        let show = false;
-        if (criteria === 'type') {
-            show = card.dataset.type === String(value);
-        } else if (criteria === 'status') {
-            const isOnline = card.querySelector('.bg-green-400') !== null;
-            show = (value === 'online' ? isOnline : !isOnline);
-        }
-        
-        card.classList.toggle('hidden', !show);
-    });
-}
-
-function setActiveStyle(activeBtn) {
-    document.querySelectorAll('.type-filter, .quick-filter').forEach(b => 
+/**
+ * 5. POMOCNÁ FUNKCE PRO STYLY
+ */
+function updateActiveUI(activeBtn, groupSelector) {
+    document.querySelectorAll(groupSelector).forEach(b => 
         b.classList.remove('bg-midnight-violet-800', 'text-white', 'active')
     );
     activeBtn.classList.add('bg-midnight-violet-800', 'text-white', 'active');
 }
 
+/**
+ * 6. HLAVNÍ REFRESH TLAČÍTKO
+ */
+const refreshAll = document.getElementById('refreshAll');
+if (refreshAll) {
+    refreshAll.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const icon = refreshAll.querySelector('i');
+        
+        if (icon) icon.classList.add('fa-spin');
+        refreshAll.classList.add('opacity-50', 'pointer-events-none');
 
+        try {
+            // Resetujeme filtry na výchozí stav při tvrdém refreshy (volitelné)
+            // window.currentFilters = { type: 'all', status: 'all' };
 
-
-async function refreshSidebarStats() {
-    const stats = await getMcuStatus();
-    
-    const elAll = document.getElementById('countAll');
-    const elOnline = document.getElementById('countOnline');
-    const elOffline = document.getElementById('countOffline');
-
-    if (elAll) elAll.textContent = stats.total;
-    if (elOnline) elOnline.textContent = stats.online;
-    if (elOffline) elOffline.textContent = stats.offline;
+            await Promise.all([
+                window.refreshMCUs(),      // Načte grid
+                window.refreshTypes(),     // Načte číselník typů (pokud máš)
+                refreshSidebarStats(),     // Počty online/offline
+                refreshTypeStats()         // Generování sidebaru a počty typů
+            ]);
+            
+            refreshAll.classList.add('text-green-500');
+            setTimeout(() => {
+                refreshAll.classList.remove('text-green-500');
+                // Po znovunačtení gridu aplikujeme aktuální filtry
+                applyFilters();
+            }, 500);
+        } catch (error) {
+            console.error("Chyba při hromadném refreshy:", error);
+        } finally {
+            if (icon) icon.classList.remove('fa-spin');
+            refreshAll.classList.remove('opacity-50', 'pointer-events-none');
+        }
+    });
 }
 
+// Inicializace při startu
 refreshSidebarStats();
 refreshTypeStats();

@@ -165,11 +165,13 @@ function renderMCUGrid(mcusArray) {
       </div>
     `;
   }).join('');
+  applyFilters();
 }
 
 window.refreshMCUs = async function() {
     const mcus = await fetchData('/mcu/mcus');
     if (mcus) renderMCUGrid(mcus);
+    applyFilters();
 };
 
 
