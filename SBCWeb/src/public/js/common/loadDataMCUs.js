@@ -1,4 +1,27 @@
-// načtení select elementu pro Typy MCU
+
+async function fetchMcu(mcuId) {
+    if (!mcuId) return null;
+
+    try {
+        const response = await fetch('/mcu/get', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: mcuId })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Server vrátil chybu');
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Chyba při fetchování MCU:", error);
+        return null;
+    }
+}
+
 async function fetchData(url) {
   try {
     const response = await fetch(url);
@@ -184,6 +207,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     const dedupedTypes = dedupeTypes(types);
     populateSelector("TypeSelectorSearchBar",dedupedTypes);
     populateSelector("TypeSelectorMCUForm",dedupedTypes);
+    populateSelector("editTypeSelector",dedupedTypes);
     refreshTypes();
   } else {
     console.warn('Žádné typy nebyla načtena.');

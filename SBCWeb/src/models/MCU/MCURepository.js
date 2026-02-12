@@ -23,10 +23,21 @@ class MCURepository{
     }
 
     static findById(id){
-            const query = `SELECT * FROM mcus WHERE device_id=?`
-            const row = db.prepare(query).get(id);
+        const query = `SELECT * FROM mcus WHERE device_id=?`
+        const row = db.prepare(query).get(id);
+        const mcu = new MCU({
+        id: row.device_id,
+        type: row.type_id, 
+        name: row.name,
+        ip_address: row.ip_address,
+        mac_address: row.mac_address,
+        description: row.description,
+        location: row.location,
+        last_seen: row.last_seen,
+        api_key: row.api_key
+        });
 
-            return row ? new MCU(row) : null;
+        return mcu;
     }
 
     static findAll(){
@@ -53,7 +64,7 @@ class MCURepository{
     static update(id, mcuData) {
         const query = `
             UPDATE mcus 
-            SET name = ?, type = ?, ip_address = ?, mac_address = ?, 
+            SET name = ?, type_id = ?, ip_address = ?, mac_address = ?, 
                 location = ?, description = ?
             WHERE device_id = ?
         `;

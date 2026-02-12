@@ -23,23 +23,34 @@ const createMCU = (req, res) => {
   }
 };
 
-const getMCU = (req,res) =>{
-  try{
-    const id = req.params.id;
-    const MCU = MCUService.findById(id);
+const getMCU = (req, res) => {
+  try {
+    const id = req.body.id; 
+    if (!id) {
+      return res.status(400).json({ success: false, message: "ID nebylo zasláno" });
+    }
+
+    const mcu = MCUService.findById(id);
+    if (!mcu) {
+      return res.status(404).json({ success: false, message: "MCU nenalezeno" });
+    }
+
     res.json({
-      mcu: MCU
-    })
+      success: true,
+      mcu: mcu
+    });
   }
-  catch(error){
-    res.status(400).json({ message: error.message });
+  catch(error) {
+    res.status(400).json({ success: false, message: error.message });
   }
 }
+
 
 const getALLMCUs = (req,res) =>{
   try{
     const MCUs = MCUService.getAllMCUs();
     res.json({
+      success: true,
       result: MCUs
     })
   }
@@ -70,10 +81,17 @@ const deleteMCU = (req, res) => {
 
 const updateMCU = (req,res) => {
   try{
-    const id = req.params.id
-    const MCUdata = req.body
+    
+    const MCUdata = req.body;
+    const id =MCUdata.id;
+    
+    if (!id) {
+        return res.status(400).json({ success: false, message: "Chybí ID pro aktualizaci." });
+    }
+
     MCUService.updateMCU(id, MCUdata);
     res.json({
+      success: true,
       message: "MCU bylo úspěšně upraveno."
     })
   }

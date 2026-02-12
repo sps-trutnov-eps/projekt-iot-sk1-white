@@ -11,4 +11,8 @@ router.get('/mcus', MCUController.getALLMCUs);
 
 router.post('/delete', MCUController.deleteMCU);
 
+router.post('/get', MCUController.getMCU);
+
+router.post('/update', MCUController.updateMCU);
+
 module.exports = router;

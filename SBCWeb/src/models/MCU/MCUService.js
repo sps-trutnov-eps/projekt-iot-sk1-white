@@ -42,17 +42,16 @@ class MCUService {
     }
 
     // READ - získat jedno MCU
-    static findById(data) {
-        if(!data.id){
+    static findById(id) {
+        if(!id){
             throw new Error('Id je povinné k vyhledání.');
         }      
         
-        const mcu = MCURepository.findById(data.id);
+        const mcu = MCURepository.findById(id);
         
         if(!mcu){
             throw new Error('MCU s daným ID nebylo nalezeno');
         }
-        
         return mcu;
     }
 

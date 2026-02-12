@@ -17,9 +17,8 @@ if (deleteMcuModal) {
             return;
         }
 
-        console.log("Připraveno ke smazání ID:", mcuIdToDelete);
         deleteMcuModal.open(); 
-        deleteMcuModal.hideError(); // Volání přímo přes objekt
+        deleteMcuModal.hideError(); 
     });
 
     if (deleteMcuModal.submitBtn) {
@@ -39,7 +38,7 @@ if (deleteMcuModal) {
                 
                 if (data.success) {
                     await window.refreshMCUs();
-                    deleteMcuModal.close(); // Volání přímo přes objekt
+                    deleteMcuModal.close(); 
                 } else {
                     deleteMcuModal.showError(data.message || 'Chyba při mazání.');
                 }
@@ -57,7 +56,7 @@ if (deleteMcuModal) {
     2. SMAZÁNÍ TYPU (deletetype)
    ============================================================ */
 const deleteTypeModal = Modal.register('deletetype');
-let typeIdToDelete = null; // Definováno vně, aby k tomu měl přístup i submitBtn
+let typeIdToDelete = null;
 
 if (deleteTypeModal) {
     document.addEventListener('click', function(e) {
@@ -71,7 +70,6 @@ if (deleteTypeModal) {
             return;
         }
 
-        console.log("Připraveno ke smazání ID Typu:", typeIdToDelete);
         deleteTypeModal.open(); 
         deleteTypeModal.hideError(); 
     });
@@ -117,9 +115,7 @@ if (deleteTypeModal) {
 const typeModal = Modal.register('Type');
 
 if (typeModal) {
-    console.log('1');
     if (typeModal.openModal) {
-        console.log('2');
         typeModal.openModal.addEventListener('click', () => {
             typeModal.open();
             typeModal.hideError();
@@ -173,8 +169,89 @@ if (typeModal) {
     }
 }
 
+
 /* ============================================================
-    4. Sidebar
+    4. editace controllerů
+   ============================================================ */
+const editModal = Modal.register('editMCU');
+
+document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.edit-mcu-btn');
+    if (!btn) return;
+
+    const mcuIdToEdit = btn.dataset.id;
+    
+    try {
+        const result = await fetchMcu(mcuIdToEdit);
+        
+        if (result && result.success && result.mcu) {
+            const mcu = result.mcu;
+            
+
+
+            document.getElementById('editMcuId').value = mcu.id || mcu.device_id || '';
+            document.getElementById('editMcuName').value = mcu.name || '';
+            
+            const typeSelect = document.getElementById('editTypeSelector');
+            if (typeSelect) typeSelect.value = mcu.type || '';
+
+            document.getElementById('editMcuLocation').value = mcu.location || '';
+            document.getElementById('editMcuIP').value = mcu.ipAddress || mcu.ip_address || '';
+            document.getElementById('editMcuMAC').value = mcu.macAddress || mcu.mac_address || '';
+            document.getElementById('editMcuDescription').value = mcu.description || '';
+
+            editModal.open();
+        } else {
+            console.error("Server vrátil success, ale chybí data 'mcu':", result);
+            window.openToastError && window.openToastError('Data zařízení nebyla nalezena.');
+        }
+    } catch(error) {
+        console.error("Chyba při otevírání modalu:", error);
+    }
+});
+
+editModal.submitBtn.addEventListener("click", async () =>{
+    if (editModal.form) {
+    editModal.form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = {
+            id: document.getElementById('editMcuId').value,
+            name: document.getElementById('editMcuName').value,
+            type: parseInt(document.getElementById('editTypeSelector').value), 
+            location: document.getElementById('editMcuLocation').value,
+            ipAddress: document.getElementById('editMcuIP').value,
+            macAddress: document.getElementById('editMcuMAC').value,
+            description: document.getElementById('editMcuDescription').value
+        };
+        try {
+            const response = await fetch('/mcu/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                if (window.openToast) window.openToast(result.message);
+                if (window.refreshMCUs) await window.refreshMCUs();
+                editModal.close();
+            } else {
+                editModal.showError(result.message || 'Chyba při ukládání.');
+            }
+        } catch (error) {
+            console.error("Fetch error:", error);
+            editModal.showError('Nelze navázat spojení se serverem.');
+        } 
+    });
+}
+})
+
+
+
+/* ============================================================
+    5. Sidebar
    ============================================================ */
 
 const refreshAll = document.getElementById('refreshAll');
@@ -225,5 +302,3 @@ async function getMcuStats() {
     }
 }
 
-
-console.log(getMcuStats());
