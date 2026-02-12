@@ -117,7 +117,11 @@ if (deleteTypeModal) {
                     }
                     
                 } else {
-                    deleteTypeModal.showError(data.message || 'Chyba při mazání.');
+                    try {
+                        window.openToast(data.message, false);
+                    } catch (error) {
+                        window.openToast(error.message, false);
+                    }
                 }
             } catch (error) {
                 deleteTypeModal.showError('Server neodpovídá.');

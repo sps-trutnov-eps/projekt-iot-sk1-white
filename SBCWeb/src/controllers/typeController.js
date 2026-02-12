@@ -34,12 +34,13 @@ const deleteType = (req,res) =>{
         TypeService.deleteType(id);
         res.status(200).json({ 
             success: true,
-            message: "Typ byl úspěšně smazán.",
+            message: "Typ byl úspěšně smazán."
         });
     } catch (error) {
         console.log(error);
         res.status(404).json({ 
-            message: error.message
+            success: false,
+            message: "Typ se nepodařilo úspěšně smazat."
         });
     }
 }
