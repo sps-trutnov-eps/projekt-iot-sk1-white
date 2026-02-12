@@ -10,7 +10,7 @@
         if(mcuModal.openModal){
             mcuModal.openModal.addEventListener('click', () => {
                 mcuModal.open();
-                hideError();
+                mcuModal.hideError();
             });
         }
 
@@ -54,7 +54,7 @@
                         submitBtn.innerHTML = '<i class="fas fa-plus"></i> Add MCU';
                     } else {
                         // Chyba - zobraz chybovou hlášku
-                        showError(data.message);
+                        mcuModal.showError(data.message);
                         submitBtn.disabled = false;
                         submitBtn.innerHTML = '<i class="fas fa-plus"></i> Add MCU';
                     }

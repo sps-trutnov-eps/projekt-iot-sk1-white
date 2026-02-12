@@ -13,7 +13,7 @@ if (deleteMcuModal) {
         mcuIdToDelete = btn.dataset.id;
 
         if (!mcuIdToDelete) {
-            window.openToastError && window.openToastError('Chybí ID MCU.');
+            window.openToast && window.openToas('Chybí ID MCU.', false);
             return;
         }
 
@@ -38,6 +38,11 @@ if (deleteMcuModal) {
                 
                 if (data.success) {
                     await window.refreshMCUs();
+                    try {
+                        window.openToast("Zařízení bylo úspěšně přidáno!", true);
+                    } catch (error) {
+                        window.openToast("Chyba při ukládání: " + error.message, false);
+                    }
                     deleteMcuModal.close(); 
                 } else {
                     deleteMcuModal.showError(data.message || 'Chyba při mazání.');
@@ -66,7 +71,7 @@ if (deleteTypeModal) {
         typeIdToDelete = btn.dataset.id;
 
         if (!typeIdToDelete) {
-            window.openToastError && window.openToastError('Chybí ID Typu.');
+            window.openToast && window.openToast('Chybí ID Typu.', false);
             return;
         }
 
@@ -93,9 +98,13 @@ if (deleteTypeModal) {
                     await window.refreshTypes();
                     deleteTypeModal.close();
                     typeModal.close();
-                    if (toast && toastMsg) {
-                    openToast(data.message);
+                        
+                    try {
+                        window.openToast(data.message, true);
+                    } catch (error) {
+                        window.openToast(error.message, false);
                     }
+                    
                 } else {
                     deleteTypeModal.showError(data.message || 'Chyba při mazání.');
                 }
@@ -144,10 +153,10 @@ if (typeModal) {
                 
                 if (data.success) {
                     await window.refreshTypes();
-                    if (toast && toastMsg) {
-                        openToast(data.message);
-                    } else {
-                        typeModal.showError("nebylo možné zobrazit alert");
+                    try {
+                        window.openToast("Zařízení bylo úspěšně přidáno!", true);
+                    } catch (error) {
+                        window.openToast("Chyba při ukládání: " + error.message, false);
                     }
                     typeModal.close();
                     
