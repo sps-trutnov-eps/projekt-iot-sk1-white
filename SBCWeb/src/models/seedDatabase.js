@@ -12,7 +12,7 @@ const seedDB = () => {
   `);
 
   const mcuTypes = [
-    'Raspberry Pi Pico',
+    'Raspberry Pi Pico W',
     'Raspberry Pi Pico 2W',
     'ESP32',
     'Arduino Nano'
