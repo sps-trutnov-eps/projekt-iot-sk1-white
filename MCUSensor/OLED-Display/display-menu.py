@@ -20,23 +20,25 @@ sw = Pin(SW_PIN, Pin.IN, Pin.PULL_UP)
 
 # --- DEFINICE MENU ---
 menu_items = [
-    "Mereni Teploty",
-    "Nastaveni Wifi",
-    "Jas Displeje",
-    "Informace o sys",
-    "Restartovat",
-    "Vypnout"
+    {"label": "Mereni Teploty", "visible": True},
+    {"label": "Data z MCU2", "visible": True},
+    {"label": "Nastaveni Wifi", "visible": True},
+    {"label": "Jas Displeje", "visible": True},
+    {"label": "Informace o sys", "visible": True},
+    {"label": "Restartovat", "visible": True},
+    {"label": "Vypnout", "visible": True}
 ]
 
+edit_mode = False
 current_index = 0
-last_index = -1  # Pro kontrolu překreslení
+scroll_delta = 0
 button_pressed = False
 
 # --- LOGIKA ENKODÉRU ---
 last_clk = clk.value()
 
 def handle_encoder(pin):
-    global current_index, last_clk
+    global scroll_delta, last_clk
     current_clk = clk.value()
     current_dt = dt.value()
     
@@ -44,16 +46,10 @@ def handle_encoder(pin):
         if current_clk == 0:  # Detekce hrany dolů
             # Rozhodnutí směru podle stavu DT
             if current_dt != current_clk:
-                current_index += 1
+                scroll_delta += 1
             else:
-                current_index -= 1
-            
-            # Ošetření přetečení (cyklické menu)
-            if current_index >= len(menu_items):
-                current_index = 0
-            elif current_index < 0:
-                current_index = len(menu_items) - 1
-                
+                scroll_delta -= 1
+
     last_clk = current_clk
 
 # Připojení přerušení (IRQ) na CLK pin enkodéru
@@ -73,31 +69,59 @@ sw.irq(trigger=Pin.IRQ_FALLING, handler=handle_button)
 def draw_menu():
     oled.fill(0) # Vyčistit obrazovku
     
+    # Určení seznamu, který se má zobrazovat
+    if edit_mode:
+        active_list = menu_items
+        header_text = "EDITACE MENU"
+    else:
+        active_list = [item for item in menu_items if item['visible']]
+        header_text = ""
+
+    # Pokud není nic k zobrazení
+    if not active_list:
+        oled.text("Zadne polozky", 10, 30, 1)
+        oled.show()
+        return
+
+    # Bezpečné zjištění indexů (modulo délkou aktuálního seznamu)
+    list_len = len(active_list)
+    safe_index = current_index % list_len
+    
     # Vypočítáme indexy pro položku nahoře a dole
-    prev_index = (current_index - 1) % len(menu_items)
-    next_index = (current_index + 1) % len(menu_items)
+    prev_index = (safe_index - 1) % list_len
+    next_index = (safe_index + 1) % list_len
+    
+    # Pomocná funkce pro formátování textu
+    def get_label(idx):
+        item = active_list[idx]
+        text = item['label']
+        if edit_mode:
+            prefix = "[x]" if item['visible'] else "[ ]"
+            return f"{prefix} {text}"
+        return text
+
+    # Vykreslení nadpisu v edit módu
+    y_offset = 0
+    if edit_mode:
+        oled.text(header_text, 20, 0, 1)
+        y_offset = 8 # Posuneme menu trochu dolů
     
     # 1. Horní položka (malá, šedá/normální)
-    # Souřadnice: X=10, Y=5
-    oled.text(menu_items[prev_index], 10, 5, 1)
+    oled.text(get_label(prev_index), 10, 5 + y_offset, 1)
     
     # 2. PROSTŘEDNÍ POLOŽKA (Zvýrazněná)
-    # Nakreslíme bílý obdélník přes celou šířku uprostřed
-    # Y začíná na 22, výška 20px
-    oled.fill_rect(0, 22, 128, 20, 1)
+    oled.fill_rect(0, 22 + y_offset, 128, 20, 1)
     
-    # Text vypíšeme černě (color=0) na bílé pozadí
-    # Přidáme šipky ">" pro efekt
-    selected_text = "> " + menu_items[current_index] + " <"
+    selected_text = get_label(safe_index)
+    if not edit_mode:
+        selected_text = f"> {selected_text} <"
     
-    # Vycentrování textu (zhruba)
-    text_width = len(selected_text) * 8
-    x_pos = (128 - text_width) // 2
-    oled.text(selected_text, x_pos, 28, 0) # color 0 = černá
+    # Centr textu
+    x_pos = max(0, (128 - len(selected_text) * 8) // 2)
+    oled.text(selected_text, x_pos, 28 + y_offset, 0) # color 0 = černá
     
     # 3. Dolní položka (malá)
-    # Souřadnice: X=10, Y=50
-    oled.text(menu_items[next_index], 10, 50, 1)
+    oled.text(get_label(next_index), 10, 50 + y_offset, 1)
     
     # Vykreslení
     oled.show()
@@ -111,17 +135,61 @@ def perform_action(item_name):
     # Zde by se volala funkce podle výběru
 
 # --- HLAVNÍ SMYČKA ---
+draw_menu() # Prvotní vykreslení
+
 while True:
-    # Překresli jen když se změní výběr
-    if current_index != last_index:
+    # 1. Zpracování pohybu enkodéru
+    if scroll_delta != 0:
+        # Zjistíme délku aktuálního seznamu
+        if edit_mode:
+            list_len = len(menu_items)
+        else:
+            list_len = len([m for m in menu_items if m['visible']])
+        
+        if list_len > 0:
+            current_index += scroll_delta
+            # Ošetření přetečení
+            if current_index >= list_len:
+                current_index = 0
+            elif current_index < 0:
+                current_index = list_len - 1
+        
+        scroll_delta = 0
         draw_menu()
-        last_index = current_index
     
-    # Kontrola tlačítka
+    # 2. Zpracování tlačítka
     if button_pressed:
-        print(f"Vybrano: {menu_items[current_index]}")
-        perform_action(menu_items[current_index])
         button_pressed = False
-        draw_menu() # Vrátit zpět menu
+        
+        # Detekce DLOUHÉHO stisku (pro vstup do Editace)
+        hold_time = 0
+        while sw.value() == 0: # Dokud je drženo
+            time.sleep_ms(50)
+            hold_time += 50
+            if hold_time > 1000: break # Po 1s považujeme za dlouhý stisk
+            
+        if hold_time > 1000:
+            # --- PŘEPNUTÍ REŽIMU ---
+            edit_mode = not edit_mode
+            current_index = 0 # Reset pozice při změně režimu
+            draw_menu()
+            # Čekáme na uvolnění tlačítka
+            while sw.value() == 0: time.sleep_ms(10)
+            
+        else:
+            # --- KRÁTKÝ STISK (AKCE) ---
+            if edit_mode:
+                # Přepnout viditelnost položky
+                item = menu_items[current_index]
+                item['visible'] = not item['visible']
+                draw_menu()
+            else:
+                # Spustit funkci
+                active_list = [m for m in menu_items if m['visible']]
+                if active_list:
+                    selected_item = active_list[current_index]
+                    print(f"Vybrano: {selected_item['label']}")
+                    perform_action(selected_item['label'])
+                    draw_menu()
         
     time.sleep_ms(10) # Malá pauza pro uvolnění CPU
