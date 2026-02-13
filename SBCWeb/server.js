@@ -3,6 +3,7 @@ const express = require('express');
 const path = require('path');
 const app = express();
 const PORT = 3000;
+const MqttHandler = require('./src/controllers/mqttHandler');
 
 const db = require('./src/models/database');
 const initDB = require('./src/models/initDatabase');
@@ -32,6 +33,8 @@ app.use('/type', typeRoutes);
 
 
 initDB();
+
+MqttHandler.init();
 
 // Error handling
 app.use((req, res) => {
