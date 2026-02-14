@@ -3,6 +3,7 @@ const express = require('express');
 const path = require('path');
 const app = express();
 const PORT = 3000;
+const MqttHandler = require('./src/controllers/mqttHandler');
 
 const db = require('./src/models/database');
 const initDB = require('./src/models/initDatabase');
@@ -21,17 +22,17 @@ app.set('views', path.join(__dirname, './src/views'));
 
 // Routes
 const indexRoutes = require('./src/routes/indexRouter');
-const telemetryRoutes = require('./src/routes/telemetryRouter');
 const MCURoutes = require('./src/routes/MCURouter')
 const typeRoutes = require('./src/routes/typeRouter')
 
 app.use('/', indexRoutes);
 app.use('/mcu', MCURoutes)
-app.use('/api', telemetryRoutes);
 app.use('/type', typeRoutes);
 
 
 initDB();
+
+MqttHandler.init();
 
 // Error handling
 app.use((req, res) => {

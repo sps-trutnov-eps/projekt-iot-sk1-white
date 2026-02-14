@@ -15,4 +15,6 @@ router.post('/get', MCUController.getMCU);
 
 router.post('/update', MCUController.updateMCU);
 
+router.get('/:id', MCUController.renderMCUDetail)
+
 module.exports = router;

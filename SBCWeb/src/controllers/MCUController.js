@@ -9,6 +9,14 @@ const renderMCU = (req, res) =>{
   }
 }
 
+const renderMCUDetail = (req, res) =>{
+  try{
+    res.render('mcuDetail', { projectName: 'IoT Control' });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+}
+
 
 const createMCU = (req, res) => {
   try {
@@ -101,4 +109,4 @@ const updateMCU = (req,res) => {
 
 }
 
-module.exports = {createMCU, getMCU, getALLMCUs, deleteMCU, updateMCU, renderMCU};
+module.exports = {createMCU, getMCU, getALLMCUs, deleteMCU, updateMCU, renderMCU, renderMCUDetail};

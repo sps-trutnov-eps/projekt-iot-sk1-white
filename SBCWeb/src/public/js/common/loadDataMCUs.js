@@ -111,7 +111,7 @@ function renderMCUGrid(mcusArray) {
     const pulseEffect = diffMins < 10 ? 'animate-pulse' : '';
 
     return `
-      <div class="mcu-card bg-white rounded-lg shadow-sm border border-ash-grey-200 hover:shadow-md transition-shadow mb-4" 
+      <div class="mcu-card cursor-pointer bg-white rounded-lg shadow-sm border border-ash-grey-200 hover:shadow-md transition-shadow mb-4" 
            data-id="${mcu.id}" 
            data-type="${escape(mcu.type)}"> <div class="flex items-center p-4">
           <div class="flex items-center space-x-4">
