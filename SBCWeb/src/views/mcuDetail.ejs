@@ -48,8 +48,8 @@
                 
                 <div class="bg-white rounded-xl shadow-sm border border-ash-grey-200 p-6 flex-none h-[140px] flex flex-col justify-center relative overflow-hidden">
                      
-                <%- include('partials/mcuDetail/mcu') %>
-
+                <%- include('partials/mcuDetail/mcu', { mcu: mcu }) %>
+                
                 <%- include('partials/mcuDetail/measurementsCards') %>
 
                 <%- include('partials/mcuDetail/sensors') %>
