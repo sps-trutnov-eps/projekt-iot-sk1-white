@@ -53,8 +53,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 // "Online" je cokoliv, co má rozdíl menší než 70 minut oproti tvé korekci
 // (nebo 10 minut reálně, pokud započítáme ten 60min posun v DB)
                 const isOnline = diffMinutes < 70; 
-                console.log(diffMinutes)
-                console.log(isOnline);
+
                 if (isOnline) {
                     if (dot) dot.className = "absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full";
                     if (indicator) indicator.className = "w-2 h-2 rounded-full bg-green-500";
@@ -72,3 +71,160 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('Chyba aplikace:', err);
     }
 });
+
+
+
+const sensorModal = Modal.register('sensor');
+
+if (sensorModal) {
+    // 1. Otevírání modalu
+    if (sensorModal.openModal) {
+        sensorModal.openModal.addEventListener('click', () => {
+            sensorModal.open();
+            sensorModal.hideError();
+            // Resetujeme kontejner metrik při každém otevření, pokud chceš začít čistý
+            const container = document.getElementById('metricsContainer');
+            if (container) container.innerHTML = ''; 
+            const emptyState = document.getElementById('emptyMetricsState');
+            if (emptyState) emptyState.classList.remove('hidden');
+        });
+    }
+
+    // 2. Odeslání formuláře
+    if (sensorModal.submitBtn) {
+        sensorModal.submitBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+
+            // Sběr dat z hlavních polí
+            const sensorName = document.getElementById('sensorNameInput').value;
+            const mcuId = window.location.pathname.split('/').pop();
+
+            // Dynamický sběr metrik (veličin)
+            const metrics = [];
+            const container = document.getElementById('metricsContainer');
+            const rows = container.querySelectorAll('.flex.items-center.gap-2'); // Zaměření na řádky metrik
+
+            rows.forEach(row => {
+                metrics.push({
+                    name: row.querySelector('input[name="metricName[]"]').value,
+                    type: row.querySelector('select[name="metricType[]"]').value,
+                    unit: row.querySelector('input[name="metricUnit[]"]').value
+                });
+            });
+
+            // Validace: Musí být alespoň jedna metrika
+            if (metrics.length === 0) {
+                sensorModal.showError("Musíte přidat alespoň jednu měřenou veličinu.");
+                return;
+            }
+
+            const formData = {
+                mcuId: mcuId,
+                name: sensorName,
+                metrics: metrics
+            };
+
+            try {
+                sensorModal.submitBtn.disabled = true;
+                sensorModal.submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
+                
+                const response = await fetch('/sensor/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    window.openToast("Senzor byl úspěšně přidán!", true);
+                    sensorModal.clear();
+                    // Zavření modalu
+                    sensorModal.close();
+                    // Volitelný refresh dat na stránce
+                    if (window.refreshSensors) await window.refreshSensors();
+                    else window.location.reload(); 
+                } else {
+                    sensorModal.showError(data.message);
+                }
+            } catch (error) {
+                console.error(error);
+                sensorModal.showError("Chyba při komunikaci se serverem.");
+            } finally {
+                sensorModal.submitBtn.disabled = false;
+                sensorModal.submitBtn.innerHTML = '<i class="fas fa-plus"></i> Přidat Senzor';
+            }
+        });
+    }
+}
+
+
+
+const metricModal = Modal.register('metric');
+
+if (metricModal) {
+    // 1. Otevírání modalu (předpokládá se volání odjinud s ID senzoru)
+    // Příklad: <button onclick="openAddMetricModal(12)">...</button>
+    window.openAddMetricModal = (sensorId) => {
+        metricModal.open();
+        metricModal.hideError();
+        metricModal.clear();
+        document.getElementById('metricSensorIdInput').value = sensorId;
+    };
+
+    if (metricModal.openModal) {
+        metricModal.openModal.addEventListener('click', () => {
+            metricModal.open();
+            metricModal.hideError();
+        });
+    }
+
+    // 2. Odeslání formuláře
+    if (metricModal.submitBtn) {
+        metricModal.submitBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                sensorId: document.getElementById('metricSensorIdInput').value,
+                name: document.getElementById('metricNameInput').value,
+                type: document.getElementById('metricTypeInput').value,
+                unit: document.getElementById('metricUnitInput').value
+            };
+
+            // Jednoduchá validace
+            if (!formData.name || !formData.unit) {
+                metricModal.showError("Vyplňte prosím všechna pole.");
+                return;
+            }
+
+            try {
+                metricModal.submitBtn.disabled = true;
+                metricModal.submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>...';
+                
+                const response = await fetch('/metric/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    window.openToast("Veličina byla přidána!", true);
+                    metricModal.close();
+                    // Zde zavoláš funkci pro překreslení UI
+                    if (window.refreshSensorDetails) window.refreshSensorDetails();
+                    else window.location.reload();
+                } else {
+                    metricModal.showError(data.message);
+                }
+            } catch (error) {
+                console.error(error);
+                metricModal.showError("Chyba při spojení se serverem.");
+            } finally {
+                metricModal.submitBtn.disabled = false;
+                metricModal.submitBtn.innerHTML = 'Přidat';
+            }
+        });
+    }
+}

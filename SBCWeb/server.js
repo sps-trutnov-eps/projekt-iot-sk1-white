@@ -22,12 +22,14 @@ app.set('views', path.join(__dirname, './src/views'));
 
 // Routes
 const indexRoutes = require('./src/routes/indexRouter');
-const MCURoutes = require('./src/routes/MCURouter')
-const typeRoutes = require('./src/routes/typeRouter')
+const MCURoutes = require('./src/routes/MCURouter');
+const typeRoutes = require('./src/routes/typeRouter');
+const sensorRoutes = require('./src/routes/sensorRouter');
 
 app.use('/', indexRoutes);
 app.use('/mcu', MCURoutes)
 app.use('/type', typeRoutes);
+app.use('/sensor', sensorRoutes);
 
 
 initDB();
