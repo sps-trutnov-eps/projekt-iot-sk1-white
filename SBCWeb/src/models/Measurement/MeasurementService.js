@@ -12,8 +12,7 @@ class MeasurementService {
     }
 
     static async processMinuteAggregation() {
-        console.log("⏱️ Probíhá minutová agregace...");
-        console.log(this.buffers);
+
         for (const mac in this.buffers) {
             const values = this.buffers[mac];
             if (values.length === 0) continue;

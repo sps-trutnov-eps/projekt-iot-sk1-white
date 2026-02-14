@@ -25,7 +25,7 @@ class MqttHandler {
         // Spuštění agregace každých 60 sekund
         setInterval(() => {
             MeasurementService.processMinuteAggregation();
-        }, 5000);
+        }, 60000);
     }
 }
 

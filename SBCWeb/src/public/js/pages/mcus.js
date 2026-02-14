@@ -497,9 +497,25 @@ function initSearchBar() {
     });
 }
 
-
+/* ============================================================
+    7. Kartičky mcu
+   ============================================================ */
 document.addEventListener('DOMContentLoaded', () => {
     refreshSidebarStats();
     refreshTypeStats();
     initSearchBar(); 
+});
+
+document.getElementById('mcuGrid').addEventListener('click', (e) => {
+  const card = e.target.closest('.mcu-card');
+  
+  if (!card) return;
+
+
+  if (e.target.closest('button')) {
+    return; 
+  }
+
+  const mcuId = card.dataset.id;
+  window.location.href = `/mcu/${mcuId}`;
 });
