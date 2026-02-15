@@ -28,8 +28,9 @@ export async function loadSensors(isBackground = false) {
                                 <p class="text-xs font-medium text-gray-700">${translated} <span class="text-[9px] text-gray-400">(${sensor.model})</span></p>
                             </div>
                             <div class="text-right">
-                                <span class="text-xs font-bold text-gray-800">${channel.last_value || '---'}</span>
-                                <span class="text-[10px] text-silver-500">${channel.unit}</span>
+                            <span class="text-[10px] text-silver-500">unit:</span>    
+                            <span class="text-xs font-bold text-gray-800">${channel.unit} </span>
+                                
                             </div>
                         </div>`;
                     container.insertAdjacentHTML('beforeend', itemHtml);
