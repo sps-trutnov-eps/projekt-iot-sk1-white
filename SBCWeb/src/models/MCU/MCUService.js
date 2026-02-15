@@ -3,6 +3,27 @@ const MCURepository = require('./MCURepository');
 
 class MCUService {
     
+    /**
+     * Ověří zařízení podle API klíče.
+     * Volá to MeasurementService při příjmu dat.
+     */
+    static validateAndGetDevice(apiKey) {
+        if (!apiKey) {
+            return null;
+        }
+        // Repository metodu findByApiKey už máš, jen ji voláme
+        return MCURepository.findByApiKey(apiKey);
+    }
+
+    /**
+     * Aktualizuje čas posledního kontaktu.
+     * Volá to MeasurementService, aby svítila zelená tečka.
+     */
+    static updateLastSeen(id) {
+        return MCURepository.updateLastSeen(id);
+    }
+
+
     // CREATE - vytvořit nové MCU
     static createMCU(data) {
         // 1. Validace (zkontroluj povinná pole)

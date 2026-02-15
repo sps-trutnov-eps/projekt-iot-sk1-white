@@ -102,7 +102,7 @@ class MCURepository{
         return this.findById(id);
     }
 
-    static updateLastSeen(id) {
+    static async updateLastSeen(id) {
         const query = `UPDATE mcus SET last_seen = datetime('now') WHERE device_id = ?`;
         const result = db.prepare(query).run(id);
         return result;
