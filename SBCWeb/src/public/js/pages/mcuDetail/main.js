@@ -1,6 +1,6 @@
 import { initChart, updateChart, updateChartMetric } from './chartManager.js';
 import { loadSensors, fetchMcuInfo, initModals, removeMetric } from './sensorManager.js';
-import { liveData } from './liveDataManager.js';
+
 // 1. GLOBÁLNÍ BRIDGE (Nezbytné pro onclick v HTML)
 window.updateChart = updateChart;
 window.updateChartMetric = updateChartMetric;
@@ -24,8 +24,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     initChart();
     initModals();
     await window.updateView(false);
-
-    liveData.start();
 
     setInterval(() => window.updateView(true), 5000);
 });
