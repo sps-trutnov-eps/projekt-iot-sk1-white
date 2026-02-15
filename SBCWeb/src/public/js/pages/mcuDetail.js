@@ -8,7 +8,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     let mainChart = null;
     let currentChartChannelId = null;
     let currentChartRange = '24h';
-
+    let currentChartData = []; // Tady si uložíme surová data ze serveru
+    let currentMetric = 'avg'; // Defaultní zobrazení
     // ---------------------------------------------------------
     // 2. POMOCNÉ FUNKCE (Stylování, Překlady)
     // ---------------------------------------------------------
@@ -295,31 +296,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     function initChart() {
         const ctx = document.getElementById('mainChart').getContext('2d');
         
-        // Gradient (Fialový - Vintage Grape)
-        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-        gradient.addColorStop(0, 'rgba(136, 108, 147, 0.4)');
-        gradient.addColorStop(1, 'rgba(136, 108, 147, 0.0)');
+        // ... gradient ...
 
         mainChart = new Chart(ctx, {
             type: 'line',
-            data: {
-                labels: [], // Zatím prázdné
-                datasets: [{
-                    label: 'Hodnota',
-                    data: [], // Zatím prázdné
-                    borderColor: '#886c93',
-                    backgroundColor: gradient,
-                    borderWidth: 2,
-                    tension: 0.4,       // Hladká křivka
-                    fill: true,
-                    pointRadius: 0,     // Body nejsou vidět...
-                    pointHoverRadius: 6 // ...dokud na ně nenajedeš myší
-                }]
-            },
+            data: { /* ... */ },
             options: {
+                // --- PŘIDÁNO: Vnitřní odsazení grafu ---
+                layout: {
+                    padding: {
+                        top: 10,
+                        right: 20, // Aby se neořezal poslední bod vpravo
+                        bottom: 10,
+                        left: 10
+                    }
+                },
+                // ---------------------------------------
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } }, // Skrytá legenda
+                plugins: { legend: { display: false } },
                 scales: {
                     x: { 
                         grid: { display: false }, 
@@ -387,31 +382,96 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // --- 3. VYKRESLENÍ DAT DO CHART.JS ---
-    function renderChartData(data) {
-        if (!mainChart) return;
-
-        // A) Příprava popisků osy X (Čas)
-        const labels = data.map(row => {
-            const date = new Date(row.timestamp);
-            
-            // Pokud koukáme na 7 dní, zajímá nás i datum
-            if (currentChartRange === '7d') {
-                return date.toLocaleDateString('cs-CZ', { day: '2-digit', month: '2-digit' }) + ' ' + 
-                    date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
-            }
-            // Jinak stačí čas
-            return date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
-        });
-
-        // B) Příprava hodnot osy Y
-        const values = data.map(row => row.value);
-
-        // C) Update grafu
-        mainChart.data.labels = labels;
-        mainChart.data.datasets[0].data = values;
-        mainChart.update();
+    // Funkce volaná při kliknutí na radio button (Min/Max/Avg)
+function updateChartMetric() {
+    // Zjistíme, co je vybráno
+    const radios = document.getElementsByName('chartMetric');
+    for (const radio of radios) {
+        if (radio.checked) {
+            currentMetric = radio.value;
+            break;
+        }
     }
+    // Překreslíme graf (bez stahování dat ze serveru!)
+    renderChartData();
+}
+
+window.updateChartMetric = updateChartMetric;
+
+// Hlavní vykreslovací funkce
+function renderChartData(data = null) {
+    // Pokud nám někdo poslal data (poprvé), uložíme je. Jinak bereme z paměti.
+    if (data) currentChartData = data;
+    
+    // Pokud nemáme data ani graf, končíme
+    if (!mainChart || !currentChartData || currentChartData.length === 0) return;
+
+    // 1. Osy X (Čas) - stejné pro všechny
+    const labels = currentChartData.map(row => {
+        const date = new Date(row.timestamp);
+        if (currentChartRange === '7d') {
+            return date.toLocaleDateString('cs-CZ', { day: '2-digit', month: '2-digit' }) + ' ' + 
+                   date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+        }
+        return date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+    });
+
+    // 2. Vymažeme staré datasety
+    mainChart.data.datasets = [];
+
+    // 3. Přidáme datasety podle výběru
+    
+    // Dataset pro PRŮMĚR (fialová)
+    if (currentMetric === 'avg' || currentMetric === 'all') {
+        mainChart.data.datasets.push({
+            label: 'Průměr',
+            data: currentChartData.map(row => row.avg),
+            borderColor: '#886c93', // Vintage Grape
+            backgroundColor: 'rgba(136, 108, 147, 0.1)',
+            borderWidth: 2,
+            tension: 0.4,
+            pointRadius: 0,
+            pointHoverRadius: 6,
+            fill: currentMetric === 'avg' // Výplň jen když je samotný
+        });
+    }
+
+    // Dataset pro MINIMUM (modrá)
+    if (currentMetric === 'min' || currentMetric === 'all') {
+        mainChart.data.datasets.push({
+            label: 'Minimum',
+            data: currentChartData.map(row => row.min),
+            borderColor: '#3b82f6', // Blue-500
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            borderWidth: (currentMetric === 'all') ? 1 : 2, // Tenčí čára pokud je "Vše"
+            borderDash: (currentMetric === 'all') ? [5, 5] : [], // Čárkovaně pokud je "Vše"
+            tension: 0.4,
+            pointRadius: 0,
+            pointHoverRadius: 6,
+            fill: false
+        });
+    }
+
+    // Dataset pro MAXIMUM (červená)
+    if (currentMetric === 'max' || currentMetric === 'all') {
+        mainChart.data.datasets.push({
+            label: 'Maximum',
+            data: currentChartData.map(row => row.max),
+            borderColor: '#ef4444', // Red-500
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            borderWidth: (currentMetric === 'all') ? 1 : 2,
+            borderDash: (currentMetric === 'all') ? [5, 5] : [],
+            tension: 0.4,
+            pointRadius: 0,
+            pointHoverRadius: 6,
+            fill: false
+        });
+    }
+
+    // 4. Update
+    mainChart.data.labels = labels;
+    mainChart.update();
+}
 
     // ---------------------------------------------------------
     // 8. START APLIKACE (INIT)

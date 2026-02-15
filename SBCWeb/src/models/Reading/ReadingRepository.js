@@ -27,9 +27,12 @@ class ReadingRepository {
      * @param {string} timeModifier - SQL modifikátor času (např. '-1 hour', '-7 days')
      */
     static getHistory(channelId, timeModifier) {
-        // Vybere data novější než aktuální čas mínus modifikátor
         const query = `
-            SELECT avg_value as value, timestamp 
+            SELECT 
+                avg_value as avg, 
+                min_value as min, 
+                max_value as max, 
+                timestamp 
             FROM readings 
             WHERE channel_id = ? 
             AND timestamp >= datetime('now', ?)
