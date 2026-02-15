@@ -3,6 +3,124 @@
    --------------------------------------------------------- */
 // Zde budeme dočasně držet metriky před tím, než se odešlou na server
 let tempMetrics = []; 
+let mcuId = window.location.pathname.split('/').pop();
+/* ---------------------------------------------------------
+   Vyplnění seznamu senzorů
+   --------------------------------------------------------- */
+
+
+/**
+ * Vrátí ikonu a barvu podle typu senzoru/veličiny
+ */
+function getSensorStyle(type) {
+    // Normalizace typu na malá písmena pro porovnání
+    const t = type.toLowerCase();
+    
+    if (t.includes('temp') || t.includes('teplota')) {
+        return { icon: 'fa-thermometer-half', color: 'text-vintage-grape-600' };
+    }
+    if (t.includes('hum') || t.includes('vlhkost')) {
+        return { icon: 'fa-tint', color: 'text-blue-500' };
+    }
+    if (t.includes('press') || t.includes('tlak')) {
+        return { icon: 'fa-tachometer-alt', color: 'text-emerald-500' };
+    }
+    if (t.includes('co2') || t.includes('air')) {
+        return { icon: 'fa-wind', color: 'text-gray-600' };
+    }
+    if (t.includes('light') || t.includes('světlo') || t.includes('lux')) {
+        return { icon: 'fa-sun', color: 'text-amber-500' };
+    }
+    if (t.includes('volt') || t.includes('napětí') || t.includes('batt')) {
+        return { icon: 'fa-bolt', color: 'text-yellow-600' };
+    }
+    if (t.includes('rssi') || t.includes('signal') || t.includes('wifi')) {
+        return { icon: 'fa-wifi', color: 'text-midnight-violet-900' };
+    }
+    
+    // Defaultní styl pro neznámé typy
+    return { icon: 'fa-chart-line', color: 'text-gray-400' };
+}
+
+const loadSensors = async () => {
+        const container = document.getElementById('sensorListContainer');
+        if (!container) return;
+
+        // Loading stav (volitelné)
+        container.innerHTML = '<div class="p-4 text-center text-xs text-gray-400"><i class="fas fa-spinner fa-spin"></i> Načítám senzory...</div>';
+
+        try {
+            // 1. Fetch dat z API
+            const response = await fetch(`/sensor/device/${mcuId}`); // Uprav URL podle routy v routeru
+            const data = await response.json();
+
+            if (data.success && data.sensors.length > 0) {
+                container.innerHTML = ''; // Vyčistit container
+                
+                // 2. Iterace přes fyzické senzory (např. DHT11)
+                data.sensors.forEach(sensor => {
+                    
+                    // Pokud senzor nemá žádné kanály (veličiny), přeskočíme ho nebo zobrazíme placeholder
+                    if (!sensor.channels || sensor.channels.length === 0) return;
+
+                    // 3. Iterace přes kanály (Teplota, Vlhkost...) - to jsou řádky v seznamu
+                    sensor.channels.forEach((channel, index) => {
+                        
+                        // Získání stylu podle typu
+                        const style = getSensorStyle(channel.type);
+                        
+                        // Získání poslední hodnoty (pokud existuje v DB logice, jinak placeholder)
+                        // Předpokládám, že endpoint vrací i poslední naměřenou hodnotu,
+                        // pokud ne, budeš tam muset dát '---' nebo to dotáhnout dalším dotazem.
+                        const lastValue = channel.last_value !== undefined ? channel.last_value : '---'; 
+
+                        // Vytvoření HTML elementu
+                        const itemHtml = `
+                        <div onclick="updateChart('${channel.id}')" class="group flex items-center justify-between px-3 py-2.5 hover:bg-ash-grey-50 cursor-pointer transition-colors border-b border-ash-grey-50 last:border-0">
+                            <div class="flex items-center gap-2 overflow-hidden">
+                                <div class="w-6 h-6 rounded bg-white flex flex-none items-center justify-center shadow-sm border border-ash-grey-100 text-xs">
+                                    <i class="fas ${style.icon} ${style.color}"></i>
+                                </div>
+                                
+                                <div class="flex flex-col overflow-hidden">
+                                    <p class="text-xs font-medium text-gray-700 truncate group-hover:text-midnight-violet-900" title="${sensor.model} - ${channel.type}">
+                                        ${channel.type} <span class="text-[9px] text-gray-400 font-normal">(${sensor.model})</span>
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex-none text-right ml-2">
+                                <span class="text-xs font-bold text-gray-800">${lastValue}</span>
+                                <span class="text-[10px] text-silver-500 ml-0.5">${channel.unit}</span>
+                            </div>
+                        </div>
+                        `;
+                        
+                        container.insertAdjacentHTML('beforeend', itemHtml);
+                    });
+                });
+
+            } else {
+                // Empty state
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-32 text-silver-400">
+                        <i class="fas fa-wind text-2xl mb-2 opacity-20"></i>
+                        <span class="text-xs">Žádné senzory</span>
+                    </div>`;
+            }
+
+        } catch (error) {
+            console.error('Chyba při načítání senzorů:', error);
+            container.innerHTML = '<div class="p-4 text-center text-xs text-red-400">Chyba načítání dat.</div>';
+        }
+    };
+
+    // Spustíme funkci
+    loadSensors();
+
+    // Zpřístupníme funkci globálně, pokud ji chceme volat třeba po přidání senzoru
+    window.refreshSensors = loadSensors;
+
 
 
 /* ---------------------------------------------------------
@@ -11,7 +129,7 @@ let tempMetrics = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. ZÍSKÁNÍ ID Z URL
-    const mcuId = window.location.pathname.split('/').pop();
+    
 
     // 2. KONTROLA TOASTU PO RELOADU (pokud jsme uložili zprávu do session)
     const toastMsg = sessionStorage.getItem('toastMessage');
