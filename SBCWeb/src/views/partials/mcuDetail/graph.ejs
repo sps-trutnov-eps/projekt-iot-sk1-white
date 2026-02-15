@@ -5,6 +5,8 @@
             <p class="text-xs text-silver-500">Vývoj naměřených hodnot v čase</p>
         </div>
         <div class="flex bg-ash-grey-50 p-1 rounded-lg border border-ash-grey-200">
+            <button onclick="updateChart('now')" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all bg-white shadow-sm text-midnight-violet-900">now</button>
+            <button onclick="updateChart('1h')" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all bg-white shadow-sm text-midnight-violet-900">1Hod</button>
             <button onclick="updateChart('24h')" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all bg-white shadow-sm text-midnight-violet-900">24 Hod</button>
             <button onclick="updateChart('7d')" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all text-silver-500 hover:text-midnight-violet-900 hover:bg-white/50">7 Dní</button>
         </div>
