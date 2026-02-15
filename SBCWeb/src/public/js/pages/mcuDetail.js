@@ -4,6 +4,103 @@
 // Zde budeme dočasně držet metriky před tím, než se odešlou na server
 let tempMetrics = []; 
 
+
+/* ---------------------------------------------------------
+    Vyplnění mcu dat
+    --------------------------------------------------------- */
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // 1. ZÍSKÁNÍ ID Z URL
+    const mcuId = window.location.pathname.split('/').pop();
+
+    // 2. KONTROLA TOASTU PO RELOADU (pokud jsme uložili zprávu do session)
+    const toastMsg = sessionStorage.getItem('toastMessage');
+    const toastSuccess = sessionStorage.getItem('toastSuccess');
+    
+    if (toastMsg && window.openToast) {
+        window.openToast(toastMsg, toastSuccess === 'true');
+        // Vyčistíme, aby se neukazoval znovu
+        sessionStorage.removeItem('toastMessage');
+        sessionStorage.removeItem('toastSuccess');
+    }
+    
+    // 3. NAČTENÍ DAT O MCU
+    try {
+        const response = await fetch('/mcu/get', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: mcuId })
+        });
+
+        const data = await response.json();
+
+        if (data.success && data.mcu) {
+            const mcu = data.mcu;
+
+            // A) Základní info
+            const nameEl = document.getElementById('mcu-name');
+            const ipEl = document.getElementById('mcu-ip');
+            const macEl = document.getElementById('mcu-mac');
+            
+            if(nameEl) nameEl.textContent = mcu.name;
+            if(ipEl) ipEl.textContent = mcu.ipAddress || '---';
+            if(macEl) macEl.textContent = mcu.macAddress || '---';
+
+            // B) Parsování času z DB (očekává YYYY-MM-DD HH:mm:ss)
+            if (mcu.lastSeen) {
+                const parts = mcu.lastSeen.split(/[- :]/);
+                // JS měsíce jsou 0-11, proto parts[1]-1
+                const lastSeenDate = new Date(parts[0], parts[1]-1, parts[2], parts[3], parts[4], parts[5]);
+                
+                // Korekce +1 hodina (podle tvého původního kódu)
+                lastSeenDate.setHours(lastSeenDate.getHours() + 1);
+                
+                const now = new Date();
+                const diffMinutes = Math.floor((now - lastSeenDate) / 1000 / 60);
+
+                // C) Formátování textu času (Dnes / Datum)
+                const isToday = now.toDateString() === lastSeenDate.toDateString();
+                const timeString = isToday 
+                    ? lastSeenDate.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })
+                    : lastSeenDate.toLocaleDateString('cs-CZ') + " " + lastSeenDate.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+
+                const lsEl = document.getElementById('mcu-lastseen');
+                if(lsEl) lsEl.textContent = timeString;
+
+                // D) Statusy (Online = rozdíl < 70 minut)
+                const dot = document.getElementById('mcu-status-dot');
+                const indicator = document.getElementById('mcu-status-indicator'); // Pokud máš i ten malý indikátor v rohu
+                const text = document.getElementById('mcu-status-text');
+                
+                const isOnline = diffMinutes < 70; 
+
+                if (isOnline) {
+                    // ZELENÁ - ONLINE
+                    if (dot) dot.className = "absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full";
+                    if (indicator) indicator.className = "w-2 h-2 rounded-full bg-green-500";
+                    if (text) {
+                        text.className = "font-bold text-green-600 text-xs uppercase";
+                        text.textContent = "Online";
+                    }
+                } else {
+                    // ČERVENÁ - OFFLINE
+                    if (dot) dot.className = "absolute -bottom-1 -right-1 w-4 h-4 bg-red-500 border-2 border-white rounded-full";
+                    if (indicator) indicator.className = "w-2 h-2 rounded-full bg-red-500";
+                    if (text) {
+                        text.className = "font-bold text-red-600 text-xs uppercase";
+                        text.textContent = "Offline";
+                    }
+                }
+            }
+        }
+    } catch (err) {
+        console.error('Chyba při načítání MCU:', err);
+        if (window.openToast) window.openToast("Nepodařilo se načíst data zařízení.", false);
+    }
+});
+
+
+
 /* ---------------------------------------------------------
    LOGIKA PRO SENSOR MODAL (Rodičovský formulář)
    --------------------------------------------------------- */
