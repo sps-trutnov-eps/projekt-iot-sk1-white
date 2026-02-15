@@ -9,7 +9,6 @@ class SensorService {
      * Očekává objekt data: { deviceId, model, channels: [{type, unit}, ...] }
      */
     static createSensor(data) {
-
         if (!data.deviceId) {
             throw new Error('Nelze vytvořit senzor: Chybí ID zařízení (deviceId).');
         }

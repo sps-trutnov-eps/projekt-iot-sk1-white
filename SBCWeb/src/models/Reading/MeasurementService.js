@@ -111,6 +111,45 @@ class MeasurementService {
             this.buffers[channelId] = [];
         }
     }
+
+
+
+
+    /**
+     * Získá data pro graf podle rozsahu
+     * @param {number} channelId 
+     * @param {string} range - 'now', '1h', '24h', '7d'
+     */
+    static getReadingsHistory(channelId, range) {
+        // 1. Validace - existuje kanál? (volitelné, ale dobré)
+        // const channel = SensorRepository.findChannelById(channelId); // Pokud máš takovou metodu
+        // if (!channel) throw new Error("Kanál neexistuje");
+
+        // 2. Business Logika - Překlad rozsahu
+        let modifier;
+        switch (range) {
+            case 'now': 
+                modifier = '-30 minutes'; // "Teď" ukáže posledních 30 minut
+                break;
+            case '1h':  
+                modifier = '-1 hour'; 
+                break;
+            case '24h': 
+                modifier = '-24 hours'; 
+                break;
+            case '7d':  
+                modifier = '-7 days'; 
+                break;
+            default:    
+                modifier = '-24 hours'; // Default
+        }
+
+        // 3. Volání repozitáře
+        return ReadingRepository.getHistory(channelId, modifier);
+    }
+
+
+
 }
 
 module.exports = MeasurementService;

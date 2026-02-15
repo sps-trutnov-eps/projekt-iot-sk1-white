@@ -20,6 +20,23 @@ class ReadingRepository {
         
         return result.lastInsertRowid;
     }
+
+    /**
+     * Získá historii měření pro graf.
+     * @param {number} channelId - ID kanálu
+     * @param {string} timeModifier - SQL modifikátor času (např. '-1 hour', '-7 days')
+     */
+    static getHistory(channelId, timeModifier) {
+        // Vybere data novější než aktuální čas mínus modifikátor
+        const query = `
+            SELECT avg_value as value, timestamp 
+            FROM readings 
+            WHERE channel_id = ? 
+            AND timestamp >= datetime('now', ?)
+            ORDER BY timestamp ASC
+        `;
+        return db.prepare(query).all(channelId, timeModifier);
+    }
 }
 
 module.exports = ReadingRepository;

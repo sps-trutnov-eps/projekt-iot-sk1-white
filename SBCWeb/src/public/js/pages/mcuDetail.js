@@ -5,6 +5,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ---------------------------------------------------------
     window.mcuId = window.location.pathname.split('/').pop();
     let tempMetrics = []; 
+    let mainChart = null;
+    let currentChartChannelId = null;
+    let currentChartRange = '24h';
 
     // ---------------------------------------------------------
     // 2. POMOCNÉ FUNKCE (Stylování, Překlady)
@@ -58,7 +61,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         const lastValue = channel.last_value !== undefined ? channel.last_value : '---'; 
 
                         const itemHtml = `
-                        <div onclick="updateChart('${channel.id}')" class="group flex items-center justify-between px-3 py-2.5 hover:bg-ash-grey-50 cursor-pointer transition-colors border-b border-ash-grey-50 last:border-0">
+                        <div onclick="updateChart(null, '${channel.id}')" class="group flex items-center justify-between px-3 py-2.5 hover:bg-ash-grey-50 cursor-pointer transition-colors border-b border-ash-grey-50 last:border-0">
                             <div class="flex items-center gap-2 overflow-hidden">
                                 <div class="w-6 h-6 rounded bg-white flex flex-none items-center justify-center shadow-sm border border-ash-grey-100 text-xs">
                                     <i class="fas ${style.icon} ${style.color}"></i>
@@ -285,10 +288,133 @@ document.addEventListener('DOMContentLoaded', async () => {
             metricModal.close();
         });
     }
+    // ---------------------------------------------------------
+    // 7. graf
+    // ---------------------------------------------------------
 
+    function initChart() {
+        const ctx = document.getElementById('mainChart').getContext('2d');
+        
+        // Gradient (Fialový - Vintage Grape)
+        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'rgba(136, 108, 147, 0.4)');
+        gradient.addColorStop(1, 'rgba(136, 108, 147, 0.0)');
+
+        mainChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [], // Zatím prázdné
+                datasets: [{
+                    label: 'Hodnota',
+                    data: [], // Zatím prázdné
+                    borderColor: '#886c93',
+                    backgroundColor: gradient,
+                    borderWidth: 2,
+                    tension: 0.4,       // Hladká křivka
+                    fill: true,
+                    pointRadius: 0,     // Body nejsou vidět...
+                    pointHoverRadius: 6 // ...dokud na ně nenajedeš myší
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }, // Skrytá legenda
+                scales: {
+                    x: { 
+                        grid: { display: false }, 
+                        ticks: { color: '#9aa092', font: { size: 10 }, maxTicksLimit: 8 } 
+                    },
+                    y: { 
+                        grid: { color: '#f2f3f1' }, 
+                        ticks: { color: '#9aa092' } 
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index',
+                },
+            }
+        });
+    }
+
+    window.updateChart = async (range = null, channelId = null) => {
+        
+        // 1. Aktualizace stavu (pokud přišla nová hodnota)
+        if (range) currentChartRange = range;
+        if (channelId) currentChartChannelId = channelId;
+
+        // Pokud nemáme vybraný žádný senzor, nemůžeme nic načíst
+        if (!currentChartChannelId) return;
+
+        // 2. Aktualizace vzhledu tlačítek času (zvýraznění aktivního)
+        document.querySelectorAll('.chart-time-btn').forEach(btn => {
+            // Kontrolujeme, jestli onclick obsahuje aktuální range (např. '24h')
+            if (btn.getAttribute('onclick').includes(`'${currentChartRange}'`)) {
+                // Aktivní styl
+                btn.classList.add('bg-white', 'shadow-sm', 'text-midnight-violet-900');
+                btn.classList.remove('text-silver-500', 'hover:bg-white/50');
+            } else {
+                // Neaktivní styl
+                btn.classList.remove('bg-white', 'shadow-sm', 'text-midnight-violet-900');
+                btn.classList.add('text-silver-500', 'hover:bg-white/50');
+            }
+        });
+
+        console.log(`📈 Načítám graf: ID=${currentChartChannelId}, Range=${currentChartRange}`);
+
+        try {
+        const response = await fetch('/readings/history', { 
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                channelId: currentChartChannelId,
+                range: currentChartRange
+            })
+        });
+
+        const result = await response.json();
+        console.log(result);
+        if (result.success) {
+            renderChartData(result.data);
+        } else {
+            console.error("Server vrátil chybu:", result.error);
+        }
+        } catch (error) {
+            console.error("Chyba při komunikaci se serverem:", error);
+        }
+    };
+
+    // --- 3. VYKRESLENÍ DAT DO CHART.JS ---
+    function renderChartData(data) {
+        if (!mainChart) return;
+
+        // A) Příprava popisků osy X (Čas)
+        const labels = data.map(row => {
+            const date = new Date(row.timestamp);
+            
+            // Pokud koukáme na 7 dní, zajímá nás i datum
+            if (currentChartRange === '7d') {
+                return date.toLocaleDateString('cs-CZ', { day: '2-digit', month: '2-digit' }) + ' ' + 
+                    date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+            }
+            // Jinak stačí čas
+            return date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+        });
+
+        // B) Příprava hodnot osy Y
+        const values = data.map(row => row.value);
+
+        // C) Update grafu
+        mainChart.data.labels = labels;
+        mainChart.data.datasets[0].data = values;
+        mainChart.update();
+    }
 
     // ---------------------------------------------------------
-    // 6. START APLIKACE (INIT)
+    // 8. START APLIKACE (INIT)
     // ---------------------------------------------------------
     
     // Zobrazení toastu po reloadu
@@ -302,7 +428,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // První načtení (s loaderem)
     await window.updateView(false);
-
+    initChart();
     // Automatický refresh každých 30s (bez loaderu = true)
     setInterval(() => {
         window.updateView(true);
