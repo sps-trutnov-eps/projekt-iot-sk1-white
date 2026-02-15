@@ -25,6 +25,34 @@ const getReadingsHistory = async (req, res) => { // Přidáno async pro jistotu
             error: error.message 
         });
     }
+
 };
 
-module.exports = { getReadingsHistory };
+const  getLatestAll = async(req, res) => {
+        try {
+            const { mcuId } = req.body;
+
+            if (!mcuId) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: "McuId je povinný údaj." 
+                });
+            }
+
+            const readings = await MeasurementService.getLatestDataForMcu(mcuId);
+
+            res.json({
+                success: true,
+                readings: readings
+            });
+
+        } catch (error) {
+            console.error("Controller Error (getLatestAll):", error);
+            res.status(500).json({ 
+                success: false, 
+                message: "Chyba při načítání live dat." 
+            });
+        }
+    }
+
+module.exports = { getReadingsHistory, getLatestAll};

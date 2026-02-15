@@ -4,4 +4,6 @@ const ReadingController = require('../controllers/readingController');
 
 router.post('/history', ReadingController.getReadingsHistory);
 
+router.post('/latest-all', ReadingController.getLatestAll);
+
 module.exports = router;

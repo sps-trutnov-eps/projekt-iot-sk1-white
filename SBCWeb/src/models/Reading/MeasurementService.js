@@ -148,6 +148,33 @@ class MeasurementService {
         return ReadingRepository.getHistory(channelId, modifier);
     }
 
+    /**
+     * Získá nejnovější data pro všechna čidla daného MCU
+     */
+    static async getLatestDataForMcu(deviceId) {
+        // Pozor na název sloupce: ve tvé DB je to device_id
+        const sensors = await SensorRepository.findByMcuId(deviceId);
+        
+        if (!sensors || sensors.length === 0) return [];
+
+        return sensors.map(sensor => {
+            // Hledáme podle sensor_id, které je v tabulce readings
+            const reading = ReadingRepository.getLatestReading(sensor.sensor_id);
+            
+            return {
+                sensor_id: sensor.sensor_id,
+                type: sensor.type, // Pro ikony (teplota/vlhkost)
+                name: sensor.name || sensor.type,
+                unit: sensor.unit,
+                avg: reading ? reading.avg_value : 0,
+                min: reading ? reading.min_value : 0,
+                max: reading ? reading.max_value : 0
+            };
+        });
+    }
+
+        
+
 
 
 }
