@@ -61,6 +61,16 @@ export async function fetchMcuInfo() {
             document.getElementById('mcu-ip').textContent = mcu.ipAddress || '---';
             document.getElementById('mcu-mac').textContent = mcu.macAddress || '---';
 
+            const apiKeyEl = document.getElementById('mcu-api-key');
+            if (apiKeyEl) {
+                // Naplníme reálný klíč z DB
+                apiKeyEl.textContent = mcu.apiKey || 'Žádný klíč';
+                // Zajistíme, že při novém načtení je klíč opět skrytý (pokud chceš)
+                apiKeyEl.style.webkitTextSecurity = 'disc'; 
+                // Pokud používáš ten blur, přidáme ho taky
+                apiKeyEl.classList.add('blur-[4px]');
+            }
+
             // Logika času a statusu (tohle ti pravděpodobně chybělo)
             if (mcu.lastSeen) {
                 const parts = mcu.lastSeen.split(/[- :]/);
@@ -86,6 +96,57 @@ export async function fetchMcuInfo() {
         }
     } catch (e) { console.error("Chyba MCU info:", e); }
 }
+
+const apiKeyContainer = document.getElementById('api-key-container');
+const apiKeyText = document.getElementById('mcu-api-key');
+const apiKeyEye = document.getElementById('api-key-eye');
+const apiKeyCopy = document.getElementById('api-key-copy');
+
+
+apiKeyContainer.addEventListener('click', (e) => {
+    // Ignorujeme kliknutí na kopírovací ikonku
+    if (e.target.closest('#api-key-copy')) return;
+
+    // Přepínáme maskování (hvězdičky)
+    const isHidden = apiKeyText.style.webkitTextSecurity === 'disc' || apiKeyText.classList.contains('[webkit-text-security:disc]');
+
+    if (isHidden) {
+        apiKeyText.style.webkitTextSecurity = 'none'; // Odmaskovat
+        apiKeyText.classList.remove('blur-[4px]', '[webkit-text-security:disc]');
+        apiKeyEye.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        apiKeyText.style.webkitTextSecurity = 'disc'; // Zamaskovat
+        apiKeyText.classList.add('blur-[4px]');
+        apiKeyEye.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+});
+
+
+
+apiKeyCopy.addEventListener('click', async (e) => {
+    // 1. Zastavíme šíření kliknutí, aby se neotevřel/nezavřel blur klíče
+    e.stopPropagation();
+
+    const textToCopy = apiKeyText.textContent.trim();
+    
+    // 2. Samotné kopírování
+    try {
+        await navigator.clipboard.writeText(textToCopy);
+        
+        // 3. Vizuální feedback pro 2K monitor (změna barvy a ikony)
+        apiKeyCopy.classList.replace('fa-copy', 'fa-check');
+        apiKeyCopy.classList.replace('text-silver-400', 'text-green-500');
+        
+        // Po 2 sekundách vrátíme původní stav
+        setTimeout(() => {
+            apiKeyCopy.classList.replace('fa-check', 'fa-copy');
+            apiKeyCopy.classList.replace('text-green-500', 'text-silver-400');
+        }, 2000);
+
+    } catch (err) {
+        console.error('Kopírování selhalo:', err);
+    }
+});
 
 export function initModals() {
     const sensorModal = Modal.register('sensor');
