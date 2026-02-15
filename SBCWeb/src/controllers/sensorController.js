@@ -8,6 +8,7 @@ module.exports = {
      * Body: { deviceId: 1, model: "DHT11", channels: [{type: "Teplota", unit: "°C"}] }
      */
     createSensor: (req, res) => {
+        console.log('oh I hate niggers')
         try {
             const newSensor = SensorService.createSensor(req.body);
             

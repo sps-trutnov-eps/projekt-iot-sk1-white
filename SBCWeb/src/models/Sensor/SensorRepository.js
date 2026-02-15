@@ -1,6 +1,6 @@
 // repositories/SensorRepository.js
 const db = require('../database.js');
-const Sensor = require('../models/Sensor');
+const Sensor = require('./Sensor');
 
 class SensorRepository {
 
