@@ -1,13 +1,41 @@
 <div class="lg:col-span-2 bg-white p-6 rounded-xl border border-ash-grey-200 shadow-sm">
+    <div class="flex items-center gap-2 mb-4">
+    <span class="text-xs text-silver-500 font-bold uppercase mr-2">Zobrazit:</span>
+    
+    <label class="flex items-center gap-1 cursor-pointer">
+        <input type="radio" name="chartMetric" value="avg" checked onchange="updateChartMetric()" class="accent-vintage-grape-600">
+        <span class="text-xs text-gray-700">Průměr</span>
+    </label>
+
+    <label class="flex items-center gap-1 cursor-pointer">
+        <input type="radio" name="chartMetric" value="min" onchange="updateChartMetric()" class="accent-blue-500">
+        <span class="text-xs text-gray-700">Min</span>
+    </label>
+
+    <label class="flex items-center gap-1 cursor-pointer">
+        <input type="radio" name="chartMetric" value="max" onchange="updateChartMetric()" class="accent-red-500">
+        <span class="text-xs text-gray-700">Max</span>
+    </label>
+    
+    <label class="flex items-center gap-1 cursor-pointer ml-2">
+        <input type="radio" name="chartMetric" value="all" onchange="updateChartMetric()" class="accent-purple-500">
+        <span class="text-xs text-gray-700 font-bold">Vše</span>
+    </label>
+</div>
     <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
         <div>
             <h3 class="font-bold text-midnight-violet-900 text-lg" id="chartTitle">Teplota & Vlhkost</h3>
             <p class="text-xs text-silver-500">Vývoj naměřených hodnot v čase</p>
         </div>
         <div class="flex bg-ash-grey-50 p-1 rounded-lg border border-ash-grey-200">
-            <button onclick="updateChart('24h')" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all bg-white shadow-sm text-midnight-violet-900">24 Hod</button>
-            <button onclick="updateChart('7d')" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all text-silver-500 hover:text-midnight-violet-900 hover:bg-white/50">7 Dní</button>
-        </div>
+    <button onclick="updateChart('now')" class="chart-time-btn px-3 py-1.5 text-xs font-bold rounded-md transition-all text-silver-500 hover:text-midnight-violet-900 hover:bg-white/50">now</button>
+    
+    <button onclick="updateChart('1h')" class="chart-time-btn px-3 py-1.5 text-xs font-bold rounded-md transition-all text-silver-500 hover:text-midnight-violet-900 hover:bg-white/50">1Hod</button>
+    
+    <button onclick="updateChart('24h')" class="chart-time-btn px-3 py-1.5 text-xs font-bold rounded-md transition-all text-silver-500 hover:text-midnight-violet-900 hover:bg-white/50">24 Hod</button>
+    
+    <button onclick="updateChart('7d')" class="chart-time-btn px-3 py-1.5 text-xs font-bold rounded-md transition-all text-silver-500 hover:text-midnight-violet-900 hover:bg-white/50">7 Dní</button>
+</div>
     </div>
     <div class="relative w-full h-[300px]">
         <canvas id="mainChart"></canvas>

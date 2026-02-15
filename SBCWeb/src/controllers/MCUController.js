@@ -9,13 +9,37 @@ const renderMCU = (req, res) =>{
   }
 }
 
-const renderMCUDetail = (req, res) =>{
-  try{
-    res.render('mcuDetail', { projectName: 'IoT Control' });
+const renderMCUDetail = async (req, res) => {
+  try {
+    const id = req.params.id;
+    
+    // Tady pozor: Pokud MCUService vrací Promise, musí tu být await
+    // Pokud to teď hází chybu, zakomentuj tento řádek pro test:
+    // const test = await MCUService.findById(id); 
+
+    const mcuData = { // Zkusme to pojmenovat jasně
+      id: id,
+      name: "Obývák - ESP32",
+      type: "ESP32 Dev Board",
+      ip: "192.168.1.45",
+      mac: "A0:B1:C2:D3:E4:F5",
+      status: "offline", 
+      uptime: "4d 12h 30m"
+    };
+
+    // Důležité: Jméno vlevo je to, co vidí EJS. Jméno vpravo je proměnná zde v JS.
+    res.render('mcuDetail', { 
+      projectName: 'IoT Control',
+      mcu: mcuData 
+    });
+
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error("DETAIL ERROR:", error);
+    // Pokud error.ejs používá partialy, které vyžadují 'mcu', spadne to i tady.
+    // Pro test pošli prázdný objekt, aby EJS nehlásilo 'undefined'
+    res.status(500).send(error.message); 
   }
-}
+};
 
 
 const createMCU = (req, res) => {
@@ -43,6 +67,7 @@ const getMCU = (req, res) => {
       return res.status(404).json({ success: false, message: "MCU nenalezeno" });
     }
 
+    console.log(mcu);
     res.json({
       success: true,
       mcu: mcu

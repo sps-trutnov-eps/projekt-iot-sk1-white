@@ -1,5 +1,11 @@
 const db = require('./database');
 function initDB() {
+db.exec(`
+  CREATE TABLE IF NOT EXISTS types(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  type TEXT UNIQUE NOT NULL
+  )
+  `);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS mcus (
@@ -18,33 +24,36 @@ db.exec(`
 `);
 
 db.exec(`
-  CREATE TABLE IF NOT EXISTS sensors (
-    sensor_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  CREATE TABLE IF NOT EXISTS physical_sensors (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     device_id INTEGER NOT NULL,
-    type TEXT NOT NULL,
-    unit TEXT,
-    FOREIGN KEY (device_id) REFERENCES devices(device_id)
+    model TEXT,
+    FOREIGN KEY (device_id) REFERENCES mcus(device_id)
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS sensor_channels (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    physical_sensor_id INTEGER NOT NULL,
+    type TEXT, 
+    unit TEXT, 
+    FOREIGN KEY (physical_sensor_id) REFERENCES physical_sensors(id)
   )
 `);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS readings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    sensor_id INTEGER NOT NULL,
+    channel_id INTEGER NOT NULL,
     avg_value REAL,
     min_value REAL,
     max_value REAL,
     timestamp TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY (sensor_id) REFERENCES sensors(sensor_id)
+    FOREIGN KEY (channel_id) REFERENCES sensor_channels(id)
   )
 `);
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS types(
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  type TEXT UNIQUE NOT NULL
-  )
-  `);
 
 }
 

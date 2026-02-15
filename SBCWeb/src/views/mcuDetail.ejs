@@ -31,6 +31,7 @@
       .toggle-checkbox:checked + .toggle-label { background-color: #886c93; }
   </style>
 </head>
+<%- include('partials/common/toastNotification') %>
 <body class="bg-ash-grey-50 min-h-screen font-sans text-gray-800">
 
   <%- include('partials/mcuDetail/sidebar') %>
@@ -48,8 +49,8 @@
                 
                 <div class="bg-white rounded-xl shadow-sm border border-ash-grey-200 p-6 flex-none h-[140px] flex flex-col justify-center relative overflow-hidden">
                      
-                <%- include('partials/mcuDetail/mcu') %>
-
+                <%- include('partials/mcuDetail/mcu', { mcu: mcu }) %>
+                
                 <%- include('partials/mcuDetail/measurementsCards') %>
 
                 <%- include('partials/mcuDetail/sensors') %>
@@ -67,12 +68,14 @@
   </div>
 
   <%- include('partials/mcuDetail/sensorModal') %>
+  <%- include('partials/mcuDetail/unitModal') %>
 
+     <script src="/js/components/toast.js"></script>
     <script src="/js/components/modals.js"></script>
     <script src="/js/pages/mcuDetail.js"></script>
 
   
-  <script>
+  <!--<script>
     // --- Generování Kompaktního Seznamu Senzorů ---
     const sensorsData = [
         { id: 'temp1', name: 'Teplota', value: '22.4', unit: '°C', icon: 'fa-thermometer-half', color: 'text-vintage-grape-600' },
@@ -146,6 +149,6 @@
         mainChart.data.datasets[0].data = newData;
         mainChart.update();
     }
-  </script>
+  </script> -->
 </body>
 </html>
