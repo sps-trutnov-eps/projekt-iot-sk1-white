@@ -8,8 +8,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     let mainChart = null;
     let currentChartChannelId = null;
     let currentChartRange = '24h';
-    let currentChartData = []; // Tady si uložíme surová data ze serveru
-    let currentMetric = 'avg'; // Defaultní zobrazení
+    let currentChartData = [];
+    let currentMetric = 'avg'; 
+
+    let currentChartUnit = '';
+
+    let currentSensorName = ''; 
+    let currentSensorType = '';
     // ---------------------------------------------------------
     // 2. POMOCNÉ FUNKCE (Stylování, Překlady)
     // ---------------------------------------------------------
@@ -60,9 +65,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                     sensor.channels.forEach((channel) => {
                         const style = getSensorStyle(channel.type);
                         const lastValue = channel.last_value !== undefined ? channel.last_value : '---'; 
-
+                        const translatedType = translateType(channel.type);
                         const itemHtml = `
-                        <div onclick="updateChart(null, '${channel.id}')" class="group flex items-center justify-between px-3 py-2.5 hover:bg-ash-grey-50 cursor-pointer transition-colors border-b border-ash-grey-50 last:border-0">
+                        <div onclick="updateChart(null, '${channel.id}', '${channel.unit}', '${sensor.model}', '${translatedType}')" class="group flex items-center justify-between px-3 py-2.5 hover:bg-ash-grey-50 cursor-pointer transition-colors border-b border-ash-grey-50 last:border-0">
                             <div class="flex items-center gap-2 overflow-hidden">
                                 <div class="w-6 h-6 rounded bg-white flex flex-none items-center justify-center shadow-sm border border-ash-grey-100 text-xs">
                                     <i class="fas ${style.icon} ${style.color}"></i>
@@ -89,6 +94,22 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <span class="text-xs">Žádné senzory</span>
                     </div>`;
             }
+
+            if (data.sensors.length > 0 && !currentChartChannelId) {
+            const firstSensorWithChannels = data.sensors.find(s => s.channels && s.channels.length > 0);
+            
+            if (firstSensorWithChannels) {
+                const ch = firstSensorWithChannels.channels[0];
+                updateChart(
+                    null, 
+                    ch.id, 
+                    ch.unit, 
+                    firstSensorWithChannels.model, 
+                    translateType(ch.type)
+                );
+            }
+        }
+
         } catch (error) {
             console.error('Chyba při načítání senzorů:', error);
             if (!isBackground) container.innerHTML = '<div class="p-4 text-center text-xs text-red-400">Chyba načítání dat.</div>';
@@ -315,6 +336,22 @@ document.addEventListener('DOMContentLoaded', async () => {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
+                tooltip: {
+                        callbacks: {
+                            // Tato funkce se stará o text v bublině
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    // Připojíme hodnotu a naši globální jednotku
+                                    label += context.parsed.y + ' ' + currentChartUnit;
+                                }
+                                return label;
+                            }
+                        }
+                    },
                 scales: {
                     x: { 
                         grid: { display: false }, 
@@ -333,11 +370,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    window.updateChart = async (range = null, channelId = null) => {
+    window.updateChart = async (range = null, channelId = null, unit = null, sensorModel = null, sensorType = null) => {
         
         // 1. Aktualizace stavu (pokud přišla nová hodnota)
         if (range) currentChartRange = range;
         if (channelId) currentChartChannelId = channelId;
+        if (unit) currentChartUnit = unit;
+        if (sensorModel) currentSensorName = sensorModel;
+        if (sensorType) currentSensorType = sensorType;
+
+        // NOVÉ: Okamžitá aktualizace nadpisu v HTML
+        const titleEl = document.getElementById('chartTitle');
+        if (titleEl && currentSensorName && currentSensorType) {
+            titleEl.textContent = `${currentSensorName} - ${currentSensorType}`;
+        }
 
         // Pokud nemáme vybraný žádný senzor, nemůžeme nic načíst
         if (!currentChartChannelId) return;
@@ -405,6 +451,19 @@ function renderChartData(data = null) {
     
     // Pokud nemáme data ani graf, končíme
     if (!mainChart || !currentChartData || currentChartData.length === 0) return;
+
+    mainChart.options.plugins.tooltip.callbacks.label = function(context) {
+        let label = context.dataset.label || '';
+        if (label) {
+            label += ': ';
+        }
+        if (context.parsed.y !== null) {
+            // Tady se použije aktuální hodnota currentChartUnit
+            label += context.parsed.y + ' ' + (currentChartUnit || ''); 
+        }
+        return label;
+    };
+
 
     // 1. Osy X (Čas) - stejné pro všechny
     const labels = currentChartData.map(row => {
@@ -486,9 +545,11 @@ function renderChartData(data = null) {
         sessionStorage.removeItem('toastSuccess');
     }
 
+    initChart();
+
     // První načtení (s loaderem)
     await window.updateView(false);
-    initChart();
+    
     // Automatický refresh každých 30s (bez loaderu = true)
     setInterval(() => {
         window.updateView(true);
