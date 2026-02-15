@@ -31,6 +31,28 @@
                     <i class="fas fa-clock text-xs text-silver-400"></i>
                     <span id="mcu-lastseen" class="text-xs font-medium"></span>
                 </div>
+                <div class="flex items-center gap-1.5 text-silver-600">
+    <span id="mcu-lastseen" class="text-xs font-medium"></span>
+</div>
+
+<div id="api-key-container" class="flex items-center gap-2.5 bg-silver-50/50 px-3 py-1.5 rounded-lg border border-silver-200 cursor-pointer hover:bg-white hover:border-vintage-grape-300 transition-all group min-w-[240px]">
+    
+    <div class="flex items-center gap-2 shrink-0 border-r border-silver-200 pr-2.5">
+        <span class="text-[10px] font-black text-silver-400 uppercase tracking-tight">API</span>
+        <i class="fas fa-key text-xs text-silver-400 group-hover:text-vintage-grape-500 transition-colors"></i>
+    </div>
+    
+    <div class="flex-1 overflow-hidden px-1">
+        <span id="mcu-api-key" class="font-mono text-[12px] text-gray-400 select-none blur-[4px] [webkit-text-security:disc]">
+        </span>
+    </div>
+
+    <div class="flex items-center gap-2.5 shrink-0 ml-1.5">
+        <i id="api-key-eye" class="fas fa-eye text-xs text-silver-400 hover:text-midnight-violet-600 transition-colors"></i>
+        <div class="w-[1px] h-3 bg-silver-200"></div>
+        <i id="api-key-copy" class="fas fa-copy text-xs text-silver-400 hover:text-vintage-grape-600 transition-colors" title="Kopírovat"></i>
+    </div>
+</div>
             </div>
         </div>
     </div>
