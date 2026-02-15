@@ -72,45 +72,11 @@
 
      <script src="/js/components/toast.js"></script>
     <script src="/js/components/modals.js"></script>
-    <script src="/js/pages/mcuDetail.js"></script>
+    <script type="module" src="/js/pages/mcuDetail/main.js"></script>
 
   
   <!--<script>
-    // --- Generování Kompaktního Seznamu Senzorů ---
-    const sensorsData = [
-        { id: 'temp1', name: 'Teplota', value: '22.4', unit: '°C', icon: 'fa-thermometer-half', color: 'text-vintage-grape-600' },
-        { id: 'hum1', name: 'Vlhkost', value: '45', unit: '%', icon: 'fa-tint', color: 'text-blue-500' },
-        { id: 'pres1', name: 'Tlak', value: '1013', unit: 'hPa', icon: 'fa-tachometer-alt', color: 'text-emerald-500' },
-        { id: 'co2', name: 'CO2', value: '420', unit: 'ppm', icon: 'fa-wind', color: 'text-gray-600' },
-        { id: 'light', name: 'Světlo', value: '350', unit: 'lx', icon: 'fa-sun', color: 'text-amber-500' },
-        { id: 'cpu', name: 'CPU', value: '48.2', unit: '°C', icon: 'fa-microchip', color: 'text-red-500' },
-        { id: 'bat', name: 'Baterie', value: '85', unit: '%', icon: 'fa-battery-three-quarters', color: 'text-green-600' },
-        { id: 'rssi', name: 'Signál', value: '-62', unit: 'dBm', icon: 'fa-wifi', color: 'text-midnight-violet-600' },
-        { id: 'ext1', name: 'Ext. Teplota', value: '15.2', unit: '°C', icon: 'fa-thermometer-half', color: 'text-blue-400' },
-        { id: 'water', name: 'Hladina', value: '80', unit: '%', icon: 'fa-water', color: 'text-cyan-500' }
-    ];
-
-    const listContainer = document.getElementById('sensorListContainer');
     
-    sensorsData.forEach((sensor, index) => {
-        const borderClass = index !== sensorsData.length - 1 ? 'border-b border-ash-grey-50' : '';
-        const html = `
-            <div onclick="updateChart('${sensor.id}')" class="group flex items-center justify-between px-3 py-2.5 hover:bg-ash-grey-50 cursor-pointer transition-colors ${borderClass}">
-                <div class="flex items-center gap-2 overflow-hidden">
-                    <div class="w-6 h-6 rounded bg-white flex flex-none items-center justify-center shadow-sm border border-ash-grey-100 text-xs">
-                        <i class="fas ${sensor.icon} ${sensor.color}"></i>
-                    </div>
-                    <p class="text-xs font-medium text-gray-700 truncate group-hover:text-midnight-violet-900">${sensor.name}</p>
-                </div>
-                <div class="flex-none text-right ml-2">
-                    <span class="text-xs font-bold text-gray-800">${sensor.value}</span>
-                    <span class="text-[10px] text-silver-500">${sensor.unit}</span>
-                </div>
-            </div>
-        `;
-        listContainer.innerHTML += html;
-    });
-
     // --- Graf ---
     const ctx = document.getElementById('mainChart').getContext('2d');
     const gradient = ctx.createLinearGradient(0, 0, 0, 300);
