@@ -110,12 +110,10 @@ if (sensorModal) {
                 });
                 
                 const data = await response.json();
-                
+                window.openToast(data.message, data.success);
                 if (response.ok) { // Kontrola HTTP 200/201
                     // window.openToast("Senzor byl úspěšně přidán!", true); // Pokud máte toast
-                    console.log("Úspěch:", data);
                     sensorModal.close();
-                    window.location.reload(); // Nebo funkce pro refresh seznamu
                 } else {
                     sensorModal.showError(data.error || "Chyba při ukládání.");
                 }
