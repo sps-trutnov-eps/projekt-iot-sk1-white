@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detail MCU - IoT Control</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'ash-grey': {'50':'#f2f3f1','100':'#e6e7e4','200':'#ccd0c8','300':'#b3b8ad','400':'#9aa092','500':'#808877','600':'#676d5f','700':'#4d5247','800':'#33372f','900':'#1a1b18','950':'#121311'},
+                        'silver': {'50':'#f2f3f2','100':'#e5e6e5','200':'#cbcdcb','300':'#b1b4b1','400':'#979b97','500':'#7d827d','600':'#646864','700':'#4b4e4b','800':'#323432','900':'#191a19','950':'#111211'},
+                        'vintage-grape': {'50':'#f3f0f4','100':'#e7e2e9','200':'#cfc4d4','300':'#b7a7be','400':'#a08aa8','500':'#886c93','600':'#6d5775','700':'#514158','800':'#362b3b','900':'#1b161d','950':'#130f15'},
+                        'midnight-violet': {'50':'#f3eff5','100':'#e8e0eb','200':'#d0c1d7','300':'#b9a2c3','400':'#a183af','500':'#8a639c','600':'#6e507c','700':'#533c5d','800':'#37283e','900':'#1c141f','950':'#130e16'}
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #ccd0c8; border-radius: 20px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: #886c93; }
+        /* Styl pro skrytí API klíče */
+        .blur-4px { filter: blur(4px); }
+    </style>
+</head>
+<body class="bg-ash-grey-50 min-h-screen font-sans text-gray-800">
+
+    <aside id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-midnight-violet-900 shadow-2xl z-40 hidden lg:block">
+        <div class="flex flex-col h-full">
+            <div class="p-6 border-b border-midnight-violet-800 flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-vintage-grape-400 to-midnight-violet-500 rounded-lg shadow-lg flex-shrink-0"></div>
+                <span class="text-ash-grey-50 font-bold text-lg">IoT Control</span>
+            </div>
+            <nav class="flex-1 overflow-y-auto p-4 space-y-4">
+                <h3 class="text-xs font-semibold text-ash-grey-400 uppercase tracking-wider mb-3">Menu</h3>
+                <a href="#" class="flex items-center space-x-3 px-4 py-2 rounded-lg bg-midnight-violet-800 text-ash-grey-50 transition">
+                    <i class="fas fa-microchip w-4"></i><span>Detail Zařízení</span>
+                </a>
+                <a href="/dashboard" class="flex items-center space-x-3 px-4 py-2 rounded-lg text-ash-grey-300 hover:bg-midnight-violet-800 transition">
+                    <i class="fas fa-arrow-left w-4"></i><span>Zpět na přehled</span>
+                </a>
+            </nav>
+            <div class="p-4 border-t border-midnight-violet-800 flex items-center gap-3">
+                <div class="w-8 h-8 bg-vintage-grape-600 rounded-full flex items-center justify-center text-white font-bold">U</div>
+                <div class="text-ash-grey-50 text-sm">User</div>
+            </div>
+        </div>
+    </aside>
+
+    <div class="lg:ml-64 transition-all duration-300 min-h-screen flex flex-col">
+        
+        <header class="bg-white shadow-sm border-b border-ash-grey-200 sticky top-0 z-30 px-6 py-4 flex items-center justify-between h-[72px]">
+            <h1 class="text-2xl font-bold text-midnight-violet-900">Detail Zařízení</h1>
+            <div class="flex items-center space-x-4">
+                <button class="p-2 text-silver-600 hover:text-vintage-grape-600 transition"><i class="fas fa-cog"></i></button>
+            </div>
+        </header>
+
+        <main class="flex-1 p-6">
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
+                
+                <div class="xl:col-span-2 flex flex-col gap-6 w-full">
+                    
+                    <div class="bg-white rounded-xl shadow-sm border border-ash-grey-200 p-6 relative overflow-hidden">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                            <div class="flex items-center gap-5">
+                                <div class="relative shrink-0">
+                                    <div class="w-14 h-14 bg-gradient-to-br from-midnight-violet-700 to-vintage-grape-600 rounded-xl flex items-center justify-center shadow-lg">
+                                        <i class="fas fa-microchip text-2xl text-white"></i>
+                                    </div>
+                                    <span id="mcu-status-dot" class="absolute -bottom-1 -right-1 w-4 h-4 bg-gray-300 border-2 border-white rounded-full"></span>
+                                </div>
+                                <div>
+                                    <div class="flex items-baseline gap-3 mb-1">
+                                        <h3 id="mcu-name" class="text-xl font-bold text-midnight-violet-900">Načítám...</h3>
+                                        <span id="mcu-status-text" class="text-xs font-bold text-gray-400 uppercase tracking-wider">Loading...</span>
+                                    </div>
+                                    <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm text-silver-600">
+                                        <span><span class="font-bold text-silver-400 text-xs uppercase mr-1">IP:</span><span id="mcu-ip" class="font-mono">---</span></span>
+                                        <span><span class="font-bold text-silver-400 text-xs uppercase mr-1">MAC:</span><span id="mcu-mac" class="font-mono">---</span></span>
+                                        <span class="flex items-center gap-1"><i class="fas fa-clock text-xs text-silver-400"></i> <span id="mcu-lastseen" class="text-xs">---</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="api-key-container" class="flex items-center gap-2 bg-silver-50 px-3 py-2 rounded-lg border border-silver-200 group hover:border-vintage-grape-300 transition-colors cursor-pointer select-none">
+                                <span class="text-[10px] font-bold text-silver-400 uppercase">API</span>
+                                <span id="mcu-api-key" class="font-mono text-xs text-gray-500 blur-4px" style="-webkit-text-security: disc;">loading...</span>
+                                
+                                <div class="h-4 w-[1px] bg-silver-300 mx-1"></div>
+                                
+                                <i id="api-key-eye" class="fas fa-eye text-silver-400 hover:text-midnight-violet-600 transition-colors p-1"></i>
+                                <i id="api-key-copy" class="fas fa-copy text-silver-400 hover:text-vintage-grape-600 transition-colors p-1" title="Kopírovat"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl border border-ash-grey-200 shadow-sm w-full">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                            <div>
+                                <h3 id="chartTitle" class="font-bold text-midnight-violet-900 text-lg">Analýza dat</h3>
+                                <p class="text-xs text-silver-500">Vývoj hodnot v čase</p>
+                            </div>
+                            
+                            <div class="flex items-center gap-4">
+                                <div class="flex gap-2">
+                                    <label class="flex items-center gap-1 cursor-pointer">
+                                        <input type="radio" name="chartMetric" value="avg" checked onchange="updateChartMetric()" class="accent-vintage-grape-600">
+                                        <span class="text-xs">Průměr</span>
+                                    </label>
+                                    <label class="flex items-center gap-1 cursor-pointer">
+                                        <input type="radio" name="chartMetric" value="all" onchange="updateChartMetric()" class="accent-vintage-grape-600">
+                                        <span class="text-xs">Vše</span>
+                                    </label>
+                                </div>
+                                <div class="flex bg-ash-grey-50 p-1 rounded-lg">
+                                    <button onclick="updateChart('24h')" class="px-3 py-1 text-[10px] font-bold uppercase rounded bg-white shadow-sm text-vintage-grape-600 focus:outline-none">24h</button>
+                                    <button onclick="updateChart('7d')" class="px-3 py-1 text-[10px] font-bold uppercase rounded text-silver-500 hover:bg-white focus:outline-none">7d</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="relative w-full h-[300px]">
+                            <canvas id="mainChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="xl:col-span-1 flex flex-col gap-6 sticky top-[96px] h-[calc(100vh-120px)]">
+                    
+                    <div class="bg-white rounded-xl border border-ash-grey-200 shadow-sm flex flex-col flex-1 min-h-0 overflow-hidden">
+                        <div class="p-3 border-b border-ash-grey-100 bg-ash-grey-50 flex justify-between items-center flex-none">
+                            <h3 class="font-bold text-midnight-violet-900 text-xs uppercase">Seznam Senzorů</h3>
+                            <button id="sensorOpen" class="w-6 h-6 rounded bg-white border border-ash-grey-200 text-silver-400 hover:text-vintage-grape-600 hover:border-vintage-grape-300 flex items-center justify-center transition-all shadow-sm">
+                                <i class="fas fa-plus text-xs"></i>
+                            </button>                        
+                        </div>
+                        
+                        <div id="sensorListContainer" class="overflow-y-auto custom-scrollbar p-0 flex-1">
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl border border-ash-grey-200 shadow-sm flex flex-col flex-none h-[250px]">
+                        <h3 class="font-bold text-midnight-violet-900 mb-3 text-sm">Poslední události</h3>
+                        <div class="space-y-4 overflow-y-auto custom-scrollbar pr-2 flex-1">
+                            <div class="flex gap-3 items-start">
+                                <div class="w-7 h-7 rounded-full bg-green-50 flex items-center justify-center shrink-0 mt-0.5"><i class="fas fa-wifi text-[10px] text-green-500"></i></div>
+                                <div><p class="text-xs font-medium text-gray-800">Systém inicializován</p><span class="text-[10px] text-silver-400">Právě teď</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <%- include('partials/mcuDetail/sensorModal') %>
+    <%- include('partials/mcuDetail/unitModal') %>
+
+    <script src="/js/components/modals.js"></script>
+
+<script type="module" src="/js/pages/mcuDetail/main.js"></script>
+</body>
+</html>
