@@ -42,6 +42,17 @@ export async function loadSensors(isBackground = false) {
                 const first = data.sensors.find(s => s.channels?.length > 0);
                 if (first) updateChart(null, first.channels[0].id, first.channels[0].unit, first.model, translateType(first.channels[0].type));
             }
+        }else {
+            // 2. PRÁZDNÝ STAV (Žádné senzory) - BÍLÉ POZADÍ
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full py-10 bg-white text-silver-400">
+                        <div class="w-12 h-12 bg-ash-grey-50 rounded-full flex items-center justify-center mb-3">
+                            <i class="fas fa-inbox text-xl text-silver-300"></i>
+                        </div>
+                        <span class="text-xs font-medium">Seznam je prázdný</span>
+                        <span class="text-[10px] text-silver-300 mt-1">Zatím žádná data</span>
+                    </div>`;
+            
         }
     } catch (e) { console.error(e); }
 }
@@ -108,17 +119,35 @@ apiKeyContainer.addEventListener('click', (e) => {
     // Ignorujeme kliknutí na kopírovací ikonku
     if (e.target.closest('#api-key-copy')) return;
 
-    // Přepínáme maskování (hvězdičky)
-    const isHidden = apiKeyText.style.webkitTextSecurity === 'disc' || apiKeyText.classList.contains('[webkit-text-security:disc]');
+    // ZJEDNODUŠENÁ LOGIKA:
+    // Ptáme se: Je to právě teď rozmazané?
+    const isBlurred = apiKeyText.classList.contains('blur-[4px]');
 
-    if (isHidden) {
-        apiKeyText.style.webkitTextSecurity = 'none'; // Odmaskovat
-        apiKeyText.classList.remove('blur-[4px]', '[webkit-text-security:disc]');
+    if (isBlurred) {
+        // --- ODHALIT (Smazat blur, smazat tečky) ---
+        
+        // 1. Odstraníme rozmazání
+        apiKeyText.classList.remove('blur-[4px]');
+        
+        // 2. Vypneme "heslové" tečky (nastavíme na none)
+        apiKeyText.style.webkitTextSecurity = 'none'; 
+        
+        // 3. Změna ikony oka
         apiKeyEye.classList.replace('fa-eye', 'fa-eye-slash');
+        apiKeyEye.classList.add('text-midnight-violet-600'); // Volitelné: zvýraznění ikony
+
     } else {
-        apiKeyText.style.webkitTextSecurity = 'disc'; // Zamaskovat
+        // --- SKRÝT (Přidat blur, přidat tečky) ---
+        
+        // 1. Přidáme rozmazání
         apiKeyText.classList.add('blur-[4px]');
+        
+        // 2. Zapneme "heslové" tečky
+        apiKeyText.style.webkitTextSecurity = 'disc';
+        
+        // 3. Změna ikony oka zpět
         apiKeyEye.classList.replace('fa-eye-slash', 'fa-eye');
+        apiKeyEye.classList.remove('text-midnight-violet-600');
     }
 });
 

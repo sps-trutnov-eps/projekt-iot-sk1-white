@@ -8,13 +8,13 @@ from umqtt.simple import MQTTClient
 import gc
 
 # --- KONFIGURACE ---
-WIFI_SSID = "Forbelina"
-WIFI_PASS = "SvisteVodicka1"
+WIFI_SSID = "Vincent"
+WIFI_PASS = "password"
 # ZDE ZADEJ IP ADRESU TVÉHO POČÍTAČE (kde běží Mosquitto Broker)
 # Zjistíš ji v příkazovém řádku Windows příkazem: ipconfig
-MQTT_BROKER = "192.168.1.100" 
+MQTT_BROKER = "172.20.10.12" 
 
-API_KEY = "api_vkeiatrwi0938tl2jatc72"
+API_KEY = "api_ejap8uofwpcfmb3fk5xn34"
 
 # --- HW NASTAVENÍ ---
 sensor = dht.DHT11(machine.Pin(14))
