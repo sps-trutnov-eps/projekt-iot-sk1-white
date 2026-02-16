@@ -3,6 +3,7 @@ import ssd1306
 import time
 import dht
 import machine
+import math
 
 # --- NASTAVENÍ PINŮ ---
 # I2C pro OLED
@@ -41,13 +42,20 @@ button_pressed = False
 
 # --- LOGIKA ENKODÉRU ---
 last_clk = clk.value()
+last_encoder_time = 0
 
 def handle_encoder(pin):
-    global scroll_delta, last_clk
+    global scroll_delta, last_clk, last_encoder_time
+    
+    current_time = time.ticks_ms()
+    if time.ticks_diff(current_time, last_encoder_time) < 5:
+        return
+
     current_clk = clk.value()
     current_dt = dt.value()
     
     if current_clk != last_clk:
+        last_encoder_time = current_time
         if current_clk == 0:  # Detekce hrany dolů
             # Rozhodnutí směru podle stavu DT
             if current_dt != current_clk:
@@ -162,10 +170,101 @@ def show_local_temp():
         oled.show()
         time.sleep(2)
 
+def draw_circle(x0, y0, r, c, fill=False):
+    """Pomocná funkce pro kreslení kruhu (Bresenhamův algoritmus)"""
+    f = 1 - r
+    ddF_x = 1
+    ddF_y = -2 * r
+    x = 0
+    y = r
+    
+    if fill:
+        oled.vline(x0, y0 - r, 2 * r + 1, c)
+    else:
+        oled.pixel(x0, y0 + r, c)
+        oled.pixel(x0, y0 - r, c)
+        oled.pixel(x0 + r, y0, c)
+        oled.pixel(x0 - r, y0, c)
+
+    while x < y:
+        if f >= 0:
+            y -= 1
+            ddF_y += 2
+            f += ddF_y
+        x += 1
+        ddF_x += 2
+        f += ddF_x
+        
+        if fill:
+            oled.vline(x0 + x, y0 - y, 2 * y + 1, c)
+            oled.vline(x0 - x, y0 - y, 2 * y + 1, c)
+            oled.vline(x0 + y, y0 - x, 2 * x + 1, c)
+            oled.vline(x0 - y, y0 - x, 2 * x + 1, c)
+        else:
+            oled.pixel(x0 + x, y0 + y, c)
+            oled.pixel(x0 - x, y0 + y, c)
+            oled.pixel(x0 + x, y0 - y, c)
+            oled.pixel(x0 - x, y0 - y, c)
+            oled.pixel(x0 + y, y0 + x, c)
+            oled.pixel(x0 - y, y0 + x, c)
+            oled.pixel(x0 + y, y0 - x, c)
+            oled.pixel(x0 - y, y0 - x, c)
+
+def change_brightness():
+    global scroll_delta, button_pressed
+    brightness = 255 # Výchozí jas (max)
+    scroll_delta = 0
+    
+    while True:
+        # Zpracování enkodéru
+        if scroll_delta != 0:
+            brightness += scroll_delta * 15 # Krok změny
+            if brightness > 255: brightness = 255
+            if brightness < 0: brightness = 0
+            scroll_delta = 0
+            oled.contrast(brightness) # Aplikace jasu
+            
+        oled.fill(0)
+        oled.text("Nastaveni Jasu", 10, 0, 1)
+        
+        # Vykreslení indikátoru (kolečko)
+        cx, cy = 64, 36
+        max_r = 20
+        
+        # Obrys (stálý)
+        draw_circle(cx, cy, max_r, 1, fill=False)
+        
+        # Výplň (podle jasu - odspodu nahoru)
+        if brightness > 0:
+            # Výška hladiny (0 až 2*r)
+            level_height = int((brightness / 255) * (2 * max_r))
+            
+            for i in range(level_height):
+                # y souřadnice řádku (od spodku nahoru)
+                line_y = (cy + max_r) - i
+                # Vzdálenost od středu
+                dy = line_y - cy
+                if abs(dy) < max_r:
+                    # x = sqrt(r^2 - dy^2)
+                    dx = int(math.sqrt(max_r*max_r - dy*dy))
+                    oled.hline(cx - dx, line_y, 2 * dx, 1)
+        
+        oled.show()
+        
+        # Ukončení tlačítkem
+        if sw.value() == 0:
+            while sw.value() == 0: time.sleep_ms(10)
+            button_pressed = False # Reset flagu, aby se menu neotevřelo znovu
+            break
+        time.sleep_ms(50)
+
 def perform_action(item_name):
     """Rozcestník funkcí podle vybrané položky"""
     if item_name == "Mereni Teploty":
         show_local_temp()
+        
+    elif item_name == "Jas Displeje":
+        change_brightness()
         
     elif item_name == "Restartovat":
         oled.fill(0)
