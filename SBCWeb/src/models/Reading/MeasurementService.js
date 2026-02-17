@@ -1,6 +1,6 @@
 const MCUService = require('../MCU/MCUService');
 const SensorService = require('../Sensor/SensorService');
-
+const SocketService = require('../socketService')
 const ReadingRepository = require('./ReadingRepository'); 
 
 class MeasurementService {
@@ -68,9 +68,13 @@ class MeasurementService {
                     }
                 }
 
-                // Přidání do bufferu
+                // Přidání do bufferu a odeslání na frontend
                 if (targetChannelId) {
-                    this.addToBuffer(targetChannelId, parseFloat(value));
+                    const parsedValue = parseFloat(value);
+                    
+                    this.addToBuffer(targetChannelId, parsedValue);
+
+                    SocketService.broadcastReading(targetChannelId, parsedValue);
                 }
             }
 

@@ -1,59 +1,34 @@
-<div class="flex items-center gap-5">
-        <div class="relative shrink-0">
-            <div class="w-14 h-14 bg-gradient-to-br from-midnight-violet-700 to-vintage-grape-600 rounded-xl flex items-center justify-center shadow-lg">
-                <i class="fas fa-microchip text-2xl text-white"></i>
+<div class="bg-white rounded-xl shadow-sm border border-ash-grey-200 p-6 relative overflow-hidden">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div class="flex items-center gap-5">
+            <div class="relative shrink-0">
+                <div class="w-14 h-14 bg-gradient-to-br from-midnight-violet-700 to-vintage-grape-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-microchip text-2xl text-white"></i>
+                </div>
+                <span id="mcu-status-dot" class="absolute -bottom-1 -right-1 w-4 h-4 bg-gray-300 border-2 border-white rounded-full"></span>
             </div>
-            <span class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></span>
+            <div>
+                <div class="flex items-baseline gap-3 mb-1">
+                    <h3 id="mcu-name" class="text-xl font-bold text-midnight-violet-900">Načítám...</h3>
+                    <span id="mcu-status-text" class="text-xs font-bold text-gray-400 uppercase tracking-wider">Loading...</span>
+                </div>
+                <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm text-silver-600">
+                    <span><span class="font-bold text-silver-400 text-xs uppercase mr-1">IP:</span><span id="mcu-ip" class="font-mono">---</span></span>
+                    <span><span class="font-bold text-silver-400 text-xs uppercase mr-1">MAC:</span><span id="mcu-mac" class="font-mono">---</span></span>
+                    <span class="flex items-center gap-1"><i class="fas fa-clock text-xs text-silver-400"></i> <span id="mcu-lastseen" class="text-xs">---</span></span>
+                </div>
+            </div>
         </div>
-
-        <div class="flex-1">
-            <div class="flex items-baseline gap-3 mb-2">
-                <h3 id="mcu-name" class="text-xl font-bold text-midnight-violet-900"></h3>
-                <span id="mcu-type" class="text-xs font-bold text-silver-400 uppercase tracking-wider"></span>
-            </div>
+        
+        <div id="api-key-container" class="flex items-center gap-2 bg-silver-50 px-3 py-2 rounded-lg border border-silver-200 group hover:border-vintage-grape-300 transition-colors cursor-pointer select-none">
+            <span class="text-[10px] font-bold text-silver-400 uppercase">API</span>
+            <span id="mcu-api-key" class="font-mono text-xs text-gray-500 blur-[4px]" style="-webkit-text-security: disc;">
+                loading...
+            </span>            
+            <div class="h-4 w-[1px] bg-silver-300 mx-1"></div>
             
-            <div class="flex flex-wrap items-center gap-x-8 gap-y-2 text-sm">
-                <div class="flex flex-col sm:flex-row sm:items-center gap-1">
-                    <span class="text-[10px] font-bold text-silver-400 uppercase tracking-wide">IP Adresa</span>
-                    <span id="mcu-ip" class="font-mono text-gray-600 font-medium"></span>
-                </div>
-                <div class="flex flex-col sm:flex-row sm:items-center gap-1">
-                    <span class="text-[10px] font-bold text-silver-400 uppercase tracking-wide">MAC</span>
-                    <span id="mcu-mac" class="font-mono text-gray-600 font-medium text-xs"></span>
-                </div>
-                
-                                <div class="flex items-center gap-1.5">
-                    <span id="mcu-status-indicator" class="w-2 h-2 rounded-full"></span>
-                    <span id="mcu-status-text"></span>
-                </div>
-
-                <div class="flex items-center gap-1.5 text-silver-600">
-                    <i class="fas fa-clock text-xs text-silver-400"></i>
-                    <span id="mcu-lastseen" class="text-xs font-medium"></span>
-                </div>
-                <div class="flex items-center gap-1.5 text-silver-600">
-    <span id="mcu-lastseen" class="text-xs font-medium"></span>
-</div>
-
-<div id="api-key-container" class="flex items-center gap-2.5 bg-silver-50/50 px-3 py-1.5 rounded-lg border border-silver-200 cursor-pointer hover:bg-white hover:border-vintage-grape-300 transition-all group min-w-[240px]">
-    
-    <div class="flex items-center gap-2 shrink-0 border-r border-silver-200 pr-2.5">
-        <span class="text-[10px] font-black text-silver-400 uppercase tracking-tight">API</span>
-        <i class="fas fa-key text-xs text-silver-400 group-hover:text-vintage-grape-500 transition-colors"></i>
-    </div>
-    
-    <div class="flex-1 overflow-hidden px-1">
-        <span id="mcu-api-key" class="font-mono text-[12px] text-gray-400 select-none blur-[4px] [webkit-text-security:disc]">
-        </span>
-    </div>
-
-    <div class="flex items-center gap-2.5 shrink-0 ml-1.5">
-        <i id="api-key-eye" class="fas fa-eye text-xs text-silver-400 hover:text-midnight-violet-600 transition-colors"></i>
-        <div class="w-[1px] h-3 bg-silver-200"></div>
-        <i id="api-key-copy" class="fas fa-copy text-xs text-silver-400 hover:text-vintage-grape-600 transition-colors" title="Kopírovat"></i>
-    </div>
-</div>
-            </div>
+            <i id="api-key-eye" class="fas fa-eye text-silver-400 hover:text-midnight-violet-600 transition-colors p-1"></i>
+            <i id="api-key-copy" class="fas fa-copy text-silver-400 hover:text-vintage-grape-600 transition-colors p-1" title="Kopírovat"></i>
         </div>
     </div>
 </div>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detail MCU - IoT Control</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'ash-grey': {'50':'#f2f3f1','100':'#e6e7e4','200':'#ccd0c8','300':'#b3b8ad','400':'#9aa092','500':'#808877','600':'#676d5f','700':'#4d5247','800':'#33372f','900':'#1a1b18','950':'#121311'},
+            'silver': {'50':'#f2f3f2','100':'#e5e6e5','200':'#cbcdcb','300':'#b1b4b1','400':'#979b97','500':'#7d827d','600':'#646864','700':'#4b4e4b','800':'#323432','900':'#191a19','950':'#111211'},
+            'vintage-grape': {'50':'#f3f0f4','100':'#e7e2e9','200':'#cfc4d4','300':'#b7a7be','400':'#a08aa8','500':'#886c93','600':'#6d5775','700':'#514158','800':'#362b3b','900':'#1b161d','950':'#130f15'},
+            'midnight-violet': {'50':'#f3eff5','100':'#e8e0eb','200':'#d0c1d7','300':'#b9a2c3','400':'#a183af','500':'#8a639c','600':'#6e507c','700':'#533c5d','800':'#37283e','900':'#1c141f','950':'#130e16'}
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+      .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+      .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+      .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbcdcb; border-radius: 20px; }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: #886c93; }
+      
+      .toggle-checkbox:checked { right: 0; border-color: #886c93; }
+      .toggle-checkbox:checked + .toggle-label { background-color: #886c93; }
+  </style>
+</head>
+<%- include('partials/common/toastNotification') %>
+<body class="bg-ash-grey-50 min-h-screen font-sans text-gray-800">
+
+  <%- include('partials/mcuDetail/sidebar') %>
+
+  <div id="mainContent" class="lg:ml-64 transition-all duration-300">
+    
+      <%- include('partials/mcuDetail/header') %>
+
+
+    <main class="p-6 space-y-6">
+
+        <div class="flex flex-col lg:flex-row gap-6 lg:h-[340px]">
+            
+            <div class="flex-1 flex flex-col gap-4 h-full">
+                
+                <div class="bg-white rounded-xl shadow-sm border border-ash-grey-200 p-6 flex-none h-[140px] flex flex-col justify-center relative overflow-hidden">
+                     
+                <%- include('partials/mcuDetail/mcu', { mcu: mcu }) %>
+                
+                <%- include('partials/mcuDetail/measurementsCards') %>
+
+                <%- include('partials/mcuDetail/sensors') %>
+
+            </div> <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-auto mt-6">
+
+                <%- include('partials/mcuDetail/graph') %>
+
+                <%- include('partials/mcuDetail/log') %>
+
+            
+        </div>
+
+    </main>
+  </div>
+
+  <%- include('partials/mcuDetail/sensorModal') %>
+  <%- include('partials/mcuDetail/unitModal') %>
+
+     <script src="/js/components/toast.js"></script>
+    <script src="/js/components/modals.js"></script>
+    <script type="module" src="/js/pages/mcuDetail/main.js"></script>
+
+  
+  <!--<script>
+    
+    // --- Graf ---
+    const ctx = document.getElementById('mainChart').getContext('2d');
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(136, 108, 147, 0.4)');
+    gradient.addColorStop(1, 'rgba(136, 108, 147, 0.0)');
+
+    let mainChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00'],
+            datasets: [{
+                label: 'Hodnota',
+                data: [20, 19.5, 19, 21, 23.5, 24, 22.5, 21],
+                borderColor: '#886c93',
+                backgroundColor: gradient,
+                borderWidth: 2,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 0,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: '#9aa092', font: { size: 10 } } },
+                y: { grid: { color: '#f2f3f1' }, ticks: { color: '#9aa092' } }
+            }
+        }
+    });
+
+    window.updateChart = function(type) {
+        const newData = mainChart.data.datasets[0].data.map(v => v + (Math.random() - 0.5) * 5);
+        mainChart.data.datasets[0].data = newData;
+        mainChart.update();
+    }
+  </script> -->
+</body>
+</html>

@@ -41,9 +41,6 @@ class MqttHandler {
         client.on('error', (err) => {
             console.error("MQTT Connection Error:", err.message);
         });
-
-
-        console.log("⏱️ Spouštím minutový časovač agregace...");
         
         setInterval(() => {
             MeasurementService.processMinuteAggregation();

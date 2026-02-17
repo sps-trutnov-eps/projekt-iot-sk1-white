@@ -42,6 +42,17 @@ export async function loadSensors(isBackground = false) {
                 const first = data.sensors.find(s => s.channels?.length > 0);
                 if (first) updateChart(null, first.channels[0].id, first.channels[0].unit, first.model, translateType(first.channels[0].type));
             }
+        }else {
+            // 2. PRÁZDNÝ STAV (Žádné senzory) - BÍLÉ POZADÍ
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full py-10 bg-white text-silver-400">
+                        <div class="w-12 h-12 bg-ash-grey-50 rounded-full flex items-center justify-center mb-3">
+                            <i class="fas fa-inbox text-xl text-silver-300"></i>
+                        </div>
+                        <span class="text-xs font-medium">Seznam je prázdný</span>
+                        <span class="text-[10px] text-silver-300 mt-1">Zatím žádná data</span>
+                    </div>`;
+            
         }
     } catch (e) { console.error(e); }
 }
@@ -108,17 +119,35 @@ apiKeyContainer.addEventListener('click', (e) => {
     // Ignorujeme kliknutí na kopírovací ikonku
     if (e.target.closest('#api-key-copy')) return;
 
-    // Přepínáme maskování (hvězdičky)
-    const isHidden = apiKeyText.style.webkitTextSecurity === 'disc' || apiKeyText.classList.contains('[webkit-text-security:disc]');
+    // ZJEDNODUŠENÁ LOGIKA:
+    // Ptáme se: Je to právě teď rozmazané?
+    const isBlurred = apiKeyText.classList.contains('blur-[4px]');
 
-    if (isHidden) {
-        apiKeyText.style.webkitTextSecurity = 'none'; // Odmaskovat
-        apiKeyText.classList.remove('blur-[4px]', '[webkit-text-security:disc]');
+    if (isBlurred) {
+        // --- ODHALIT (Smazat blur, smazat tečky) ---
+        
+        // 1. Odstraníme rozmazání
+        apiKeyText.classList.remove('blur-[4px]');
+        
+        // 2. Vypneme "heslové" tečky (nastavíme na none)
+        apiKeyText.style.webkitTextSecurity = 'none'; 
+        
+        // 3. Změna ikony oka
         apiKeyEye.classList.replace('fa-eye', 'fa-eye-slash');
+        apiKeyEye.classList.add('text-midnight-violet-600'); // Volitelné: zvýraznění ikony
+
     } else {
-        apiKeyText.style.webkitTextSecurity = 'disc'; // Zamaskovat
+        // --- SKRÝT (Přidat blur, přidat tečky) ---
+        
+        // 1. Přidáme rozmazání
         apiKeyText.classList.add('blur-[4px]');
+        
+        // 2. Zapneme "heslové" tečky
+        apiKeyText.style.webkitTextSecurity = 'disc';
+        
+        // 3. Změna ikony oka zpět
         apiKeyEye.classList.replace('fa-eye-slash', 'fa-eye');
+        apiKeyEye.classList.remove('text-midnight-violet-600');
     }
 });
 
@@ -149,14 +178,129 @@ apiKeyCopy.addEventListener('click', async (e) => {
     }
 });
 
+
+
+/**
+ * Vykreslí seznam metrik v modalu pro přidání senzoru
+ */
+function renderMetricsList() {
+    const container = document.getElementById('metricsContainer');
+    const emptyState = document.getElementById('emptyMetricsState');
+    
+    if (!container) return;
+
+    container.innerHTML = '';
+    if (tempMetrics.length === 0) {
+        emptyState?.classList.remove('hidden');
+    } else {
+        emptyState?.classList.add('hidden');
+    }
+
+    tempMetrics.forEach((metric, index) => {
+        const div = document.createElement('div');
+        div.className = "flex items-center justify-between bg-ash-grey-50 p-2 rounded border border-ash-grey-200 text-sm";
+        div.innerHTML = `
+            <div class="flex items-center gap-2">
+                <span class="font-bold text-midnight-violet-900">${metric.name}</span>
+                <span class="text-xs text-silver-500 bg-white px-1.5 py-0.5 rounded border border-ash-grey-200">${metric.unit}</span>
+                <span class="text-[10px] text-silver-400 uppercase tracking-wide ml-2">${translateType(metric.type)}</span>
+            </div>
+            <button type="button" onclick="removeMetric(${index})" class="text-red-400 hover:text-red-600 transition-colors px-2">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+        `;
+        container.appendChild(div);
+    });
+}
+
+/**
+ * Veřejná funkce pro smazání metriky z dočasného seznamu
+ */
+export function removeMetric(index) {
+    tempMetrics.splice(index, 1);
+    renderMetricsList();
+}
+
+/**
+ * Inicializace veškeré modalové logiky
+ */
 export function initModals() {
     const sensorModal = Modal.register('sensor');
     const metricModal = Modal.register('metric');
 
-    // ... sem přesuň zbývající event listenery (submitBtn atd.) ...
-}
+    // --- LOGIKA HLAVNÍHO MODALU (PŘIDÁNÍ SENZORU) ---
+    if (sensorModal) {
+        // Otevření modalu a reset dat
+        sensorModal.openModal?.addEventListener('click', () => {
+            tempMetrics = [];
+            renderMetricsList();
+            sensorModal.open();
+            sensorModal.hideError();
+            document.getElementById('sensorNameInput').value = '';
+        });
 
-export function removeMetric(index) {
-    tempMetrics.splice(index, 1);
-    // renderMetricsList() musíš mít definovanou v tomto souboru
+        // Odeslání senzoru na server
+        sensorModal.submitBtn?.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const sensorName = document.getElementById('sensorNameInput').value;
+
+            if (!sensorName) return sensorModal.showError("Vyplňte název senzoru.");
+            if (tempMetrics.length === 0) return sensorModal.showError("Přidejte alespoň jednu veličinu.");
+
+            const formData = {
+                deviceId: getMcuId(),
+                model: sensorName,
+                channels: tempMetrics
+            };
+
+            try {
+                sensorModal.submitBtn.disabled = true;
+                sensorModal.submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
+                
+                const response = await fetch('/sensor/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    window.openToast(data.message || "Senzor přidán", true);
+                    sensorModal.close();
+                    window.updateView(false); // Refresh seznamu
+                } else {
+                    sensorModal.showError(data.error || "Chyba při ukládání.");
+                }
+            } catch (error) {
+                sensorModal.showError("Chyba při komunikaci se serverem.");
+            } finally {
+                sensorModal.submitBtn.disabled = false;
+                sensorModal.submitBtn.innerHTML = 'Uložit senzor';
+            }
+        });
+    }
+
+    // --- LOGIKA POD-MODALU (PŘIDÁNÍ JEDNÉ METRIKY) ---
+    if (metricModal) {
+        document.getElementById('metricOpen')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            metricModal.open();
+            metricModal.hideError();
+            metricModal.clear();
+        });
+
+        metricModal.submitBtn?.addEventListener('click', (e) => {
+            e.preventDefault();
+            const nameVal = document.getElementById('metricNameInput').value;
+            const typeVal = document.getElementById('metricTypeInput').value;
+            const unitVal = document.getElementById('metricUnitInput').value;
+
+            if (!nameVal || !unitVal) return metricModal.showError("Vyplňte název a jednotku.");
+
+            tempMetrics.push({ name: nameVal, type: typeVal, unit: unitVal });
+            renderMetricsList();
+            metricModal.close();
+        });
+    }
 }

@@ -1,5 +1,7 @@
 
 const express = require('express');
+const http = require('http');
+const socketIo = require('socket.io');
 const path = require('path');
 const app = express();
 const PORT = 3000;
@@ -8,6 +10,13 @@ const MqttHandler = require('./src/controllers/mqttHandler');
 const db = require('./src/models/database');
 const initDB = require('./src/models/initDatabase');
 const seedDB = require('./src/models/seedDatabase');
+
+const server = http.createServer(app);
+
+const io = socketIo(server, { cors: { origin: "*" } });
+
+const SocketService = require('./src/models/socketService');
+
 initDB();
 seedDB();
 
@@ -34,7 +43,8 @@ app.use('/sensor', sensorRoutes);
 app.use('/readings', readingRoutes);
 
 
-initDB();
+
+SocketService.init(io);
 
 MqttHandler.init();
 
@@ -43,7 +53,10 @@ app.use((req, res) => {
   res.status(404).render('404', { title: '404 - Stránka nenalezena' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server běží na http://localhost:${PORT}`);
-});
 
+
+
+// Musíte spustit ten HTTP server, který jste vytvořili ručně a do kterého jste vložili 'io'
+server.listen(PORT, () => {
+    console.log(`Server běží na http://localhost:${PORT}`);
+});
