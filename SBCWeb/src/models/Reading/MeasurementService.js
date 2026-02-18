@@ -13,29 +13,17 @@ class MeasurementService {
      */
     static async processPayload(data) {
         try {
-            // 1. Validace vstupu
-            if (!data.apiKey) {
-                console.warn("MQTT: Data bez API klíče.");
-                return;
-            }
-
-            // 2. Volání MCUService (Místo Repa)
-            // Service se postará o validaci a vrácení objektu zařízení
+            // ... (Validace API Key a MCU zůstává stejná) ...
+            if (!data.apiKey) return;
             const mcu = await MCUService.validateAndGetDevice(data.apiKey);
-            
-            if (!mcu) {
-                console.warn(`MQTT: Neznámé zařízení (API Key: ${data.apiKey})`);
-                return;
-            }
+            if (!mcu) return;
 
-            // 3. Volání MCUService pro update času (Fire & Forget)
+            // Update času
             MCUService.updateLastSeen(mcu.id).catch(err => console.error(err));
-
-            // 4. Volání SensorService (Místo Repa)
-            // Získáme konfiguraci senzorů pro toto zařízení
+            
+            // Načtení senzorů
             const sensors = await SensorService.getSensorsByDevice(mcu.id);
 
-            // 5. Mapování (Pico klíč -> DB Typ)
             const keyMap = {
                 'temp': 'temperature',
                 'hum': 'humidity',
@@ -45,20 +33,19 @@ class MeasurementService {
                 'rssi': 'signal'
             };
 
-            // 6. Zpracování a bufferování
+            // Zpracování dat
             for (const [jsonKey, value] of Object.entries(data)) {
                 if (['apiKey', 'mac'].includes(jsonKey)) continue;
 
                 const targetType = keyMap[jsonKey];
                 if (!targetType) continue; 
 
-                // Hledání ID kanálu v datech, která nám vrátil SensorService
                 let targetChannelId = null;
                 
-                // Iterujeme přes senzory a jejich kanály
+                // Hledání ID kanálu (Vaše logika)
                 if (sensors && Array.isArray(sensors)) {
                     for (const sensor of sensors) {
-                        if (sensor.channels && Array.isArray(sensor.channels)) {
+                        if (sensor.channels) {
                             const channel = sensor.channels.find(ch => ch.type === targetType);
                             if (channel) {
                                 targetChannelId = channel.id;
@@ -68,12 +55,15 @@ class MeasurementService {
                     }
                 }
 
-                // Přidání do bufferu a odeslání na frontend
+                // POKUD JSME NAŠLI KANÁL, ULOŽÍME A ODESLEME
                 if (targetChannelId) {
                     const parsedValue = parseFloat(value);
                     
+                    // A) Uložit do bufferu pro DB (původní logika)
                     this.addToBuffer(targetChannelId, parsedValue);
 
+                    // B) ODESLAT DO SOCKETŮ (Live data) <--- TOTO TAM CHYBĚLO
+                    //console.log(`Posílám do Socketu: Kanál ${targetChannelId}, Hodnota ${parsedValue}`);
                     SocketService.broadcastReading(targetChannelId, parsedValue);
                 }
             }

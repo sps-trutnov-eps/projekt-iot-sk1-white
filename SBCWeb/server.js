@@ -46,6 +46,8 @@ app.use('/readings', readingRoutes);
 
 SocketService.init(io);
 
+
+
 MqttHandler.init();
 
 // Error handling

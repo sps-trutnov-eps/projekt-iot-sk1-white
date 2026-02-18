@@ -110,7 +110,7 @@ def loop():
         gc.collect()
         
         # Čekání 10 sekund
-        time.sleep(10)
+        time.sleep(1)
 
 # Spuštění
 try:
