@@ -3,6 +3,8 @@ import { loadSensors, fetchMcuInfo, initModals, removeMetric } from './sensorMan
 import { initLiveData } from './liveData.js';
 
 
+
+
 // 1. GLOBÁLNÍ BRIDGE (Nezbytné pro onclick v HTML)
 window.updateChart = updateChart;
 window.updateChartMetric = updateChartMetric;
