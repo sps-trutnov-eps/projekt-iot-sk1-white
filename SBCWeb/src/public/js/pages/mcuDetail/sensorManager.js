@@ -3,6 +3,7 @@ import { updateChart } from './chartManager.js';
 
 let tempMetrics = [];
 
+
 export async function loadSensors(isBackground = false) {
     const container = document.getElementById('sensorListContainer');
     if (!container) return;
