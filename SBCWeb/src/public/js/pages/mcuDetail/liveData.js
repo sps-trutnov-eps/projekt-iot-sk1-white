@@ -21,11 +21,20 @@ export async function initLiveData() {
 
     // 3. Nasloucháme na nová naměřená data
     socket.on('live_reading', (payload) => {
-        console.log("📡 Nová LIVE data pro toto MCU:");
-        console.log(`Kanál: ${payload.channelId} | Hodnota: ${payload.value}`);
+    // 1. Najdeme prvek na kartičce podle jeho vygenerovaného ID
+    const valueElement = document.getElementById(`card-value-${payload.channelId}`);
+    
+    if (valueElement) {
+        // 2. Přepíšeme text ("---" se změní např. na "24.5")
+        valueElement.innerText = payload.value;
         
-        // Tady pak můžeš zavolat např. updateChart(payload.channelId, payload.value)
-    });
+        // 3. Krátký vizuální efekt (bliknutí zeleně), aby uživatel viděl, že se data změnila
+        valueElement.classList.add('text-green-500');
+        setTimeout(() => {
+            valueElement.classList.remove('text-green-500');
+        }, 500);
+    }
+});
 
     // 4. (Bonus) Můžeš rovnou poslouchat i na status, který jsi přidal do SocketService
     socket.on('mcu_status', (payload) => {
