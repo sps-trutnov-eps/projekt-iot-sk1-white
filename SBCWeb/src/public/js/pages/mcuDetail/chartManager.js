@@ -51,7 +51,22 @@ export function renderChartData(data = null) {
     };
 
     const labels = currentChartData.map(row => {
-        const date = new Date(row.timestamp);
+        // OPRAVA ČASOVÉHO POSUNU:
+        // Zajistíme, že prohlížeč ví, že čas z DB je v UTC (nulté pásmo).
+        let dbTime = row.timestamp;
+        
+        // Pokud databáze vrací mezeru místo "T" (např. SQLite), převedeme to do ISO formátu
+        if (typeof dbTime === 'string') {
+            dbTime = dbTime.replace(' ', 'T');
+            // Pokud na konci není Z (Zulu time), přidáme ho
+            if (!dbTime.endsWith('Z')) {
+                dbTime += 'Z';
+            }
+        }
+        
+        const date = new Date(dbTime);
+
+        // Vykreslení
         return currentChartRange === '7d' 
             ? date.toLocaleDateString('cs-CZ', { day: '2-digit', month: '2-digit' }) + ' ' + date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })
             : date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
