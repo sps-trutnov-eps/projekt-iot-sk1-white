@@ -64,9 +64,15 @@ export async function loadSensors(isBackground = false) {
                                         <p class="text-[10px] text-silver-500 font-medium tracking-wide uppercase">${sensor.model}</p>
                                     </div>
                                 </div>
-                                <button onclick="updateChart(null, '${channel.id}', '${channel.unit}', '${sensor.model}', '${translated}')" class="text-silver-300 hover:text-midnight-violet-500 transition-colors">
-                                    <i class="fas fa-chart-line"></i>
-                                </button>
+                                
+                                <div class="flex gap-3">
+                                    <button onclick="updateChart(null, '${channel.id}', '${channel.unit}', '${sensor.model}', '${translated}')" title="Zobrazit graf" class="text-silver-300 hover:text-midnight-violet-500 transition-colors">
+                                        <i class="fas fa-chart-line"></i>
+                                    </button>
+                                    <button onclick="deleteSensorHandler('${sensor.id}')" title="Smazat senzor" class="text-silver-300 hover:text-red-500 transition-colors">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
                             </div>
                             
                             <div class="mt-2 flex items-baseline gap-1.5">
