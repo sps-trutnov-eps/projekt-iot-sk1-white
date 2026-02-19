@@ -5,7 +5,7 @@ class MqttHandler {
     
     static init() {
 
-        const BROKER_URL = 'mqtt://192.168.1.100:1883'; 
+        const BROKER_URL = 'mqtt://172.20.10.12:1883'; 
         const TOPIC = 'sensor/data';
 
         console.log(`Připojuji se k MQTT: ${BROKER_URL}`);
@@ -25,18 +25,20 @@ class MqttHandler {
         });
 
         client.on('message', (topic, message) => {
-            if (topic === TOPIC) {
-                try {
-                    // Parsujeme raw buffer na JSON
-                    const payload = JSON.parse(message.toString());
-                    
-                    MeasurementService.processPayload(payload);
+    // TÍMTO ZJISTÍME, JESTLI VŮBEC NĚCO CHODÍ A NA JAKÉ TÉMA
 
-                } catch (e) {
-                    console.error("MQTT Error: Neplatný formát JSON:", e.message);
-                }
-            }
-        });
+    if (topic === TOPIC) {
+        try {
+            const payload = JSON.parse(message.toString());
+           MeasurementService.processPayload(payload);
+        } catch (e) {
+            console.error("MQTT Error: Neplatný formát JSON:", e.message);
+        }
+    } else {
+        // Tímto odhalíme, pokud se téma o kousek liší
+        console.log(`Téma se neshoduje! Očekáváno: "${TOPIC}", ale přišlo: "${topic}"`);
+    }
+});
 
         client.on('error', (err) => {
             console.error("MQTT Connection Error:", err.message);
@@ -44,7 +46,7 @@ class MqttHandler {
         
         setInterval(() => {
             MeasurementService.processMinuteAggregation();
-        }, 60000);
+        }, 5000);
     }
 }
 

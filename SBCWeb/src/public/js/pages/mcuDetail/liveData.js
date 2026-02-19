@@ -1,82 +1,38 @@
-import { updateChartMetric } from './chartManager.js'; 
-import { getMcuId } from './utils.js'; // Předpokládám, že zde máš tu funkci
+// liveData.js
 
-const socket = io(); 
-const activeSubscriptions = new Set(); 
+// Tvoje metoda pro získání ID z URL (např. /mcu/detail/5 -> vrátí "5")
+export function getMcuId() {
+    return window.location.pathname.split('/').pop();
+}
 
 export async function initLiveData() {
-    console.log("🔌 Inicializace LiveData...");
+    const socket = io(); 
 
-    // 1. Zjistíme kontext
-    const mcuId = getMcuId();
-    let apiUrl;
-    
-    // 2. Rozhodneme, jaká data chceme
-    if (mcuId && !isNaN(parseInt(mcuId))) {
-        console.log(`🎯 Režim: Detail MCU (ID: ${mcuId}) - Filtruji senzory...`);
-        // Pozor na lomítko na začátku!
-        apiUrl = `/sensor/device/${mcuId}`; 
-    } else {
-        console.log(`🌍 Režim: Dashboard - Odebírám vše`);
-        // Pokud jsme na dashboardu, chceme asi vidět všechna data
-        apiUrl = `/sensor/all_data`; 
-    }
-
-    // 3. Stáhneme seznam kanálů k odběru
-    try {
-        console.log(`📡 Stahuji konfiguraci z: ${apiUrl}`);
-        const response = await fetch(apiUrl);
+    socket.on('connect', () => {
+        console.log("%c🔌 WebSocket připojen!", "color: green; font-weight: bold;");
         
-        if (!response.ok) throw new Error(`Chyba API: ${response.statusText}`);
+        // 1. Získáme ID konkrétního MCU
+        const currentMcuId = getMcuId();
         
-        const sensors = await response.json();
+        // 2. Pošleme serveru žádost o připojení do místnosti pro toto konkrétní MCU
+        socket.emit('subscribe_mcu', currentMcuId); 
+        console.log(`🚪 Přihlašuji se k odběru dat pro MCU ID: ${currentMcuId}`);
+    });
+
+    // 3. Nasloucháme na nová naměřená data
+    socket.on('live_reading', (payload) => {
+        console.log("📡 Nová LIVE data pro toto MCU:");
+        console.log(`Kanál: ${payload.channelId} | Hodnota: ${payload.value}`);
         
-        // Pokud API vrátí prázdné pole, nic se nestane
-        if (!sensors || sensors.length === 0) {
-            console.warn("⚠️ Žádné senzory k odběru.");
-            return;
-        }
+        // Tady pak můžeš zavolat např. updateChart(payload.channelId, payload.value)
+    });
 
-        // 4. Registrace odběrů (Tady probíhá to filtrování)
-        // Projdeme jen ty senzory, které nám vrátil backend pro toto konkrétní MCU
-        sensors.forEach(sensor => {
-            if (sensor.channels && Array.isArray(sensor.channels)) {
-                sensor.channels.forEach(channel => {
-                    subscribeToChannel(channel.id);
-                });
-            }
-        });
+    // 4. (Bonus) Můžeš rovnou poslouchat i na status, který jsi přidal do SocketService
+    socket.on('mcu_status', (payload) => {
+        console.log(`⏱️ Status MCU aktualizován. Naposledy viděno:`, payload.lastSeen);
+    });
 
-    } catch (error) {
-        console.error("❌ Chyba při načítání senzorů pro LiveData:", error);
-    }
+    socket.on('disconnect', () => {
+        console.log("%c❌ WebSocket odpojen", "color: red;");
+    });
 }
-
-// --- POMOCNÉ FUNKCE ---
-
-function subscribeToChannel(channelId) {
-    if (!activeSubscriptions.has(channelId)) {
-        console.log(`✅ Subscribe: Kanál ID ${channelId}`);
-        socket.emit('subscribe_channel', channelId);
-        activeSubscriptions.add(channelId);
-    }
-}
-
-// --- NASLOUCHÁNÍ SOCKETŮM (DŮLEŽITÉ!) ---
-
-socket.on('connect', () => {
-    console.log(`🟢 Socket připojen (ID: ${socket.id})`);
-});
-
-// Tuhle část jsi tam neměl, bez ní data chodí, ale graf se nehne!
-socket.on('live_reading', (data) => {
-    // console.log(`🔥 Data: Kanál ${data.channelId} -> ${data.value}`);
-    
-    // Tady se volá aktualizace grafiky jen pro odebírané kanály
-    updateChartMetric(data.channelId, data.value);
-});
-
-socket.on('disconnect', () => {
-    console.warn("🔴 Socket odpojen");
-    activeSubscriptions.clear(); 
-});

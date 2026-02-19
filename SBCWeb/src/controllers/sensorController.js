@@ -1,5 +1,5 @@
 const SensorService = require('../models/Sensor/SensorService');
-
+const SocketService = require('../models/socketService');
 module.exports = {
 
     /**
@@ -49,16 +49,51 @@ module.exports = {
      * GET /api/devices/:deviceId/sensors
      * Získá všechny senzory připojené k jednomu MCU
      */
+    /**
+     * GET /api/devices/:deviceId/sensors
+     * Získá všechny senzory připojené k jednomu MCU + aktuální LIVE hodnoty
+     */
     getSensorsByDevice: (req, res) => {
         try {
             const deviceId = req.params.deviceId;
+            
+            // 1. Získání základní struktury z DB (Senzory a jejich kanály)
             const sensors = SensorService.getSensorsByDevice(deviceId);
             
+            // 2. OBOHACENÍ O LIVE HODNOTY Z RAM
+            const enrichedSensors = sensors.map(sensor => {
+                
+                // Zkontrolujeme, jestli má senzor nějaké kanály
+                if (sensor.channels && Array.isArray(sensor.channels)) {
+                    
+                    const enrichedChannels = sensor.channels.map(channel => {
+                        // Zeptáme se naší "RAM mezipaměti" na poslední hodnotu kanálu
+                        const liveValue = SocketService.getLastValue(channel.id);
+                        
+                        return {
+                            ...channel,
+                            // Pokud máme hodnotu, vložíme ji. Pokud ne (např. po restartu serveru), dáme null
+                            current_value: liveValue !== undefined ? liveValue : null
+                        };
+                    });
+
+                    // Vrátíme senzor s obohacenými kanály
+                    return {
+                        ...sensor,
+                        channels: enrichedChannels
+                    };
+                }
+
+                return sensor; // Pokud nemá kanály, vrátíme ho beze změny
+            });
+            
+            // 3. Odeslání na frontend
             res.status(200).json({
                 success: true,
                 message: 'Seznam senzorů načten.',
-                sensors: sensors
+                sensors: enrichedSensors // <-- Odesíláme obohacená data!
             });
+            
         } catch (error) {
             res.status(400).json({ 
                 success: false, 

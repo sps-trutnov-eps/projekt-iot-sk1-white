@@ -18,22 +18,7 @@ window.updateView = async function(isBackground = false) {
     await loadSensors(isBackground);
 }
 
-// main.js
-const socket = io(); 
 
-socket.on('connect', () => {
-    console.log("✅ Socket připojen k serveru.");
-    
-    // Řekneme si o kanál 1
-    console.log("📡 Odesílám žádost o kanál 1...");
-    socket.emit('subscribe_channel', 1);
-});
-
-// TOTO JE TO NEJDŮLEŽITĚJŠÍ - "UŠI"
-socket.on('live_reading', (data) => {
-    console.log("🔥 PŘIŠLA DATA:", data);
-    console.log("Hodnota:", data.value);
-});
 
 
 // 2. START

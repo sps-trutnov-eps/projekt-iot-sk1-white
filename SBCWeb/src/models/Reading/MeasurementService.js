@@ -14,9 +14,13 @@ class MeasurementService {
     static async processPayload(data) {
         try {
             // ... (Validace API Key a MCU zůstává stejná) ...
-            if (!data.apiKey) return;
+            if (!data.apiKey){
+                 return;
+            } 
             const mcu = await MCUService.validateAndGetDevice(data.apiKey);
-            if (!mcu) return;
+            if (!mcu){
+                 return;
+            }
 
             // Update času
             MCUService.updateLastSeen(mcu.id).catch(err => console.error(err));
@@ -64,7 +68,7 @@ class MeasurementService {
 
                     // B) ODESLAT DO SOCKETŮ (Live data) <--- TOTO TAM CHYBĚLO
                     //console.log(`Posílám do Socketu: Kanál ${targetChannelId}, Hodnota ${parsedValue}`);
-                    SocketService.broadcastReading(targetChannelId, parsedValue);
+                SocketService.broadcastReading(mcu.id, targetChannelId, parsedValue);
                 }
             }
 
@@ -82,29 +86,29 @@ class MeasurementService {
      * Agregace dat (minuta) - voláno z Controlleru
      */
     static processMinuteAggregation() {
-        // console.log("⏱️ Agregace...");
+    for (const channelId in this.buffers) {
+        const values = this.buffers[channelId];
         
-        for (const channelId in this.buffers) {
-            const values = this.buffers[channelId];
-            if (!values || values.length === 0) continue;
+        // Pokud nejsou data, funkce tiše pokračuje dál - ŽÁDNÝ SPAM
+        if (!values || values.length === 0) continue;
 
-            const sum = values.reduce((a, b) => a + b, 0);
-            const avg = sum / values.length;
-            const min = Math.min(...values);
-            const max = Math.max(...values);
+        const sum = values.reduce((a, b) => a + b, 0);
+        const avg = sum / values.length;
+        const min = Math.min(...values);
+        const max = Math.max(...values);
 
-            // Uložení statistiky přes vlastní Repository
-            ReadingRepository.save({
-                channelId: parseInt(channelId),
-                avg: avg.toFixed(2),
-                min: min.toFixed(2),
-                max: max.toFixed(2)
-            });
+        
+        ReadingRepository.save({
+            channelId: parseInt(channelId),
+            avg: avg.toFixed(2),
+            min: min.toFixed(2),
+            max: max.toFixed(2)
+        });
 
-            // Reset bufferu
-            this.buffers[channelId] = [];
-        }
+        // Reset bufferu
+        this.buffers[channelId] = [];
     }
+}
 
 
 

@@ -7,49 +7,52 @@ class SocketService {
     // Tuto metodu volá app.js a předá jí skutečný socket server
     init(io) {
         this.io = io;
-        //console.log("✅ SocketService byl inicializován."); // Log pro kontrolu
 
         this.io.on('connection', (socket) => {
-            //console.log(`Socket připojen: ${socket.id}`);
+            // 1. Klient chce poslouchat konkrétní MCU (Detail stránka)
+            socket.on('subscribe_mcu', (mcuId) => {
+                socket.join(`mcu_${mcuId}`);
+            });
 
-            socket.on('subscribe_channel', (channelId) => {
-                const id = parseInt(channelId);
-                socket.join(`channel_${id}`);
-                
-                if (this.lastReadings.has(id)) {
-                    socket.emit('live_reading', {
-                        channelId: id,
-                        value: this.lastReadings.get(id),
-                        timestamp: Date.now()
-                    });
-                }
+            // 2. Klient chce poslouchat úplně všechno (Dashboard)
+            socket.on('subscribe_all', () => {
+                socket.join('all_data');
             });
             
-             socket.on('unsubscribe_channel', (channelId) => {
-                socket.leave(`channel_${channelId}`);
+            // 3. Odhlášení
+            socket.on('unsubscribe_mcu', (mcuId) => {
+                socket.leave(`mcu_${mcuId}`);
             });
-        });
+
+            socket.on('unsubscribe_all', () => {
+                socket.leave('all_data');
+            });
+        }
+    )};
+
+   broadcastReading(mcuId, channelId, value) {
+        if (!this.io) return;
+
+        this.lastReadings.set(channelId, value);
+        const payload = { mcuId, channelId, value, timestamp: Date.now() };
+
+        this.io.to(`mcu_${mcuId}`).emit('live_reading', payload);
+        this.io.to('all_data').emit('live_reading', payload);
     }
 
-    broadcastReading(channelId, value) {
-        // 1. Uložit do cache
-        this.lastReadings.set(channelId, value);
 
-        // 2. BEZPEČNOSTNÍ KONTROLA: Existuje už io?
-        if (!this.io) {
-            console.warn("Pozor: SocketService ještě není inicializován, ale data už chodí! (Data budou jen v DB)");
-            return; // Ukončíme funkci, aby to nespadlo
-        }
+    getLastValue(channelId) {
+        return this.lastReadings.get(channelId);
+    }
 
-        // 3. ODESLÁNÍ
-        //console.log(`SOCKET ODESÍLÁ: Kanál ${channelId}, Hodnota ${value}`);
+    // 2. NOVÉ: Odeslání stavu MCU (last_seen)
+    broadcastMcuStatus(mcuId, lastSeenDate) {
+        if (!this.io) return;
 
+        const payload = { mcuId, lastSeen: lastSeenDate };
 
-        this.io.emit('live_reading', {  
-            channelId: channelId,
-            value: value,
-            timestamp: Date.now()
-        });
+        this.io.to(`mcu_${mcuId}`).emit('mcu_status', payload);
+        this.io.to('all_data').emit('mcu_status', payload); // pro dashboard
     }
 }
 
