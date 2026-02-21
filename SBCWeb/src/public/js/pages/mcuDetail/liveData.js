@@ -31,12 +31,4 @@ export async function initLiveData() {
         }
     });
 
-    // 4. (Bonus) Můžeš rovnou poslouchat i na status, který jsi přidal do SocketService
-    socket.on('mcu_status', (payload) => {
-        console.log(`⏱️ Status MCU aktualizován. Naposledy viděno:`, payload.lastSeen);
-    });
-
-    socket.on('disconnect', () => {
-        console.log("%c❌ WebSocket odpojen", "color: red;");
-    });
 }

@@ -10,6 +10,29 @@ window.currentChartUnit = '';
 let currentSensorName = ''; 
 let currentSensorType = '';
 
+let chartUpdateInterval = null;
+
+export function startChartAutoUpdate() {
+    if (chartUpdateInterval) {
+        clearInterval(chartUpdateInterval);
+    }
+
+    chartUpdateInterval = setInterval(() => {
+        if (window.currentChartChannelId) {
+            console.log("Získávám nová data pro graf (minutový update)...");
+            updateChart(); 
+        }
+    }, 60000); 
+}
+
+export function stopChartAutoUpdate() {
+    if (chartUpdateInterval) {
+        clearInterval(chartUpdateInterval);
+        chartUpdateInterval = null;
+    }
+}
+
+
 export function initChart() {
     const ctx = document.getElementById('mainChart').getContext('2d');
     const gradient = ctx.createLinearGradient(0, 0, 0, 300);
@@ -43,6 +66,7 @@ export function initChart() {
             interaction: { intersect: false, mode: 'index' }
         }
     });
+    startChartAutoUpdate();
 }
 
 export function renderChartData(data = null) {

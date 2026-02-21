@@ -43,14 +43,12 @@ export async function fetchMcuInfo() {
         socket = io(); // Založí spojení k tvému serveru
 
         socket.on('connect', () => {
-            console.log('Socket.IO připojen, odesílám subscribe_mcu pro ID:', mcuId);
             socket.emit('subscribe_mcu', mcuId);
         });
 
         // Nasloucháme na událost z backendu
         socket.on('mcu_status', (payload) => {
             if (payload.mcuId == mcuId) {
-                console.log('Živá aktualizace stavu MCU:', payload.lastSeen);
                 updateMcuStatusUI(payload.lastSeen);
             }
         });
