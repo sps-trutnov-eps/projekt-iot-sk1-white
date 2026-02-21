@@ -28,7 +28,16 @@ export function initChart() {
                 tooltip: { enabled: true } 
             },
             scales: {
-                x: { grid: { display: false }, ticks: { color: '#9aa092', font: { size: 10 }, maxTicksLimit: 8 } },
+                x: { 
+                    grid: { display: false }, 
+                    ticks: { 
+                        color: '#9aa092', 
+                        font: { size: 10 }, 
+                        maxTicksLimit: 12, // Můžeme nechat trochu víc popisků
+                        maxRotation: 45, // Delší texty (s datem) se lehce natočí
+                        minRotation: 0
+                    } 
+                },
                 y: { grid: { color: '#f2f3f1' }, ticks: { color: '#9aa092' } }
             },
             interaction: { intersect: false, mode: 'index' }
@@ -40,8 +49,11 @@ export function renderChartData(data = null) {
     if (data) currentChartData = data;
     if (!mainChart || !currentChartData || currentChartData.length === 0) return;
 
-    // Tooltip fix s jednotkou
+    // V tooltipu vždy ukážeme celý popisek (aby bylo jasno, z jakého je to dne)
     mainChart.options.plugins.tooltip.callbacks = {
+        title: function(tooltipItems) {
+            return tooltipItems[0].label;
+        },
         label: function(context) {
             let label = context.dataset.label || '';
             if (label) label += ': ';
@@ -50,26 +62,50 @@ export function renderChartData(data = null) {
         }
     };
 
-    const labels = currentChartData.map(row => {
-        // OPRAVA ČASOVÉHO POSUNU:
-        // Zajistíme, že prohlížeč ví, že čas z DB je v UTC (nulté pásmo).
+    const labels = [];
+    const processedData = { avg: [], min: [], max: [] };
+    let prevDate = null;
+
+    // Definice toho, co je "výpadek", po kterém chceme napsat datum (zde 2 hodiny v milisekundách)
+    const gapThresholdMs = currentChartRange === '7d' ? 24 * 60 * 60 * 1000 : 2 * 60 * 60 * 1000;
+
+    currentChartData.forEach(row => {
         let dbTime = row.timestamp;
         
-        // Pokud databáze vrací mezeru místo "T" (např. SQLite), převedeme to do ISO formátu
         if (typeof dbTime === 'string') {
             dbTime = dbTime.replace(' ', 'T');
-            // Pokud na konci není Z (Zulu time), přidáme ho
-            if (!dbTime.endsWith('Z')) {
-                dbTime += 'Z';
-            }
+            if (!dbTime.endsWith('Z')) dbTime += 'Z';
         }
         
         const date = new Date(dbTime);
+        const timeStr = date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+        const dateStr = date.toLocaleDateString('cs-CZ', { day: '2-digit', month: '2-digit' });
 
-        // Vykreslení
-        return currentChartRange === '7d' 
-            ? date.toLocaleDateString('cs-CZ', { day: '2-digit', month: '2-digit' }) + ' ' + date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })
-            : date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+        let showDate = false;
+
+        // Logika pro zobrazení data v popisku osy X
+        if (currentChartRange === '7d') {
+            showDate = true; // U 7 dní ukazujeme datum pro jistotu pořád
+        } else {
+            if (prevDate === null) {
+                showDate = true; // Úplně první bod v grafu dostane datum
+            } else {
+                const gapMs = date.getTime() - prevDate.getTime();
+                // Pokud je v datech velká mezera NEBO se přehoupla půlnoc na další den
+                if (gapMs > gapThresholdMs || date.getDate() !== prevDate.getDate()) {
+                    showDate = true; 
+                }
+            }
+        }
+
+        // Pokud 'showDate' je true, přidáme do pole popisků datum i čas. Jinak jen čas.
+        labels.push(showDate ? `${dateStr} ${timeStr}` : timeStr);
+
+        processedData.avg.push(row.avg !== undefined ? row.avg : null);
+        processedData.min.push(row.min !== undefined ? row.min : null);
+        processedData.max.push(row.max !== undefined ? row.max : null);
+
+        prevDate = date;
     });
 
     mainChart.data.labels = labels;
@@ -86,13 +122,14 @@ export function renderChartData(data = null) {
             const config = datasetsConfigs[key];
             mainChart.data.datasets.push({
                 label: config.label,
-                data: currentChartData.map(row => row[config.dataKey]),
+                data: processedData[config.dataKey],
                 borderColor: config.color,
                 backgroundColor: config.fill ? 'rgba(136, 108, 147, 0.1)' : 'transparent',
                 borderWidth: 2,
                 tension: 0.4,
                 pointRadius: 0,
-                fill: config.fill
+                fill: config.fill,
+                spanGaps: true // Toto zajistí, že čára prostě ignoruje chybějící data a naváže
             });
         }
     });
