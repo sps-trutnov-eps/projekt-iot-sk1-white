@@ -30,15 +30,21 @@ export async function fetchMcuInfo() {
             }
 
             // Nastavení počátečního času a statusu
-            updateMcuStatusUI(mcu.lastSeen);
+            // Pokud MCU objekt z API obsahuje isOnline (nebo is_online), použijeme ho
+            let initialStatus = null;
+            if (mcu.isOnline !== undefined) initialStatus = mcu.isOnline;
+            else if (mcu.is_online !== undefined) initialStatus = mcu.is_online;
+            
+            // Pokud z DB přijde 1 nebo 0, převedeme to pro jistotu na boolean
+            if (typeof initialStatus === 'number') initialStatus = initialStatus === 1;
+
+            updateMcuStatusUI(mcu.lastSeen, initialStatus);
         }
     } catch (e) { 
         console.error("Chyba při stahování MCU info:", e); 
     }
 
     // 2. SOCKET.IO PRO ŽIVÉ AKTUALIZACE STAVU
-    // Pokud už ve svém projektu máš socket inicializovaný jinde (např. window.socket), 
-    // použij ten. Jinak ho vytvoříme zavoláním io().
     if (!socket) {
         socket = io(); // Založí spojení k tvému serveru
 
@@ -49,18 +55,19 @@ export async function fetchMcuInfo() {
         // Nasloucháme na událost z backendu
         socket.on('mcu_status', (payload) => {
             if (payload.mcuId == mcuId) {
-                updateMcuStatusUI(payload.lastSeen);
+                // Posíláme do UI i ten vynucený status ze socketu
+                // Ujistíme se, že je to boolean (např. 1 => true)
+                const isOnlineForce = (payload.status === 1 || payload.status === true);
+                updateMcuStatusUI(payload.lastSeen, isOnlineForce);
             }
         });
     } else {
-        // Pokud funkce běží znovu (např. při změně stránky) a socket už existuje
         socket.emit('subscribe_mcu', mcuId);
     }
 }
 
 // Vyčleněná funkce, aby se kód neopakoval. Stará se jen o čas a barvu tečky.
-// Vyčleněná funkce, aby se kód neopakoval. Stará se jen o čas a barvu tečky.
-function updateMcuStatusUI(lastSeenDbTime) {
+export function updateMcuStatusUI(lastSeenDbTime, isOnlineForce = null) {
     if (!lastSeenDbTime) return;
 
     let dbTime = lastSeenDbTime;
@@ -72,8 +79,15 @@ function updateMcuStatusUI(lastSeenDbTime) {
     const lastSeenDate = new Date(dbTime);
     const now = new Date();
     
-    // Logika pro Online/Offline (70 minut)
-    const isOnline = Math.floor((now - lastSeenDate) / 1000 / 60) < 70; 
+    // Logika pro Online/Offline:
+    // POKUD nám backend poslal status, použijeme ho bez remcání.
+    // JINAK použijeme starý odpočet jako pojistku.
+    let isOnline = false;
+    if (isOnlineForce !== null) {
+        isOnline = isOnlineForce;
+    } else {
+        isOnline = Math.floor((now - lastSeenDate) / 1000 / 60) < 70; 
+    }
 
     const isToday = 
         lastSeenDate.getDate() === now.getDate() &&
@@ -82,14 +96,12 @@ function updateMcuStatusUI(lastSeenDbTime) {
 
     let formattedTime = "";
     if (isToday) {
-        // Zde jsou přidané vteřiny (second: '2-digit')
         formattedTime = lastSeenDate.toLocaleTimeString('cs-CZ', { 
             hour: '2-digit', 
             minute: '2-digit', 
             second: '2-digit' 
         });
     } else {
-        // Zde jsou také přidané vteřiny (second: '2-digit')
         formattedTime = lastSeenDate.toLocaleDateString('cs-CZ', { 
             day: 'numeric', 
             month: 'numeric' 

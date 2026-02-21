@@ -51,7 +51,7 @@ class SocketService {
     }
 
     // 2. NOVÉ: Odeslání stavu MCU (last_seen)
-    broadcastMcuStatus(mcuId, status, lastSeenDate) {
+    broadcastMcuStatus(mcuId, lastSeenDate, status) {
         if (!this.io) return;
 
         const payload = { mcuId, status, lastSeen: lastSeenDate };

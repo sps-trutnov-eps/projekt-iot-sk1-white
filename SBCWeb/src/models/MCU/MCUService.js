@@ -1,4 +1,6 @@
 const ping = require('ping');
+const SocketService = require('../socketService');
+
 
 const MCU = require('./MCU');
 const MCURepository = require('./MCURepository');
@@ -22,7 +24,15 @@ class MCUService {
      * Důležité: Tímto se v repozitáři rovnou nastaví i is_online = 1.
      */
     static updateLastSeen(id) {
-        return MCURepository.updateLastSeen(id);
+        const result = MCURepository.updateLastSeen(id);
+        
+        const mcu = MCURepository.findById(id);
+        if (mcu) {
+            console.log(`[SOCKET EMIT] MCU ${mcu.name} poslalo data. Odesílám status ONLINE a čas: ${mcu.lastSeen}`);
+            SocketService.broadcastMcuStatus(mcu.id, mcu.lastSeen, true);
+        }
+        
+        return result;
     }
 
     // NOVÉ: Monitor stavu MCU (Ping/Timeout)

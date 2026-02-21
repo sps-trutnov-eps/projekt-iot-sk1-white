@@ -1,22 +1,17 @@
+import { getMcuId } from './utils.js';
+import { updateMcuStatusUI } from './mcuManager.js';
 // liveData.js
-
-// Tvoje metoda pro získání ID z URL (např. /mcu/detail/5 -> vrátí "5")
-export function getMcuId() {
-    return window.location.pathname.split('/').pop();
-}
 
 export async function initLiveData() {
     const socket = io(); 
 
     socket.on('connect', () => {
-        console.log("%c🔌 WebSocket připojen!", "color: green; font-weight: bold;");
         
         // 1. Získáme ID konkrétního MCU
         const currentMcuId = getMcuId();
         
         // 2. Pošleme serveru žádost o připojení do místnosti pro toto konkrétní MCU
         socket.emit('subscribe_mcu', currentMcuId); 
-        console.log(`🚪 Přihlašuji se k odběru dat pro MCU ID: ${currentMcuId}`);
     });
 
     // 3. Nasloucháme na nová naměřená data
@@ -30,5 +25,18 @@ export async function initLiveData() {
             valueElement.innerText = payload.value;
         }
     });
+
+    // Nasloucháme na událost z backendu
+        socket.on('mcu_status', (payload) => {
+            
+            // OPRAVA TADY: Získáme aktuální ID bezpečně přímo z URL při každé zprávě
+            const currentMcuId = getMcuId(); 
+            
+            if (payload.mcuId == currentMcuId) {
+                // Posíláme do UI i ten vynucený status ze socketu
+                const isOnlineForce = (payload.status === 1 || payload.status === true);
+                updateMcuStatusUI(payload.lastSeen, isOnlineForce);
+            }
+        });
 
 }
