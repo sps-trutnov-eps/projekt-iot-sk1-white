@@ -1,9 +1,12 @@
 import { getMcuId } from './utils.js';
 import { updateMcuStatusUI } from './mcuManager.js';
+import { initEventManager } from './eventManager.js';
 // liveData.js
 
 export async function initLiveData() {
     const socket = io(); 
+
+    initEventManager(socket);
 
     socket.on('connect', () => {
         

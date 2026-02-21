@@ -77,55 +77,62 @@ function renderMCUGrid(mcusArray) {
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[m]));
 
-    // *** ZÍSKÁNÍ NÁZVU TYPU ***
-    // Pokud máme mapu a v ní ID existuje, použijeme název. Jinak necháme ID.
+    // 1. ZÍSKÁNÍ NÁZVU TYPU
     const typeName = window.typeMap && window.typeMap[mcu.type] 
         ? window.typeMap[mcu.type] 
         : mcu.type;
 
-    // *** LOGIKA ČASU (Beze změny) *** //
-    const lastSeenDate = new Date(mcu.lastSeen + (mcu.lastSeen.includes('Z') ? '' : 'Z'));
-    const diffMs = now - lastSeenDate;
-    const diffMins = Math.floor(diffMs / (1000 * 60));
-    const diffHours = Math.floor(diffMins / 60);
+    // 2. TVRDÁ LOGIKA STAVU (Z databáze)
+    const isOnline = (mcu.isOnline === 1 || mcu.isOnline === true);
 
-    let lastSeenDisplay = '';
-    let timeColorClass = '';
+    // 3. FORMÁTOVÁNÍ ČASU (Pro zobrazení u offline stavu)
+    let dbTime = mcu.lastSeen;
+    let lastSeenDisplay = 'Nikdy';
+    let formattedDateStr = '';
 
-    if (isNaN(lastSeenDate.getTime())) {
-      lastSeenDisplay = 'Nikdy';
-    } else if (diffMins === 0) {
-      lastSeenDisplay = 'nyní';
-    } else if (diffMins < 60) {
-      lastSeenDisplay = `před ${diffMins} min.`;
-    } else if (diffHours < 24) {
-      lastSeenDisplay = `před ${diffHours} hod.`;
-    } else {
-      lastSeenDisplay = lastSeenDate.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' });
+    if (dbTime) {
+      if (typeof dbTime === 'string') {
+        dbTime = dbTime.replace(' ', 'T');
+        if (!dbTime.endsWith('Z')) dbTime += 'Z';
+      }
+      
+      const lastSeenDate = new Date(dbTime);
+      const isToday = lastSeenDate.toDateString() === now.toDateString();
+
+      if (!isNaN(lastSeenDate.getTime())) {
+        if (isToday) {
+          formattedDateStr = lastSeenDate.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        } else {
+          formattedDateStr = lastSeenDate.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' }) + ' ' + 
+                            lastSeenDate.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+        }
+      }
     }
 
-    if (diffMins < 10) timeColorClass = 'text-green-600';
-    else timeColorClass = 'text-red-500';
-
-    const statusColor = diffMins < 10 ? 'bg-green-400' : 'bg-red-400';
-    const pulseEffect = diffMins < 10 ? 'animate-pulse' : '';
+    // Nastavení textu a barev podle reálného stavu isOnline
+    let timeColorClass = isOnline ? 'text-green-600 font-medium' : 'text-red-500 font-semibold';
+    let statusColor = isOnline ? 'bg-green-400' : 'bg-red-500';
+    let pulseEffect = isOnline ? 'animate-pulse' : '';
+    
+    // Finální text v kartě
+    lastSeenDisplay = isOnline ? 'Online' : `${formattedDateStr}`;
 
     return `
       <div class="mcu-card cursor-pointer bg-white rounded-lg shadow-sm border border-ash-grey-200 hover:shadow-md transition-shadow mb-4" 
            data-id="${mcu.id}" 
-           data-type="${escape(mcu.type)}"> <div class="flex items-center p-4">
+           data-status="${isOnline ? 'online' : 'offline'}"
+           data-type="${escape(mcu.type)}"> 
+        <div class="flex items-center p-4">
           <div class="flex items-center space-x-4">
             <div class="relative">
               <div class="w-12 h-12 bg-gradient-to-br from-midnight-violet-700 to-vintage-grape-600 rounded-xl flex items-center justify-center">
                 <i class="fas fa-microchip text-xl text-white"></i>
               </div>
-              <span class="absolute -bottom-1 -right-1 w-4 h-4 ${statusColor} ${pulseEffect} border-2 border-white rounded-full"></span>
+              <span class="status-dot absolute -bottom-1 -right-1 w-4 h-4 ${statusColor} ${pulseEffect} border-2 border-white rounded-full"></span>
             </div>
             <div class="min-w-[140px]">
               <h3 class="font-semibold text-midnight-violet-900">${escape(mcu.name)}</h3>
-              
               <span class="text-xs text-silver-500">${escape(typeName)}</span>
-            
             </div>
           </div>
           
@@ -143,15 +150,12 @@ function renderMCUGrid(mcusArray) {
               <span class="text-silver-700 truncate">${escape(mcu.location)}</span>
             </div>
             <div class="flex items-center space-x-2">
-              <i class="fas fa-clock ${diffMins >= 10 ? 'text-red-400' : 'text-silver-400'} w-4"></i>
-              <span class="${timeColorClass}">${lastSeenDisplay}</span>
+              <i class="fas fa-clock ${!isOnline ? 'text-red-400' : 'text-silver-400'} w-4"></i>
+              <span class="last-seen-text ${timeColorClass} text-xs uppercase">${lastSeenDisplay}</span>
             </div>
           </div>
 
           <div class="flex items-center space-x-2">
-            <button class="view-data-btn w-9 h-9 text-vintage-grape-600 hover:bg-vintage-grape-50 rounded-lg flex items-center justify-center transition" data-id="${mcu.id}" title="Zobrazit data">
-              <i class="fas fa-chart-line"></i>
-            </button>
             <button class="edit-mcu-btn w-9 h-9 text-silver-600 hover:bg-ash-grey-100 rounded-lg flex items-center justify-center transition" data-id="${mcu.id}" title="Upravit">
               <i class="fas fa-pen text-sm"></i>
             </button>

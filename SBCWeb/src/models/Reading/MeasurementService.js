@@ -22,11 +22,7 @@ class MeasurementService {
                  return;
             }
 
-            // Update času
-            MCUService.updateLastSeen(mcu.id).catch(err => console.error(err));
-            
-            const nowIso = new Date().toISOString(); 
-            
+            // Update času                       
 
 
             // Načtení senzorů

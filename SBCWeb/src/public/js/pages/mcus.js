@@ -7,6 +7,83 @@ window.currentFilters = {
     search: ''
 };
 
+let dashboardSocket = null;
+
+// 1. Zabalíme to do funkce a VTVOŘÍME spojení
+function initDashboardSockets() {
+    if (!dashboardSocket) {
+        dashboardSocket = io(); // TADY SE VYTVOŘÍ TO SPOJENÍ!
+
+        dashboardSocket.on('connect', () => {
+            console.log("Dashboard připojen k socketům.");
+            // Přihlásíme se k odběru VŠECH MCU
+            dashboardSocket.emit('subscribe_all'); 
+        });
+
+        // Posloucháme změny stavu MCU ze socketů
+        dashboardSocket.on('mcu_status', (payload) => {
+            // Převod statusu na true/false (pro jistotu, kdyby přišla 1/0)
+            const isOnline = (payload.status === 1 || payload.status === true);
+            
+            // Voláme vykreslovací funkci
+            updateMcuCardStatus(payload.mcuId, isOnline, payload.lastSeen);
+        });
+    }
+}
+
+// 2. Vykreslovací funkce pro konkrétní kartičku (Tvoje verze)
+// Vykreslovací funkce pro konkrétní kartičku
+function updateMcuCardStatus(mcuId, isOnline, lastSeenStr) {
+    const card = document.querySelector(`.mcu-card[data-id="${mcuId}"]`);
+    if (!card) return; // Jsme na jiné stránce nebo karta neexistuje
+
+    // Aktualizujeme data-atribut pro fungování filtrů
+    card.dataset.status = isOnline ? 'online' : 'offline';
+
+    // 1. Změna barvy tečky
+    const dot = card.querySelector('span.rounded-full.border-2.border-white');
+    if (dot) {
+        dot.className = `absolute -bottom-1 -right-1 w-4 h-4 border-2 border-white rounded-full ${isOnline ? 'bg-green-400' : 'bg-red-500'}`;
+    }
+
+    // 2. Zpracování času
+    const timeSpan = card.querySelector('.fa-clock').nextElementSibling;
+    if (timeSpan && lastSeenStr) {
+        let dbTime = lastSeenStr;
+        if (typeof dbTime === 'string') {
+            dbTime = dbTime.replace(' ', 'T');
+            // Přidáme Z, aby to prohlížeč pochopil jako UTC a převedl na náš lokální čas
+            if (!dbTime.endsWith('Z')) dbTime += 'Z'; 
+        }
+        
+        const date = new Date(dbTime);
+        const now = new Date();
+        const isToday = date.toDateString() === now.toDateString();
+        
+        // Formátování: Dnes = "16:33:00", Jiný den = "21. 2. 16:33:00"
+        let formattedTime = "";
+        if (isToday) {
+            formattedTime = date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        } else {
+            formattedTime = date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' }) + ' ' + 
+                          date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+        
+        // 3. Vepsání jasného textu (Online jen slovně, Offline i s časem)
+        if (isOnline) {
+            timeSpan.textContent = `Online`;
+            timeSpan.className = "text-green-600 font-medium text-xs";
+        } else {
+            timeSpan.textContent = `${formattedTime}`;
+            timeSpan.className = "text-red-500 font-semibold text-xs";
+        }
+    }
+
+    // 4. Přepočítání postranního panelu (čísla Online/Offline v sidebaru a filtry)
+    if (typeof window.applyFilters === 'function') window.applyFilters();
+    if (typeof window.refreshSidebarStats === 'function') window.refreshSidebarStats();
+}
+
 
 
 /* ============================================================
@@ -312,7 +389,7 @@ async function refreshSidebarStats() {
     try {
         const mcus = await fetchData('/mcu/mcus');
         if (!mcus || !Array.isArray(mcus)) return;
-
+        console.log(mcus);
         const now = Date.now();
         const tenMinutesInMs = 10 * 60 * 1000;
 
@@ -504,6 +581,7 @@ document.addEventListener('DOMContentLoaded', () => {
     refreshSidebarStats();
     refreshTypeStats();
     initSearchBar(); 
+    initDashboardSockets();
 });
 
 document.getElementById('mcuGrid').addEventListener('click', (e) => {

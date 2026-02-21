@@ -1,6 +1,6 @@
 const ping = require('ping');
 const SocketService = require('../socketService');
-
+const EventService = require('../Event/EventService');
 
 const MCU = require('./MCU');
 const MCURepository = require('./MCURepository');
@@ -24,85 +24,91 @@ class MCUService {
      * Důležité: Tímto se v repozitáři rovnou nastaví i is_online = 1.
      */
     static updateLastSeen(id) {
+        // Zjistíme předchozí stav
+        const mcuBefore = MCURepository.findById(id);
+        
         const result = MCURepository.updateLastSeen(id);
-        
-        const mcu = MCURepository.findById(id);
-        if (mcu) {
-            console.log(`[SOCKET EMIT] MCU ${mcu.name} poslalo data. Odesílám status ONLINE a čas: ${mcu.lastSeen}`);
-            SocketService.broadcastMcuStatus(mcu.id, mcu.lastSeen, true);
+        const mcuAfter = MCURepository.findById(id);
+
+        if (mcuAfter) {
+            SocketService.broadcastMcuStatus(mcuAfter.id, mcuAfter.lastSeen, true);
+            
+            // LOGOVÁNÍ EVENTU: Pokud byl offline a teď je online
+            if (mcuBefore && (mcuBefore.is_online === 0 || mcuBefore.is_online === false)) {
+                EventService.logEvent(id, 'info', `Zařízení obnovilo spojení se serverem.`);
+            }
         }
-        
         return result;
     }
 
-    // NOVÉ: Monitor stavu MCU (Ping/Timeout)
-    // NOVÉ: Monitor stavu MCU (Ping/Timeout)
-    static startStatusMonitor(socketService = null) {
-        // Zkontrolujeme stav každých 4 vteřiny
-        const checkIntervalMs = 4000; 
-        
-        // Považujeme MCU za podezřelé, pokud se neozvalo déle než 8 vteřin
+    static startStatusMonitor() {
+        // Zkontrolujeme stav každých 5 vteřin
+        const checkIntervalMs = 5000; 
         const timeoutMs = 8000; 
         
-        console.log(`[MCUService] Monitor stavu startuje (interval: ${checkIntervalMs}ms, limit výpadku: ${timeoutMs}ms)`);
+        console.log(`[MCUService] Monitor stavu startuje (interval: ${checkIntervalMs}ms)`);
 
         const checkStatus = async () => {
             try {
                 const now = new Date();
                 const allMcus = MCURepository.findAll();
-                
 
                 for (const mcu of allMcus) {
-                    // OPRAVA: Používáme camelCase vlastnosti z MCU objektu
-                    if (!mcu.lastSeen) {
-                        console.log(`[DEBUG] Přeskakuji MCU ${mcu.name}, protože nemá lastSeen.`);
-                        continue; 
-                    }
-
+                    // Ošetření času
+                    if (!mcu.lastSeen) continue; 
                     let dbTime = mcu.lastSeen;
-                    if (typeof dbTime === 'string') {
-                        dbTime = dbTime.replace(' ', 'T');
-                    }
-
+                    if (typeof dbTime === 'string') dbTime = dbTime.replace(' ', 'T');
+                    
                     const lastSeenDate = new Date(dbTime);
-                    const now = new Date();
                     const diffMs = now.getTime() - lastSeenDate.getTime();
 
-                    // Ošetření toho, jak se to přesně uložilo do objektu MCU
+                    // Co si aktuálně myslí databáze?
                     const isOnlineVal = mcu.isOnline !== undefined ? mcu.isOnline : mcu.is_online;
-                    const isCurrentlyOnline = (isOnlineVal === 1 || isOnlineVal === true);
+                    const dbThinksIsOnline = (isOnlineVal === 1 || isOnlineVal === true);
 
+                    // Co je skutečná realita fyzické sítě?
+                    let physicallyAlive = false;
 
-                    if (diffMs > timeoutMs && isCurrentlyOnline) {
-                        
-                        let isReallyOffline = true;
-
-                        // OPRAVA: Používáme ipAddress z objektu
-                        const targetIp = mcu.ipAddress; 
-
-                        if (targetIp) {
-                            try {
-                                const pingRes = await ping.promise.probe(targetIp, {
-                                    timeout: 2, 
-                                });
-
-                                if (pingRes.alive) {
-                                    isReallyOffline = false; 
-                                    MCURepository.updateLastSeen(mcu.id);
-                                } 
-                            } catch (err) {
-                                console.error(`[MONITOR] Chyba pingu na ${targetIp}:`, err.message);
-                            }
-                        } 
-
-                        if (isReallyOffline) {                            
-                            const dbResult = MCURepository.updateOnlineStatus(mcu.id, 0);
-
-                            if (socketService) {
-                                socketService.broadcastMcuStatus(mcu.id, mcu.lastSeen, false); 
-                            }
+                    if (mcu.ipAddress) {
+                        try {
+                            const pingRes = await ping.promise.probe(mcu.ipAddress, { timeout: 2 });
+                            physicallyAlive = pingRes.alive;
+                        } catch (err) {
+                            physicallyAlive = false;
                         }
-                    } 
+                    } else {
+                        // Pokud nemá IP adresu, spoléháme se jen na čas od poslední MQTT zprávy
+                        physicallyAlive = diffMs <= timeoutMs;
+                    }
+
+                    // --- ROZHODOVACÍ STROM ---
+
+                    // 1. ZMĚNA NA OFFLINE: Databáze si myslí že žije, ale ono umřelo
+                    if (dbThinksIsOnline && !physicallyAlive && diffMs > timeoutMs) {
+                        console.log(`[MONITOR] MCU ID ${mcu.id} (${mcu.name}) neodpovídá! Přepínám na OFFLINE.`);
+                        
+                        MCURepository.updateOnlineStatus(mcu.id, 0);
+                        SocketService.broadcastMcuStatus(mcu.id, mcu.lastSeen, false);
+                        EventService.logEvent(mcu.id, 'alert', `Zařízení přestalo odpovídat na síti a je offline.`);
+                    }
+                    
+                    // 2. ZMĚNA NA ONLINE: Databáze si myslí že je mrtvé, ale ono žije (Ping prošel)
+                    else if (!dbThinksIsOnline && physicallyAlive) {
+                        console.log(`[MONITOR] MCU ID ${mcu.id} (${mcu.name}) znovu ožilo! Přepínám na ONLINE.`);
+                        
+                        // Zápis nového času a stavu 1
+                        MCURepository.updateLastSeen(mcu.id);
+                        SocketService.broadcastMcuStatus(mcu.id, new Date().toISOString(), true);
+                        EventService.logEvent(mcu.id, 'info', `Zařízení začalo odpovídat na síti a je online.`);
+                    }
+                    
+                    // 3. UDRŽOVÁNÍ PŘI ŽIVOTĚ: Žije v DB, žije fyzicky, ale už dlouho neposlalo MQTT data
+                    else if (dbThinksIsOnline && physicallyAlive && diffMs > timeoutMs) {
+                        // Zařízení nevysílá senzory, ale ping funguje. Jen mu posuneme last_seen, 
+                        // abychom zabránili stárnutí času, ale neposíláme zbytečně sockety a eventy.
+                        MCURepository.updateLastSeen(mcu.id);
+                        SocketService.broadcastMcuStatus(mcu.id, new Date().toISOString(), true);
+                    }
                 }
             } catch (error) {
                 console.error("[MONITOR CHYBA] Závažná chyba ve smyčce:", error);

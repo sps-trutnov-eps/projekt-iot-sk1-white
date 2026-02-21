@@ -1,6 +1,6 @@
 class SocketService {
     constructor() {
-        this.io = null; // Na začátku je to prázdné!
+        this.io = null; 
         this.lastReadings = new Map(); 
     }
 
@@ -11,13 +11,10 @@ class SocketService {
         this.io.on('connection', (socket) => {
             // 1. Klient chce poslouchat konkrétní MCU (Detail stránka)
             socket.on('subscribe_mcu', (mcuId) => {
-            const roomName = `mcu_${mcuId}`;
-            socket.join(roomName);
-            console.log(`[SOCKET] Klient (ID: ${socket.id}) se připojil do roomu: ${roomName}`);
-            
-            // Můžeš rovnou vypsat i seznam všech roomů, ve kterých klient je
-            console.log(`[SOCKET] Aktuální roomy klienta:`, socket.rooms);
-        });
+                const roomName = `mcu_${mcuId}`;
+                socket.join(roomName);
+                console.log(`[SOCKET] Klient (ID: ${socket.id}) se připojil do roomu: ${roomName}`);
+            });
 
             // 2. Klient chce poslouchat úplně všechno (Dashboard)
             socket.on('subscribe_all', () => {
@@ -32,11 +29,14 @@ class SocketService {
             socket.on('unsubscribe_all', () => {
                 socket.leave('all_data');
             });
-        }
-    )};
+        }); // <-- TADY SPRÁVNĚ KONČÍ init()
+    }
 
-   broadcastReading(mcuId, channelId, value) {
-        if (!this.io) return;
+    broadcastReading(mcuId, channelId, value) {
+        if (!this.io) {
+            console.error('[SOCKET ERROR] Socket nebyl inicializován. Chybí this.io!');
+            return;
+        }
 
         this.lastReadings.set(channelId, value);
         const payload = { mcuId, channelId, value, timestamp: Date.now() };
@@ -45,20 +45,23 @@ class SocketService {
         this.io.to('all_data').emit('live_reading', payload);
     }
 
-
     getLastValue(channelId) {
         return this.lastReadings.get(channelId);
     }
 
-    // 2. NOVÉ: Odeslání stavu MCU (last_seen)
     broadcastMcuStatus(mcuId, lastSeenDate, status) {
-        if (!this.io) return;
+        if (!this.io) {
+            console.error('[SOCKET ERROR] Socket nebyl inicializován. Chybí this.io!');
+            return;
+        }
 
         const payload = { mcuId, status, lastSeen: lastSeenDate };
+        console.log(`[SOCKET] Odesílám mcu_status pro ID ${mcuId} -> Status: ${status}`);
 
         this.io.to(`mcu_${mcuId}`).emit('mcu_status', payload);
-        this.io.to('all_data').emit('mcu_status', payload); // pro dashboard
+        this.io.to('all_data').emit('mcu_status', payload); 
     }
 }
 
+// Exportujeme vytvořenou INSTANCI (Singleton)
 module.exports = new SocketService();

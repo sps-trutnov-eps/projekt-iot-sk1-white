@@ -55,6 +55,26 @@ db.exec(`
   )
 `);
 
+db.exec(`
+      CREATE TABLE IF NOT EXISTS event_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        mcu_id INTEGER NOT NULL,
+        type TEXT NOT NULL,     -- 'info', 'warn', 'alert'
+        message TEXT NOT NULL,
+        timestamp TEXT DEFAULT (datetime('now')),
+        FOREIGN KEY (mcu_id) REFERENCES mcus(device_id)
+      )
+    `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS channel_thresholds (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      channel_id INTEGER NOT NULL UNIQUE,
+      min_value REAL,
+      max_value REAL,
+      FOREIGN KEY (channel_id) REFERENCES sensor_channels(id)
+    )
+  `);
 
 }
 

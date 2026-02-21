@@ -45,7 +45,7 @@ app.use('/readings', readingRoutes);
 
 
 
-SocketService.init(io);
+SocketService.init(io); 
 McuService.startStatusMonitor(SocketService);
 
 
