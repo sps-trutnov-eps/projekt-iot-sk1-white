@@ -69,16 +69,16 @@ export async function loadSensors(isBackground = false) {
                                     </div>
                                 </div>
                                 <div class="flex gap-2">
-                                    <button onclick="openThresholdModal('${channel.id}', '${translated}')" title="Nastavit limity" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-yellow-500 hover:bg-yellow-50 transition-all">
-                                        <i class="fas fa-sliders-h text-xs"></i>
-                                    </button>
-                                    <button onclick="updateChart(null, '${channel.id}', '${channel.unit}', '${sensor.model}', '${translated}')" title="Zobrazit graf" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-midnight-violet-500 hover:bg-midnight-violet-50 transition-all">
-                                        <i class="fas fa-chart-line text-xs"></i>
-                                    </button>
-                                    <button onclick="deleteSensorHandler('${sensor.id}')" title="Smazat senzor" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-red-500 hover:bg-red-50 transition-all">
-                                        <i class="fas fa-trash-alt text-xs"></i>
-                                    </button>
-                                </div>
+    <button onclick="openThresholdModal('${channel.id}', '${translated}')" title="Nastavit limity" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-yellow-500 hover:bg-yellow-50 transition-all">
+        <i class="fas fa-sliders-h text-xs"></i>
+    </button>
+    <button onclick="updateChart(null, '${channel.id}', '${channel.unit}', '${sensor.model}', '${translated}')" title="Zobrazit graf" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-midnight-violet-500 hover:bg-midnight-violet-50 transition-all">
+        <i class="fas fa-chart-line text-xs"></i>
+    </button>
+    <button onclick="openDeleteSensorModal('${sensor.id}')" title="Smazat senzor" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-red-500 hover:bg-red-50 transition-all">
+        <i class="fas fa-trash-alt text-xs"></i>
+    </button>
+</div>
                             </div>
                             
                             <div class="mt-2 flex items-baseline gap-1.5">
@@ -100,16 +100,20 @@ export async function loadSensors(isBackground = false) {
     }
 }
 
-// Funkce pro otevření modalu (přidej do window, aby byla dostupná z HTML)
+// Vyplnění dat pro modal nastavení limitů (dostupné z HTML)
 window.openThresholdModal = function(channelId, label) {
-    console.log(`Otevírám nastavení limitů pro kanál: ${channelId}`);
-    // Tady zavoláš svůj modal manager
-    if (window.Modal && window.Modal.get('threshold')) {
-        const modal = window.Modal.get('threshold');
-        document.getElementById('thresholdChannelId').value = channelId;
-        document.getElementById('thresholdLabel').textContent = label;
-        modal.open();
-    }
+    const channelInput = document.getElementById('thresholdChannelIdInput');
+    const labelElement = document.getElementById('thresholdTargetLabel');
+
+    if (channelInput) channelInput.value = channelId;
+    if (labelElement) labelElement.textContent = label;
 };
 
-export async function deleteSensorHandler(sensorId) { /* ... beze změny */ }
+// Vyplnění dat pro modal mazání senzoru
+export function deleteSensorHandler(sensorId) {
+    const idInput = document.getElementById('deleteSensorIdInput');
+    
+    if (idInput) {
+        idInput.value = sensorId;
+    }
+}

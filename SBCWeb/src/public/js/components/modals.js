@@ -99,6 +99,8 @@ const Modal = {
             }
         });
 
+        
+
         return { open,clear, close, modal, form, submitBtn, cancelBtn, openModal, closeBtn, showError, hideError};
     }
 }
