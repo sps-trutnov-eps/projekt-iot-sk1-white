@@ -17,6 +17,7 @@ db.exec(`
     location TEXT,
     description TEXT,
     last_seen TEXT DEFAULT (datetime('now')),
+    is_online INTEGER DEFAULT 0,
     api_key TEXT,
     created_at TEXT DEFAULT (datetime('now')),
     FOREIGN KEY (type_id) REFERENCES types(id)

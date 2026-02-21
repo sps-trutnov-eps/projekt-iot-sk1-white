@@ -51,10 +51,10 @@ class SocketService {
     }
 
     // 2. NOVÉ: Odeslání stavu MCU (last_seen)
-    broadcastMcuStatus(mcuId, lastSeenDate) {
+    broadcastMcuStatus(mcuId, status, lastSeenDate) {
         if (!this.io) return;
 
-        const payload = { mcuId, lastSeen: lastSeenDate };
+        const payload = { mcuId, status, lastSeen: lastSeenDate };
 
         this.io.to(`mcu_${mcuId}`).emit('mcu_status', payload);
         this.io.to('all_data').emit('mcu_status', payload); // pro dashboard
