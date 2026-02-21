@@ -25,6 +25,10 @@ class MeasurementService {
             // Update času
             MCUService.updateLastSeen(mcu.id).catch(err => console.error(err));
             
+            const nowIso = new Date().toISOString(); 
+            SocketService.broadcastMcuStatus(mcu.id, nowIso);
+
+
             // Načtení senzorů
             const sensors = await SensorService.getSensorsByDevice(mcu.id);
 

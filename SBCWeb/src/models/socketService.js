@@ -11,8 +11,13 @@ class SocketService {
         this.io.on('connection', (socket) => {
             // 1. Klient chce poslouchat konkrétní MCU (Detail stránka)
             socket.on('subscribe_mcu', (mcuId) => {
-                socket.join(`mcu_${mcuId}`);
-            });
+            const roomName = `mcu_${mcuId}`;
+            socket.join(roomName);
+            console.log(`[SOCKET] Klient (ID: ${socket.id}) se připojil do roomu: ${roomName}`);
+            
+            // Můžeš rovnou vypsat i seznam všech roomů, ve kterých klient je
+            console.log(`[SOCKET] Aktuální roomy klienta:`, socket.rooms);
+        });
 
             // 2. Klient chce poslouchat úplně všechno (Dashboard)
             socket.on('subscribe_all', () => {
