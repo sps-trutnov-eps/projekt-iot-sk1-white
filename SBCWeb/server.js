@@ -36,13 +36,14 @@ const MCURoutes = require('./src/routes/MCURouter');
 const typeRoutes = require('./src/routes/typeRouter');
 const sensorRoutes = require('./src/routes/sensorRouter');
 const readingRoutes = require('./src/routes/readingRouter');
+const eventRoutes = require('./src/routes/eventRouter');
 
 app.use('/', indexRoutes);
 app.use('/mcu', MCURoutes)
 app.use('/type', typeRoutes);
 app.use('/sensor', sensorRoutes);
 app.use('/readings', readingRoutes);
-
+app.use('/event', eventRoutes);
 
 
 SocketService.init(io); 

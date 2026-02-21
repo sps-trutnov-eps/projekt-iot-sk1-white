@@ -7,16 +7,20 @@ export async function loadSensors(isBackground = false) {
 
     if (!listContainer || !cardsContainer) return;
 
+    // Loading stav
     if (!isBackground) {
-        listContainer.innerHTML = '<div class="p-4 text-center text-xs text-gray-400"><i class="fas fa-spinner fa-spin"></i> Načítám...</div>';
-        cardsContainer.innerHTML = '<div class="col-span-1 md:col-span-2 text-center text-gray-400 py-4 text-xs"><i class="fas fa-spinner fa-spin mr-2"></i> Načítám karty...</div>';
+        listContainer.innerHTML = '<div class="p-4 text-center text-xs text-gray-400"><i class="fas fa-spinner fa-spin"></i></div>';
     }
 
     try {
-        const response = await fetch(`/sensor/device/${getMcuId()}`);
+        const mcuId = getMcuId();
+        const response = await fetch(`/sensor/device/${mcuId}`);
         const data = await response.json();
 
-        if (data.success && data.sensors.length > 0) {
+        // DEBUG: Koukni do konzole (F12), jestli tohle vypíše pole senzorů
+        console.log("Data ze serveru:", data);
+
+        if (data.success && data.sensors && data.sensors.length > 0) {
             listContainer.innerHTML = '';
             cardsContainer.innerHTML = '';
 
@@ -25,11 +29,28 @@ export async function loadSensors(isBackground = false) {
                     const style = getSensorStyle(channel.type);
                     const translated = translateType(channel.type);
                     
-                    // Seznam vlevo (ponecháno beze změny)
-                    const itemHtml = `...`; // (zkráceno pro přehlednost, zůstává stejné)
+                    // --- 1. VYKRESLENÍ DO SEZNAMU VLEVO ---
+                    // Tohle je ta část, která ti chyběla nebo byla prázdná
+                    const itemHtml = `
+                        <div onclick="updateChart(null, '${channel.id}', '${channel.unit}', '${sensor.model}', '${translated}')" 
+                             class="group flex items-center justify-between px-3 py-2.5 hover:bg-ash-grey-50 cursor-pointer border-b border-ash-grey-50 last:border-0 transition-colors">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded bg-white flex items-center justify-center border shadow-sm text-[10px]">
+                                    <i class="fas ${style.icon} ${style.color}"></i>
+                                </div>
+                                <div class="flex flex-col">
+                                    <p class="text-[11px] font-bold text-midnight-violet-900 leading-tight">${translated}</p>
+                                    <p class="text-[9px] text-silver-400 font-medium uppercase">${sensor.model}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-[10px] font-black text-gray-700">${channel.unit}</span>
+                            </div>
+                        </div>`;
+                    
                     listContainer.insertAdjacentHTML('beforeend', itemHtml);
 
-                    // Vykreslení kartičky s tlačítkem pro limity
+                    // --- 2. VYKRESLENÍ KARTIČKY (Vpravo) ---
                     const displayValue = (channel.current_value !== null && channel.current_value !== undefined) 
                                          ? channel.current_value : '---';
 
@@ -47,22 +68,21 @@ export async function loadSensors(isBackground = false) {
                                         <p class="text-[10px] text-silver-500 font-medium tracking-wide uppercase">${sensor.model}</p>
                                     </div>
                                 </div>
-                                <div class="flex gap-3">
-                                    <button onclick="openThresholdModal('${channel.id}', '${translated}')" title="Nastavit limity" class="text-silver-300 hover:text-yellow-500 transition-colors">
-                                        <i class="fas fa-sliders-h"></i>
+                                <div class="flex gap-2">
+                                    <button onclick="openThresholdModal('${channel.id}', '${translated}')" title="Nastavit limity" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-yellow-500 hover:bg-yellow-50 transition-all">
+                                        <i class="fas fa-sliders-h text-xs"></i>
                                     </button>
-                                    
-                                    <button onclick="updateChart(null, '${channel.id}', '${channel.unit}', '${sensor.model}', '${translated}')" title="Zobrazit graf" class="text-silver-300 hover:text-midnight-violet-500 transition-colors">
-                                        <i class="fas fa-chart-line"></i>
+                                    <button onclick="updateChart(null, '${channel.id}', '${channel.unit}', '${sensor.model}', '${translated}')" title="Zobrazit graf" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-midnight-violet-500 hover:bg-midnight-violet-50 transition-all">
+                                        <i class="fas fa-chart-line text-xs"></i>
                                     </button>
-                                    <button onclick="deleteSensorHandler('${sensor.id}')" title="Smazat senzor" class="text-silver-300 hover:text-red-500 transition-colors">
-                                        <i class="fas fa-trash-alt"></i>
+                                    <button onclick="deleteSensorHandler('${sensor.id}')" title="Smazat senzor" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-red-500 hover:bg-red-50 transition-all">
+                                        <i class="fas fa-trash-alt text-xs"></i>
                                     </button>
                                 </div>
                             </div>
                             
                             <div class="mt-2 flex items-baseline gap-1.5">
-                                <span id="card-value-${channel.id}" class="text-3xl font-black text-gray-800 tracking-tight transition-colors duration-300">${displayValue}</span>
+                                <span id="card-value-${channel.id}" class="text-3xl font-black text-gray-800 tracking-tight">${displayValue}</span>
                                 <span class="text-sm font-bold text-silver-400">${channel.unit}</span>
                             </div>
                         </div>`;
@@ -70,14 +90,14 @@ export async function loadSensors(isBackground = false) {
                 });
             });
 
-            if (!window.currentChartChannelId) {
-                const first = data.sensors.find(s => s.channels?.length > 0);
-                if (first) updateChart(null, first.channels[0].id, first.channels[0].unit, first.model, translateType(first.channels[0].type));
-            }
         } else {
-            // ... prázdný stav
+            listContainer.innerHTML = '<div class="p-8 text-center text-[10px] text-silver-400 italic">Žádné senzory</div>';
+            cardsContainer.innerHTML = '<div class="col-span-2 py-10 text-center text-silver-400">Zatím nebyl přidán žádný senzor.</div>';
         }
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+        console.error("Chyba loadSensors:", e);
+        listContainer.innerHTML = '<div class="p-4 text-red-500 text-[10px]">Chyba načítání</div>';
+    }
 }
 
 // Funkce pro otevření modalu (přidej do window, aby byla dostupná z HTML)

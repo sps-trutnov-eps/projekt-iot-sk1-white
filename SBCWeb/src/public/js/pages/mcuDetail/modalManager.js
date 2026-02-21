@@ -33,74 +33,79 @@ export function removeMetric(index) {
     renderMetricsList();
 }
 
+// Upravená část tvého initModals v souboru modalManager.js
 export function initModals() {
-    // Předpokládám, že třída Modal je někde globálně definovaná, 
-    // jinak by ji sem bylo potřeba importovat.
     const sensorModal = window.Modal?.register('sensor');
     const metricModal = window.Modal?.register('metric');
+    // REGISTRACE NOVÉHO MODALU
+    const thresholdModal = window.Modal?.register('threshold');
 
-    if (sensorModal) {
-        sensorModal.openModal?.addEventListener('click', () => {
-            tempMetrics = [];
-            renderMetricsList();
-            sensorModal.open();
-            sensorModal.hideError();
-            document.getElementById('sensorNameInput').value = '';
-        });
+    // ... tvůj stávající kód pro sensorModal a metricModal ...
 
-        sensorModal.submitBtn?.addEventListener('click', async (e) => {
+    if (thresholdModal) {
+        thresholdModal.submitBtn?.addEventListener('click', async (e) => {
             e.preventDefault();
-            const sensorName = document.getElementById('sensorNameInput').value;
-            if (!sensorName) return sensorModal.showError("Vyplňte název senzoru.");
-            if (tempMetrics.length === 0) return sensorModal.showError("Přidejte alespoň jednu veličinu.");
+            
+            const channelId = document.getElementById('thresholdChannelIdInput').value;
+            const minValue = document.getElementById('thresholdMinInput').value;
+            const maxValue = document.getElementById('thresholdMaxInput').value;
 
-            const formData = { deviceId: getMcuId(), model: sensorName, channels: tempMetrics };
+            const formData = {
+                channelId: channelId,
+                minValue: minValue === '' ? null : parseFloat(minValue),
+                maxValue: maxValue === '' ? null : parseFloat(maxValue)
+            };
 
             try {
-                sensorModal.submitBtn.disabled = true;
-                sensorModal.submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
-                
-                const response = await fetch('/sensor/', {
+                thresholdModal.submitBtn.disabled = true;
+                thresholdModal.submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
+
+                const response = await fetch('/sensor/threshold', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData)
                 });
+
                 const data = await response.json();
-                
+
                 if (response.ok) {
-                    window.openToast(data.message || "Senzor přidán", true);
-                    sensorModal.close();
-                    if(window.updateView) window.updateView(false); 
+                    window.openToast(data.message || "Limity uloženy", true);
+                    thresholdModal.close();
                 } else {
-                    sensorModal.showError(data.error || "Chyba při ukládání.");
+                    thresholdModal.showError(data.error || "Chyba při ukládání limitů.");
                 }
             } catch (error) {
-                sensorModal.showError("Chyba při komunikaci se serverem.");
+                thresholdModal.showError("Chyba při komunikaci se serverem.");
             } finally {
-                sensorModal.submitBtn.disabled = false;
-                sensorModal.submitBtn.innerHTML = 'Uložit senzor';
+                thresholdModal.submitBtn.disabled = false;
+                thresholdModal.submitBtn.innerHTML = 'Uložit limity';
             }
         });
     }
-
-    if (metricModal) {
-        document.getElementById('metricOpen')?.addEventListener('click', (e) => {
-            e.preventDefault();
-            metricModal.open();
-            metricModal.hideError();
-            metricModal.clear();
-        });
-
-        metricModal.submitBtn?.addEventListener('click', (e) => {
-            e.preventDefault();
-            const nameVal = document.getElementById('metricNameInput').value;
-            const typeVal = document.getElementById('metricTypeInput').value;
-            const unitVal = document.getElementById('metricUnitInput').value;
-
-            if (!nameVal || !unitVal) return metricModal.showError("Vyplňte název a jednotku.");
-            tempMetrics.push({ name: nameVal, type: typeVal, unit: unitVal });
-            renderMetricsList();
-            metricModal.close();
-        });
-    }
 }
+
+// GLOBÁLNÍ FUNKCE PRO OTEVŘENÍ (volaná z tlačítka na kartě senzoru)
+window.openThresholdModal = async function(channelId, label) {
+    const modal = window.Modal.register('threshold'); // Získáme referenci přes tvůj systém
+    if (!modal) return;
+
+    modal.open();
+    modal.hideError();
+    modal.clear();
+
+    // Nastavení základních info
+    document.getElementById('thresholdChannelIdInput').value = channelId;
+    document.getElementById('thresholdTargetLabel').textContent = label;
+
+    // VOLITELNÉ: Načtení stávajících limitů z DB, aby uživatel viděl, co tam má
+    try {
+        const response = await fetch(`/sensor/threshold/${channelId}`);
+        const data = await response.json();
+        if (data.success && data.threshold) {
+            document.getElementById('thresholdMinInput').value = data.threshold.min_value ?? '';
+            document.getElementById('thresholdMaxInput').value = data.threshold.max_value ?? '';
+        }
+    } catch (e) {
+        console.warn("Nepodařilo se načíst stávající limity.");
+    }
+};
