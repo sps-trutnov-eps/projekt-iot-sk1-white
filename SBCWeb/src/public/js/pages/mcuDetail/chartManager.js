@@ -90,7 +90,6 @@ export function renderChartData(data = null) {
     const processedData = { avg: [], min: [], max: [] };
     let prevDate = null;
 
-    // Definice toho, co je "výpadek", po kterém chceme napsat datum (zde 2 hodiny v milisekundách)
     const gapThresholdMs = currentChartRange === '7d' ? 24 * 60 * 60 * 1000 : 2 * 60 * 60 * 1000;
 
     currentChartData.forEach(row => {
@@ -107,22 +106,19 @@ export function renderChartData(data = null) {
 
         let showDate = false;
 
-        // Logika pro zobrazení data v popisku osy X
         if (currentChartRange === '7d') {
-            showDate = true; // U 7 dní ukazujeme datum pro jistotu pořád
+            showDate = true; 
         } else {
             if (prevDate === null) {
-                showDate = true; // Úplně první bod v grafu dostane datum
+                showDate = true; 
             } else {
                 const gapMs = date.getTime() - prevDate.getTime();
-                // Pokud je v datech velká mezera NEBO se přehoupla půlnoc na další den
                 if (gapMs > gapThresholdMs || date.getDate() !== prevDate.getDate()) {
                     showDate = true; 
                 }
             }
         }
 
-        // Pokud 'showDate' je true, přidáme do pole popisků datum i čas. Jinak jen čas.
         labels.push(showDate ? `${dateStr} ${timeStr}` : timeStr);
 
         processedData.avg.push(row.avg !== undefined ? row.avg : null);
@@ -132,32 +128,49 @@ export function renderChartData(data = null) {
         prevDate = date;
     });
 
+    // Aktualizace popisků na ose X
     mainChart.data.labels = labels;
-    mainChart.data.datasets = [];
 
-    const datasetsConfigs = {
-        avg: { label: 'Průměr', color: '#886c93', dataKey: 'avg', fill: true },
-        min: { label: 'Minimum', color: '#3b82f6', dataKey: 'min', fill: false },
-        max: { label: 'Maximum', color: '#ef4444', dataKey: 'max', fill: false }
-    };
+    // DŮLEŽITÁ ZMĚNA ZDE: Datasety vytvoříme jen při úplně prvním načtení grafu
+    if (mainChart.data.datasets.length === 0) {
+        const datasetsConfigs = {
+            avg: { label: 'Průměr', color: '#886c93', fill: true },
+            min: { label: 'Minimum', color: '#3b82f6', fill: false },
+            max: { label: 'Maximum', color: '#ef4444', fill: false }
+        };
 
-    Object.keys(datasetsConfigs).forEach(key => {
-        if (currentMetric === key || currentMetric === 'all') {
+        Object.keys(datasetsConfigs).forEach(key => {
             const config = datasetsConfigs[key];
             mainChart.data.datasets.push({
+                id: key, // Přidali jsme 'id' pro snadnou identifikaci
                 label: config.label,
-                data: processedData[config.dataKey],
                 borderColor: config.color,
                 backgroundColor: config.fill ? 'rgba(136, 108, 147, 0.1)' : 'transparent',
                 borderWidth: 2,
                 tension: 0.4,
                 pointRadius: 0,
                 fill: config.fill,
-                spanGaps: true // Toto zajistí, že čára prostě ignoruje chybějící data a naváže
+                spanGaps: true,
+                data: [] // Data zatím necháme prázdná
             });
+        });
+    }
+
+    // Projdeme již existující datasety a POUZE jim přepíšeme data
+    mainChart.data.datasets.forEach(dataset => {
+        // Natlačíme nová data
+        dataset.data = processedData[dataset.id];
+        
+        // Místo mazání datasetů je chytře skryjeme nebo ukážeme podle přepínače
+        if (currentMetric === 'all' || currentMetric === dataset.id) {
+            dataset.hidden = false;
+        } else {
+            dataset.hidden = true;
         }
     });
 
+    // Chart.js teď vidí, že datasety zůstaly stejné, jen se jim změnila data.
+    // Automaticky proto udělá hezký a plynulý posun.
     mainChart.update();
 }
 
