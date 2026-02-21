@@ -1,4 +1,4 @@
-import { getMcuId } from './utils.js';
+ import { getMcuId } from './utils.js';
 
 export async function fetchMcuInfo() {
     try {
@@ -23,13 +23,38 @@ export async function fetchMcuInfo() {
             }
 
             if (mcu.lastSeen) {
-                const parts = mcu.lastSeen.split(/[- :]/);
-                const lastSeenDate = new Date(parts[0], parts[1]-1, parts[2], parts[3], parts[4], parts[5]);
-                lastSeenDate.setHours(lastSeenDate.getHours() + 1); 
+                // 1. Ošetření časové zóny - Přidáme "Z", pokud chybí, aby prohlížeč věděl, že jde o UTC
+                let dbTime = mcu.lastSeen;
+                if (typeof dbTime === 'string') {
+                    dbTime = dbTime.replace(' ', 'T');
+                    if (!dbTime.endsWith('Z')) dbTime += 'Z';
+                }
                 
+                const lastSeenDate = new Date(dbTime);
                 const now = new Date();
+                
+                // 2. Kontrola, zda je to Online / Offline (70 minut)
                 const isOnline = Math.floor((now - lastSeenDate) / 1000 / 60) < 70; 
 
+                // 3. Kontrola, zda je `lastSeenDate` z dnešního dne
+                const isToday = 
+                    lastSeenDate.getDate() === now.getDate() &&
+                    lastSeenDate.getMonth() === now.getMonth() &&
+                    lastSeenDate.getFullYear() === now.getFullYear();
+
+                // 4. Formátování textu pro zobrazení
+                let formattedTime = "";
+                if (isToday) {
+                    // Dnes -> jen čas: "14:30"
+                    formattedTime = lastSeenDate.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+                } else {
+                    // Starší -> datum + čas: "20. 2., 14:30"
+                    formattedTime = lastSeenDate.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric' }) + 
+                                    ' ' + 
+                                    lastSeenDate.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+                }
+
+                // Aktualizace UI kontrolek
                 const dot = document.getElementById('mcu-status-dot');
                 const text = document.getElementById('mcu-status-text');
                 
@@ -38,7 +63,9 @@ export async function fetchMcuInfo() {
                     text.textContent = isOnline ? 'Online' : 'Offline';
                     text.className = `font-bold text-xs uppercase ${isOnline ? 'text-green-600' : 'text-red-600'}`;
                 }
-                document.getElementById('mcu-lastseen').textContent = lastSeenDate.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+                
+                // Zápis do HTML
+                document.getElementById('mcu-lastseen').textContent = formattedTime;
             }
         }
     } catch (e) { console.error("Chyba MCU info:", e); }

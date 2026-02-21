@@ -5,7 +5,7 @@ class MqttHandler {
     
     static init() {
 
-        const BROKER_URL = 'mqtt://172.20.10.12:1883'; 
+        const BROKER_URL = 'mqtt://127.0.0.1:1883'; 
         const TOPIC = 'sensor/data';
 
         console.log(`Připojuji se k MQTT: ${BROKER_URL}`);

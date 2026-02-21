@@ -109,8 +109,8 @@ def loop():
         # Úklid paměti
         gc.collect()
         
-        # Čekání 10 sekund
-        time.sleep(1)
+        # Čekání N sekund
+        time.sleep(0.1)
 
 # Spuštění
 try:
