@@ -108,6 +108,19 @@ class SensorService {
         if (!id) throw new Error('Chybí ID kanálu.');
         return SensorRepository.deleteChannel(id);
     }
+
+
+    // Přidej do třídy SensorService
+    static setThreshold(data) {
+        const { channelId, min_value, max_value } = data;
+        
+        if (!channelId) {
+            throw new Error('Chybí ID kanálu pro uložení limitů.');
+        }
+
+        // Pokud frontend pošle null (prázdné políčko), uložíme do DB null
+        return SensorRepository.setThreshold(channelId, min_value, max_value);
+    }
 }
 
 module.exports = SensorService;

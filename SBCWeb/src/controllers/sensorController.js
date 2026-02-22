@@ -178,5 +178,22 @@ module.exports = {
                 message: error.message 
             });
         }
-    }
+    },
+
+    // Přidej do module.exports v SensorController
+    setThreshold: (req, res) => {
+        try {
+            SensorService.setThreshold(req.body);
+            
+            res.status(200).json({ 
+                success: true,
+                message: "Limity byly úspěšně uloženy." 
+            });
+        } catch (error) {
+            res.status(400).json({ 
+                success: false, 
+                message: error.message 
+            });
+        }
+    },
 };

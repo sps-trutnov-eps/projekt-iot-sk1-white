@@ -49,7 +49,12 @@ class SensorRepository {
         const sensorRows = db.prepare(query).all(deviceId);
 
         return sensorRows.map(row => {
-            const channels = db.prepare(`SELECT * FROM sensor_channels WHERE physical_sensor_id = ?`).all(row.id);
+        const channels = db.prepare(`
+            SELECT sc.*, ct.min_value, ct.max_value 
+            FROM sensor_channels sc
+            LEFT JOIN channel_thresholds ct ON sc.id = ct.channel_id
+            WHERE sc.physical_sensor_id = ?
+        `).all(row.id);
             return new Sensor({
                 ...row,
                 channels: channels
@@ -70,6 +75,17 @@ class SensorRepository {
 
     static deleteChannel(id) {
         return db.prepare(`DELETE FROM sensor_channels WHERE id = ?`).run(id);
+    }
+
+    static setThreshold(channelId, minVal, maxVal) {
+        const query = `
+            INSERT INTO channel_thresholds (channel_id, min_value, max_value)
+            VALUES (?, ?, ?)
+            ON CONFLICT(channel_id) DO UPDATE SET
+                min_value = excluded.min_value,
+                max_value = excluded.max_value
+        `;
+        return db.prepare(query).run(channelId, minVal, maxVal);
     }
 }
 

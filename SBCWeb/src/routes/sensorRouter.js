@@ -12,4 +12,7 @@ router.get('/device/:deviceId', SensorController.getSensorsByDevice);
 
 router.delete('/channel/:id', SensorController.deleteChannel);
 
+// Přidej k ostatním routám v routeru (např. sensorRouter.js)
+router.post('/threshold', SensorController.setThreshold);
+
 module.exports = router;
