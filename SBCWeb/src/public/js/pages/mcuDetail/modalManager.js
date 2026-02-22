@@ -40,6 +40,9 @@ export function initModals() {
     const thresholdModal = window.Modal?.register('threshold');
     const addChannelModal = window.Modal?.register('addChannel');
     const deleteChannelModal = window.Modal?.register('deleteChannel');
+    
+    // Zaregistrujeme i tvůj Edit modal z té druhé stránky!
+    const editMCUModal = window.Modal?.register('editMCU');
 
     // --- SENSOR MODAL ---
     if (sensorModal && sensorModal.openModal) {
@@ -235,6 +238,7 @@ export function initModals() {
         });
     }
 
+    // --- DELETE CHANNEL MODAL ---
     if (deleteChannelModal && deleteChannelModal.submitBtn) {
         deleteChannelModal.submitBtn.addEventListener('click', async (e) => {
             e.preventDefault();
@@ -266,7 +270,55 @@ export function initModals() {
             }
         });
     }
+
+    // --- LOGIKA PRO EDIT MCU MODAL ---
+    // Tohle je upravená verze toho, co jsi mi poslal.
+    if (editMCUModal && editMCUModal.submitBtn) {
+        editMCUModal.submitBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                id: document.getElementById('editMcuId').value,
+                name: document.getElementById('editMcuName').value,
+                type: parseInt(document.getElementById('editTypeSelector').value), 
+                location: document.getElementById('editMcuLocation').value,
+                ipAddress: document.getElementById('editMcuIP').value,
+                macAddress: document.getElementById('editMcuMAC').value,
+                description: document.getElementById('editMcuDescription').value
+            };
+            
+            try {
+                editMCUModal.submitBtn.disabled = true;
+                editMCUModal.submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Ukládám...';
+
+                const response = await fetch('/mcu/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    if (window.openToast) window.openToast(result.message, true);
+                    editMCUModal.close();
+                    
+                    // Po editaci načteme znovu aktuální info do hlavičky (funkce v main.js)
+                    if (window.updateView) await window.updateView(false); 
+                } else {
+                    editMCUModal.showError(result.message || 'Chyba při ukládání.');
+                }
+            } catch (error) {
+                console.error("Fetch error:", error);
+                editMCUModal.showError('Nelze navázat spojení se serverem.');
+            } finally {
+                editMCUModal.submitBtn.disabled = false;
+                editMCUModal.submitBtn.innerHTML = '<i class="fas fa-save"></i> Update MCU';
+            }
+        });
+    }
 }
+
 
 // ==========================================
 // GLOBÁLNÍ FUNKCE PRO OTEVÍRÁNÍ MODALŮ
@@ -325,4 +377,81 @@ window.openDeleteChannelModal = function(channelId) {
 
     modal.hideError();
     modal.open();
+};
+
+// Funkce pro otevření Editace MCU. Zjistí aktuální ID a načte pro něj data!
+// Funkce pro otevření Editace MCU. Zjistí aktuální ID a načte pro něj data!
+window.openEditMCUModal = async function() {
+    const modal = window.Modal?.register('editMCU');
+    if (!modal) return;
+
+    // Zjistíme ID
+    const mcuId = getMcuId(); 
+    if (!mcuId) return;
+
+    try {
+        // 1. STAŽENÍ DAT O MCU
+        const response = await fetch('/mcu/get', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: mcuId })
+        }); 
+        const result = await response.json();
+        
+        // 2. STAŽENÍ TYPŮ PRO SELECTBOX
+        let types = [];
+        try {
+            const typesResponse = await fetch('/type/types'); 
+            if (typesResponse.ok) {
+                const typesData = await typesResponse.json();
+                // OPRAVA: Tvůj backend vrací data v "result" (jak bylo ve fetchData)
+                types = typesData.result || typesData.types || (Array.isArray(typesData) ? typesData : []);
+            }
+        } catch (e) {
+            console.warn("Nepodařilo se načíst seznam typů:", e);
+        }
+        
+        const mcu = result.mcu;
+
+        // 3. PŘEDVYPLNĚNÍ FORMULÁŘE
+        if (response.ok && mcu) {
+            
+            document.getElementById('editMcuId').value = mcu.id || mcu.device_id || '';
+            document.getElementById('editMcuName').value = mcu.name || '';
+            
+            // OPRAVA: Naplnění Select boxu s typy (stejná logika jako tvůj populateSelector)
+            const typeSelect = document.getElementById('editTypeSelector');
+            if (typeSelect) {
+                typeSelect.innerHTML = '<option value="">-- Vyberte typ --</option>'; 
+                
+                if (Array.isArray(types)) {
+                    const seen = new Set();
+                    types.forEach(item => {
+                        // Ošetření různých formátů ID (id, _id, type)
+                        const id = String(item.id ?? item._id ?? item.type ?? item);
+                        if (seen.has(id)) return; // Deduplikace
+                        seen.add(id);
+
+                        const text = item.type ?? String(item);
+                        const isSelected = id === String(mcu.type || mcu.type_id) ? 'selected' : '';
+                        
+                        typeSelect.innerHTML += `<option value="${id}" ${isSelected}>${text}</option>`;
+                    });
+                }
+            }
+
+            document.getElementById('editMcuLocation').value = mcu.location || '';
+            document.getElementById('editMcuIP').value = mcu.ipAddress || mcu.ip_address || '';
+            document.getElementById('editMcuMAC').value = mcu.macAddress || mcu.mac_address || '';
+            document.getElementById('editMcuDescription').value = mcu.description || '';
+
+            try { modal.hideError(); } catch (e) {}
+            modal.open();
+        } else {
+            if (window.openToast) window.openToast('Data zařízení nebyla nalezena.', false);
+        }
+    } catch(error) {
+        console.error("Chyba při otevírání modalu pro editaci:", error);
+        if (window.openToast) window.openToast('Chyba komunikace se serverem.', false);
+    }
 };
