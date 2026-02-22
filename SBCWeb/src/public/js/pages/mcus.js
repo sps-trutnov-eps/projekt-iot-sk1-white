@@ -31,8 +31,7 @@ function initDashboardSockets() {
     }
 }
 
-// 2. Vykreslovací funkce pro konkrétní kartičku (Tvoje verze)
-// Vykreslovací funkce pro konkrétní kartičku
+// 2. Vykreslovací funkce pro konkrétní kartičku
 function updateMcuCardStatus(mcuId, isOnline, lastSeenStr) {
     const card = document.querySelector(`.mcu-card[data-id="${mcuId}"]`);
     if (!card) return; // Jsme na jiné stránce nebo karta neexistuje
@@ -101,7 +100,7 @@ if (deleteMcuModal) {
         mcuIdToDelete = btn.dataset.id;
 
         if (!mcuIdToDelete) {
-            window.openToast && window.openToas('Chybí ID MCU.', false);
+            window.openToast && window.openToast('Chybí ID MCU.', false);
             return;
         }
 
@@ -127,9 +126,9 @@ if (deleteMcuModal) {
                 if (data.success) {
                     await window.refreshMCUs();
                     try {
-                        window.openToast("Zařízení bylo úspěšně přidáno!", true);
+                        window.openToast("Zařízení bylo úspěšně smazáno!", true);
                     } catch (error) {
-                        window.openToast("Chyba při ukládání: " + error.message, false);
+                        window.openToast("Chyba: " + error.message, false);
                     }
                     deleteMcuModal.close(); 
                 } else {
@@ -186,7 +185,6 @@ if (deleteTypeModal) {
                     await window.refreshTypes();
                     deleteTypeModal.close();
                     
-                        
                     try {
                         window.openToast(data.message, true);
                     } catch (error) {
@@ -246,7 +244,7 @@ if (typeModal) {
                 if (data.success) {
                     await window.refreshTypes();
                     try {
-                        window.openToast("Zařízení bylo úspěšně přidáno!", true);
+                        window.openToast("Typ byl úspěšně přidán!", true);
                     } catch (error) {
                         window.openToast("Chyba při ukládání: " + error.message, false);
                     }
@@ -272,10 +270,11 @@ if (typeModal) {
 
 
 /* ============================================================
-    4. editace controllerů
+    4. EDITACE CONTROLLERŮ (Opraveno odesílání)
    ============================================================ */
 const editModal = Modal.register('editMCU');
 
+// Otevření modalu a načtení dat
 document.addEventListener('click', async (e) => {
     const btn = e.target.closest('.edit-mcu-btn');
     if (!btn) return;
@@ -288,8 +287,6 @@ document.addEventListener('click', async (e) => {
         if (result && result.success && result.mcu) {
             const mcu = result.mcu;
             
-
-
             document.getElementById('editMcuId').value = mcu.id || mcu.device_id || '';
             document.getElementById('editMcuName').value = mcu.name || '';
             
@@ -304,15 +301,15 @@ document.addEventListener('click', async (e) => {
             editModal.open();
         } else {
             console.error("Server vrátil success, ale chybí data 'mcu':", result);
-            window.openToastError && window.openToastError('Data zařízení nebyla nalezena.');
+            window.openToast && window.openToast('Data zařízení nebyla nalezena.', false);
         }
     } catch(error) {
         console.error("Chyba při otevírání modalu:", error);
     }
 });
 
-editModal.submitBtn.addEventListener("click", async () =>{
-    if (editModal.form) {
+// Zpracování odeslání editace (pouze jeden listener na formulář)
+if (editModal.form) {
     editModal.form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -326,6 +323,8 @@ editModal.submitBtn.addEventListener("click", async () =>{
             description: document.getElementById('editMcuDescription').value
         };
         try {
+            editModal.submitBtn.disabled = true;
+
             const response = await fetch('/mcu/update', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -335,7 +334,7 @@ editModal.submitBtn.addEventListener("click", async () =>{
             const result = await response.json();
 
             if (result.success) {
-                if (window.openToast) window.openToast(result.message);
+                if (window.openToast) window.openToast(result.message, true);
                 if (window.refreshMCUs) await window.refreshMCUs();
                 editModal.close();
             } else {
@@ -344,34 +343,35 @@ editModal.submitBtn.addEventListener("click", async () =>{
         } catch (error) {
             console.error("Fetch error:", error);
             editModal.showError('Nelze navázat spojení se serverem.');
-        } 
+        } finally {
+            editModal.submitBtn.disabled = false;
+        }
     });
 }
-})
-
 
 
 /* ============================================================
-    5. Sidebar
+    5. SIDEBAR A FILTRY (S úpravou na window.funkce)
    ============================================================ */
-
-
 
 /**
  * 1. POUŽITÍ FILTRŮ (Apply Filters)
  */
-function applyFilters() {
+window.applyFilters = function() {
     const cards = document.querySelectorAll('.mcu-card');
     const searchTerm = window.currentFilters.search.toLowerCase();
     
     cards.forEach(card => {
         const typeId = card.dataset.type;
-        const name = card.querySelector('h3').textContent.toLowerCase();
-        const ip = card.querySelector('.font-mono').textContent.toLowerCase();
+        const nameElement = card.querySelector('h3');
+        const ipElement = card.querySelector('.font-mono');
+        
+        // Záchrana pro případ, že element chybí
+        const name = nameElement ? nameElement.textContent.toLowerCase() : '';
+        const ip = ipElement ? ipElement.textContent.toLowerCase() : '';
         const isOnline = card.querySelector('.bg-green-400') !== null;
 
         const matchesSearch = name.includes(searchTerm) || ip.includes(searchTerm);
-
         const matchesType = window.currentFilters.type === 'all' || typeId === String(window.currentFilters.type);
 
         let matchesStatus = true;
@@ -385,11 +385,11 @@ function applyFilters() {
 /**
  * 2. REFRESH STATISTIK STATUSŮ (Online/Offline/Total)
  */
-async function refreshSidebarStats() {
+window.refreshSidebarStats = async function() {
     try {
         const mcus = await fetchData('/mcu/mcus');
         if (!mcus || !Array.isArray(mcus)) return;
-        console.log(mcus);
+        
         const now = Date.now();
         const tenMinutesInMs = 10 * 60 * 1000;
 
@@ -417,7 +417,7 @@ async function refreshSidebarStats() {
 /**
  * 3. DYNAMICKÝ REFRESH TYPŮ V SIDEBARU
  */
-async function refreshTypeStats() {
+window.refreshTypeStats = async function() {
     const container = document.getElementById('dynamicTypeFilters');
     if (!container) return;
 
@@ -492,7 +492,7 @@ function attachFilterListeners() {
         btn.onclick = () => {
             window.currentFilters.type = btn.dataset.typeId;
             updateActiveUI(btn, '.type-filter');
-            applyFilters();
+            if (typeof window.applyFilters === 'function') window.applyFilters();
         };
     });
 
@@ -500,7 +500,7 @@ function attachFilterListeners() {
         btn.onclick = () => {
             window.currentFilters.status = btn.dataset.filter;
             updateActiveUI(btn, '.quick-filter');
-            applyFilters();
+            if (typeof window.applyFilters === 'function') window.applyFilters();
         };
     });
 }
@@ -528,19 +528,17 @@ if (refreshAll) {
         refreshAll.classList.add('opacity-50', 'pointer-events-none');
 
         try {
-            
-
             await Promise.all([
-                window.refreshMCUs(),      
-                window.refreshTypes(),     
-                refreshSidebarStats(),     
-                refreshTypeStats()         
+                window.refreshMCUs ? window.refreshMCUs() : Promise.resolve(),      
+                window.refreshTypes ? window.refreshTypes() : Promise.resolve(),     
+                window.refreshSidebarStats(),     
+                window.refreshTypeStats()         
             ]);
             
             refreshAll.classList.add('text-green-500');
             setTimeout(() => {
                 refreshAll.classList.remove('text-green-500');
-                applyFilters();
+                if (typeof window.applyFilters === 'function') window.applyFilters();
             }, 500);
         } catch (error) {
             console.error("Chyba při hromadném refreshy:", error);
@@ -551,14 +549,9 @@ if (refreshAll) {
     });
 }
 
-refreshSidebarStats();
-refreshTypeStats();
-
-
 /* ============================================================
     6. Searchbar (Upravený pro čistě textové hledání)
    ============================================================ */
-
 function initSearchBar() {
     const searchInput = document.getElementById('searchMCU');
     
@@ -570,220 +563,33 @@ function initSearchBar() {
         // Uložíme hledaný text do globálního filtru
         window.currentFilters.search = e.target.value;
         // Spustíme filtrování
-        applyFilters();
+        if (typeof window.applyFilters === 'function') window.applyFilters();
     });
 }
 
 /* ============================================================
-    7. Kartičky mcu
+    7. Inicializace a Event Listenery karet
    ============================================================ */
 document.addEventListener('DOMContentLoaded', () => {
-    refreshSidebarStats();
-    refreshTypeStats();
+    window.refreshSidebarStats();
+    window.refreshTypeStats();
     initSearchBar(); 
     initDashboardSockets();
 });
 
-document.getElementById('mcuGrid').addEventListener('click', (e) => {
-  const card = e.target.closest('.mcu-card');
-  
-  if (!card) return;
+const gridElement = document.getElementById('mcuGrid');
+if (gridElement) {
+    gridElement.addEventListener('click', (e) => {
+        const card = e.target.closest('.mcu-card');
+        
+        if (!card) return;
 
-
-  if (e.target.closest('button')) {
-    return; 
-  }
-
-  const mcuId = card.dataset.id;
-  window.location.href = `/mcu/${mcuId}`;
-});
-
-/* ============================================================
-    8. GLOBÁLNÍ NOTIFIKACE (Zvoneček & Sockety & Historie)
-   ============================================================ */
-
-function initNotifications() {
-    let unreadCount = 0;
-    
-    const bellBtn = document.getElementById('notificationBellBtn');
-    const badge = document.getElementById('notificationBadge');
-    const dropdown = document.getElementById('notificationDropdown');
-    const list = document.getElementById('notificationList');
-    const emptyState = document.getElementById('emptyNotifications');
-    const clearBtn = document.getElementById('clearNotificationsBtn');
-
-    if (!bellBtn || !dropdown) return;
-
-    // 1. Otevírání a zavírání
-    bellBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        dropdown.classList.toggle('hidden');
-        if (!dropdown.classList.contains('hidden')) {
-            unreadCount = 0;
-            updateBadge();
+        // Ignorujeme kliknutí na tlačítka (edit, delete)
+        if (e.target.closest('button')) {
+            return; 
         }
+
+        const mcuId = card.dataset.id;
+        window.location.href = `/mcu/${mcuId}`;
     });
-
-    document.addEventListener('click', (e) => {
-        if (!dropdown.classList.contains('hidden') && !e.target.closest('#notificationContainer')) {
-            dropdown.classList.add('hidden');
-        }
-    });
-
-    // 2. Tlačítko pro vymazání
-    if (clearBtn) {
-        clearBtn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            try {
-                const res = await fetch('/event/clear', { method: 'DELETE' });
-                const data = await res.json();
-                if (data.success) {
-                    // Odstraníme z HTML vše kromě empty state
-                    Array.from(list.children).forEach(child => {
-                        if (child.id !== 'emptyNotifications') child.remove();
-                    });
-                    emptyState.classList.remove('hidden');
-                    unreadCount = 0;
-                    updateBadge();
-                    if (window.openToast) window.openToast("Logy byly trvale smazány.", true);
-                } else {
-                    if (window.openToast) window.openToast("Chyba při mazání logů.", false);
-                }
-            } catch (err) {
-                console.error("Chyba při volání DELETE:", err);
-            }
-        });
-    }
-
-    // 3. Pomocná funkce pro odznak
-    function updateBadge() {
-        if (!badge) return;
-        if (unreadCount > 0) {
-            badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
-            badge.classList.remove('hidden');
-            badge.classList.add('animate-bounce');
-            setTimeout(() => badge.classList.remove('animate-bounce'), 1000);
-        } else {
-            badge.classList.add('hidden');
-        }
-    }
-
-    // 4. Přidání zprávy do HTML
-    function addNotification(payload, isNew = true) {
-        if (!list) return;
-        if (emptyState) emptyState.classList.add('hidden');
-
-        const time = new Date(payload.timestamp).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        
-        // --- NOVÁ LOGIKA PRO BARVY A IKONY ---
-        let colorClass, bgClass, iconClass;
-
-        switch (payload.type) {
-            case 'alert':
-                colorClass = 'text-red-500';
-                bgClass = 'bg-red-50';
-                iconClass = 'fa-exclamation-circle'; // Červený křížek / vykřičník
-                break;
-            case 'warning':
-                colorClass = 'text-yellow-500';
-                bgClass = 'bg-yellow-50';
-                iconClass = 'fa-exclamation-triangle'; // Žlutý trojúhelník
-                break;
-            case 'info':
-            default:
-                colorClass = 'text-blue-500';
-                bgClass = 'bg-blue-50';
-                iconClass = 'fa-info-circle'; // Modré íčko
-                break;
-        }
-
-        const item = document.createElement('div');
-        item.className = `p-3 border-b border-ash-grey-100 last:border-0 rounded-lg mb-1 transition-colors ${bgClass} hover:brightness-95 cursor-default`;
-        
-        item.innerHTML = `
-            <div class="flex gap-3 items-start">
-                <i class="fas ${iconClass} ${colorClass} mt-0.5 text-sm"></i>
-                <div class="flex-1">
-                    <p class="text-xs text-midnight-violet-900 font-medium leading-relaxed">${payload.message}</p>
-                    <div class="flex justify-between items-center mt-1.5">
-                        <span class="text-[10px] text-silver-400 font-medium">${time}</span>
-                        ${payload.mcuId ? `<span class="text-[9px] uppercase tracking-wider bg-white px-1.5 py-0.5 rounded text-silver-500 border border-silver-200 shadow-sm">ID: ${payload.mcuId}</span>` : ''}
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        // Nové události dáváme nahoru, historii dáváme dolů
-        if (isNew) {
-            list.insertBefore(item, list.firstChild);
-        } else {
-            list.appendChild(item);
-        }
-    }
-
-    // 5. NAČTENÍ HISTORIE PŘI STARTU
-    async function loadHistoricalNotifications() {
-        try {
-            const res = await fetch('/event/recent?limit=20'); // Načteme posledních 20 událostí
-            const data = await res.json();
-            
-            if (!res.ok) {
-                console.error("DŮVOD CHYBY 500:", data.message);
-                return; // Ukončíme funkci
-            }
-
-            if (data.success && data.events && data.events.length > 0) {
-                if (emptyState) emptyState.classList.add('hidden');
-                
-                data.events.forEach(evt => {
-                    const payload = {
-                        mcuId: evt.mcu_id, 
-                        type: evt.type,
-                        message: evt.message,
-                        timestamp: evt.timestamp
-                    };
-                    addNotification(payload, false);
-                });
-            }
-        } catch (err) {
-            console.error("Chyba při stahování starších logů:", err);
-        }
-    }
-
-    // 6. ZACHYCENÍ SOCKETŮ Z BACKENDU (Živé události)
-    const notifySocket = typeof io !== 'undefined' ? io() : null;
-
-    if (notifySocket) {
-        notifySocket.on('global_alert', (payload) => {
-            if (dropdown.classList.contains('hidden')) {
-                unreadCount++;
-                updateBadge();
-            }
-            addNotification(payload, true); // true = je to nové, vlož nahoru
-
-            // Vylepšený toast podle typu notifikace
-            if (window.openToast) {
-                let toastPrefix = "";
-                let isSuccessToast = true; // info bude mít zelený/úspěšný toast
-                
-                if (payload.type === 'alert') {
-                    toastPrefix = "Kritická chyba: ";
-                    isSuccessToast = false; // alert bude mít červený/chybový toast
-                } else if (payload.type === 'warning') {
-                    toastPrefix = "Upozornění: ";
-                    isSuccessToast = false;
-                }
-                
-                window.openToast(`${toastPrefix}${payload.message}`, isSuccessToast);
-            }
-        });
-    }
-
-    // Nakonec ihned zavoláme stažení historie
-    loadHistoricalNotifications();
 }
-
-// Inicializace po načtení HTML
-document.addEventListener('DOMContentLoaded', () => {
-    initNotifications();
-});

@@ -168,13 +168,19 @@ function renderMCUGrid(mcusArray) {
     `;
   }).join('');
   
-  applyFilters();
+  if (typeof window.applyFilters === 'function') {
+      window.applyFilters();
+  }
 }
 
 window.refreshMCUs = async function() {
     const mcus = await fetchData('/mcu/mcus');
     if (mcus) renderMCUGrid(mcus);
-    applyFilters();
+    
+    // BEZPEČNÉ VOLÁNÍ FILTRŮ
+    if (typeof window.applyFilters === 'function') {
+        window.applyFilters();
+    }
 };
 
 

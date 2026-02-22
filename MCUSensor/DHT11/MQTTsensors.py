@@ -14,7 +14,7 @@ WIFI_PASS = "SvisteVodicka1"
 # Zjistíš ji v příkazovém řádku Windows příkazem: ipconfig
 MQTT_BROKER = "192.168.1.100" 
 
-API_KEY = "api_dvojbrmfqri0tirix0d41ll"
+API_KEY = "api_hb9xdo9cnrpp50010gcbv"
 
 # --- HW NASTAVENÍ ---
 sensor = dht.DHT11(machine.Pin(14))
