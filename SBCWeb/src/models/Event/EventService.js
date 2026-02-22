@@ -11,22 +11,24 @@ class EventService {
     static logEvent(mcuId, type, message) {
         const event = new Event({ mcuId, type, message });
         
-        // 1. Uložit do DB
         const newId = EventRepository.create(event.toDatabase());
         event.id = newId;
 
-        // 2. Odeslat přes WebSockety na frontend
         if (SocketService.io) {
             const payload = {
                 id: event.id,
                 mcuId: event.mcuId,
                 type: event.type,
                 message: event.message,
-                timestamp: new Date().toISOString() // Pošleme čerstvý čas pro UI
+                timestamp: new Date().toISOString() 
             };
             
-            // Pošleme to do roomky konkrétního MCU
             SocketService.io.to(`mcu_${mcuId}`).emit('new_event', payload);
+
+            // Pošleme to jen pokud jde o 'alert' nebo 'warn', abychom nespamovali lidi běžným 'info'
+            if (event.type === 'alert' || event.type === 'warn') {
+                SocketService.io.emit('global_alert', payload);
+            }
         }
 
         return event;
@@ -38,11 +40,21 @@ class EventService {
 
     static logSystemEvent(type, message) {
         try {
-            const db = require('../../database.js'); // Uprav cestu k db podle potřeby
+            const db = require('../database.js'); // Uprav cestu k db podle potřeby
             db.prepare(`INSERT INTO system_logs (type, message) VALUES (?, ?)`).run(type, message);
         } catch (e) {
             console.error("Chyba při zápisu do system_logs:", e);
         }
+    }
+
+    // Přidej do EventService.js
+    static clearAllEvents() {
+        return EventRepository.deleteAll();
+    }
+
+    // Přidej do EventService.js
+    static getRecentEvents(limit = 20) {
+        return EventRepository.getRecent(limit);
     }
 }
 module.exports = EventService;

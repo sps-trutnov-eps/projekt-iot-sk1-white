@@ -28,10 +28,32 @@
         </button>
 
         <!-- Notifications -->
-        <button class="header-btn relative" title="Notifications">
-          <i class="fas fa-bell"></i>
-          <span class="absolute -top-1 -right-1 w-4 h-4 bg-vintage-grape-500 text-white text-xs rounded-full flex items-center justify-center">3</span>
-        </button>
+        <div class="relative" id="notificationContainer">
+    <button id="notificationBellBtn" class="header-btn relative p-2 text-silver-500 hover:text-midnight-violet-700 transition" title="Notifications">
+        <i class="fas fa-bell text-xl"></i>
+        <span id="notificationBadge" class="hidden absolute top-0 right-0 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+            0
+        </span>
+    </button>
+
+    <div id="notificationDropdown" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-ash-grey-200 z-[100] overflow-hidden">
+        <div class="px-4 py-3 border-b border-ash-grey-100 bg-silver-50 flex justify-between items-center">
+            <h3 class="font-bold text-midnight-violet-900 text-sm flex items-center gap-2">
+                <i class="fas fa-history text-vintage-grape-500"></i> Historie událostí
+            </h3>
+            <button id="clearNotificationsBtn" class="text-xs font-semibold text-silver-400 hover:text-red-500 transition-colors">
+                Vymazat
+            </button>
+        </div>
+        
+        <div id="notificationList" class="max-h-72 overflow-y-auto p-2 bg-white">
+            <div class="text-center text-sm text-silver-400 py-6" id="emptyNotifications">
+                <i class="fas fa-bell-slash text-2xl mb-2 opacity-50 block"></i>
+                Zatím vše běží jak má.
+            </div>
+        </div>
+    </div>
+</div>
 
         <!-- Settings -->
         <button class="header-btn" title="Settings">

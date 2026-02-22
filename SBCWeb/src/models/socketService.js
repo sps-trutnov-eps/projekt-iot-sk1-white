@@ -61,6 +61,18 @@ class SocketService {
         this.io.to(`mcu_${mcuId}`).emit('mcu_status', payload);
         this.io.to('all_data').emit('mcu_status', payload); 
     }
+
+    static broadcastAlert(mcuId, type, message) {
+        if (!this.io) return;
+        
+        // type může být 'info', 'warn', 'alert'
+        this.io.emit('system_alert', {
+            mcuId: mcuId,
+            type: type,
+            message: message,
+            timestamp: new Date().toISOString()
+        });
+    }
 }
 
 // Exportujeme vytvořenou INSTANCI (Singleton)

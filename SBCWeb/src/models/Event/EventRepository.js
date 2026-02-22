@@ -21,5 +21,16 @@ class EventRepository {
         const rows = db.prepare(query).all(mcuId, limit);
         return rows.map(row => new Event(row));
     }
+
+    // Přidej do EventRepository.js
+    static deleteAll() {
+        return db.prepare(`DELETE FROM event_logs`).run();
+    }
+
+    // Přidej do EventRepository.js
+    static getRecent(limit = 20) {
+        // Vytáhneme posledních X záznamů od nejnovějšího
+        return db.prepare(`SELECT * FROM event_logs ORDER BY timestamp DESC LIMIT ?`).all(limit);
+    }
 }
 module.exports = EventRepository;

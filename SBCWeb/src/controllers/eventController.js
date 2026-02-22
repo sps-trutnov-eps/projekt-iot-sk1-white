@@ -20,6 +20,39 @@ class EventController {
             res.status(500).json({ success: false, message: 'Interní chyba serveru.' });
         }
     }
+
+    static async clearAll(req, res) {
+        try {
+            EventService.clearAllEvents();
+            res.status(200).json({ 
+                success: true, 
+                message: "Všechny události byly trvale smazány." 
+            });
+        } catch (error) {
+            res.status(500).json({ 
+                success: false, 
+                message: error.message 
+            });
+        }
+    }
+
+    static async getRecent(req, res) {
+    try {
+        const limit = parseInt(req.query.limit) || 20; 
+        const events = EventService.getRecentEvents(limit);
+        
+        res.status(200).json({ 
+            success: true, 
+            events: events 
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            success: false, 
+            message: error.message 
+        });
+    }
+    }
+
 }
 
 module.exports = EventController;
