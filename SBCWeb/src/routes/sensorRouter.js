@@ -10,6 +10,6 @@ router.post('/:id/channels', SensorController.addChannel);
 
 router.get('/device/:deviceId', SensorController.getSensorsByDevice);
 
-
+router.delete('/channel/:id', SensorController.deleteChannel);
 
 module.exports = router;

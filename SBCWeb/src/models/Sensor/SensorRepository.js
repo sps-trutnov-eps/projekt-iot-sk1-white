@@ -67,6 +67,10 @@ class SensorRepository {
         db.prepare(`DELETE FROM sensor_channels WHERE physical_sensor_id = ?`).run(id);
         return db.prepare(`DELETE FROM physical_sensors WHERE id = ?`).run(id);
     }
+
+    static deleteChannel(id) {
+        return db.prepare(`DELETE FROM sensor_channels WHERE id = ?`).run(id);
+    }
 }
 
 module.exports = SensorRepository;

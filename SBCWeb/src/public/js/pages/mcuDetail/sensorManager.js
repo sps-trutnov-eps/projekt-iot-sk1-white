@@ -73,6 +73,9 @@ export async function loadSensors(isBackground = false) {
                                         <button onclick="window.updateChart(null, '${channel.id}', '${channel.unit}', '${sensor.model}', '${translated}')" title="Zobrazit graf" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-midnight-violet-500 hover:bg-midnight-violet-50 transition-all">
                                             <i class="fas fa-chart-line text-xs"></i>
                                         </button>
+                                        <button onclick="window.openDeleteChannelModal('${channel.id}')" title="Smazat kanál" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-red-500 hover:bg-red-50 transition-all">
+                                            <i class="fas fa-trash-alt text-xs"></i>
+                                        </button>
                                     </div>
                                 </div>
                                 

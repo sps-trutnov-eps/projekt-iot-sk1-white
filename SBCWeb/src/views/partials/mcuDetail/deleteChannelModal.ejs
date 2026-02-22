@@ -1,0 +1,42 @@
+<div id="deleteChannelModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm transition-opacity">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 overflow-hidden flex flex-col">
+        
+        <div class="px-5 py-4 border-b border-red-100 flex justify-between items-center bg-red-50">
+            <h3 class="font-bold text-red-700 flex items-center gap-2">
+                <i class="fas fa-exclamation-triangle"></i> Smazat měřenou veličinu
+            </h3>
+            <button id="deleteChannelClose" class="text-red-400 hover:text-red-700 transition-colors w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-100">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="p-6 text-center">
+            <div id="deleteChannelError" class="hidden mb-4 p-3 bg-red-50 text-red-600 text-xs rounded-lg border border-red-100 flex items-center justify-center gap-2 font-medium">
+                <i class="fas fa-exclamation-circle"></i>
+                <p></p>
+            </div>
+
+            <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500 text-2xl">
+                <i class="fas fa-trash-alt"></i>
+            </div>
+            
+            <h4 class="text-lg font-bold text-midnight-violet-900 mb-2">Opravdu chcete smazat tuto veličinu?</h4>
+            <p class="text-sm text-silver-500">
+                Tato akce je nevratná. Smazáním kanálu dojde také k trvalému odstranění <strong class="text-red-500">veškeré historie měření</strong>, která je na tento kanál vázána.
+            </p>
+
+            <form id="deleteChannelForm">
+                <input type="hidden" id="deleteChannelIdInput" value="">
+            </form>
+        </div>
+
+        <div class="px-5 py-4 border-t border-ash-grey-100 flex justify-end gap-2 bg-gray-50">
+            <button type="button" id="deleteChannelCancel" class="px-4 py-2 text-sm font-bold text-silver-500 hover:text-midnight-violet-900 hover:bg-ash-grey-200 rounded-lg transition-all">
+                Zrušit
+            </button>
+            <button type="button" id="deleteChannelSubmit" class="px-4 py-2 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-all shadow-sm flex items-center justify-center min-w-[120px]">
+                Smazat kanál
+            </button>
+        </div>
+    </div>
+</div>

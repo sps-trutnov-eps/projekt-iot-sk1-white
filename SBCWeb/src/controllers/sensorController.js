@@ -152,5 +152,31 @@ module.exports = {
                 message: error.message 
             });
         }
+    },
+
+
+    // Přidej do module.exports objektu v Controlleru
+    deleteChannel: (req, res) => {
+        try {
+            const id = req.params.id;
+            const result = SensorService.deleteChannel(id);
+            
+            if (result.changes === 0) {
+                return res.status(404).json({ 
+                    success: false, 
+                    message: "Kanál nebyl nalezen nebo již byl smazán." 
+                });
+            }
+
+            res.status(200).json({ 
+                success: true,
+                message: "Kanál byl úspěšně smazán." 
+            });
+        } catch (error) {
+            res.status(500).json({ 
+                success: false, 
+                message: error.message 
+            });
+        }
     }
 };

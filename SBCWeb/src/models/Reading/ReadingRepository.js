@@ -11,14 +11,24 @@ class ReadingRepository {
             VALUES (?, ?, ?, ?, datetime('now'))
         `;
         
-        const result = db.prepare(query).run(
-            stats.channelId, 
-            stats.avg, 
-            stats.min, 
-            stats.max
-        );
-        
-        return result.lastInsertRowid;
+        try {
+            const result = db.prepare(query).run(
+                stats.channelId, 
+                stats.avg, 
+                stats.min, 
+                stats.max
+            );
+            
+            return result.lastInsertRowid;
+            
+        } catch (error) {
+            if (error.code === 'SQLITE_CONSTRAINT_FOREIGNKEY') {
+                console.warn(`[Zahozeno měření] Kanál ID ${stats.channelId} již v databázi neexistuje (byl smazán).`);
+                return null; 
+            }
+            
+            throw error;
+        }
     }
 
     /**

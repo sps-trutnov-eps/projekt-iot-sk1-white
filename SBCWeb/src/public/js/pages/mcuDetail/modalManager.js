@@ -39,6 +39,7 @@ export function initModals() {
     const deleteSensorModal = window.Modal?.register('deleteSensor');
     const thresholdModal = window.Modal?.register('threshold');
     const addChannelModal = window.Modal?.register('addChannel');
+    const deleteChannelModal = window.Modal?.register('deleteChannel');
 
     // --- SENSOR MODAL ---
     if (sensorModal && sensorModal.openModal) {
@@ -233,6 +234,38 @@ export function initModals() {
             }
         });
     }
+
+    if (deleteChannelModal && deleteChannelModal.submitBtn) {
+        deleteChannelModal.submitBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const channelId = document.getElementById('deleteChannelIdInput').value;
+            
+            if (!channelId) {
+                return deleteChannelModal.showError("Nebylo nalezeno ID kanálu.");
+            }
+
+            try {
+                deleteChannelModal.submitBtn.disabled = true;
+                deleteChannelModal.submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Mažu...';
+
+                const response = await fetch(`/sensor/channel/${channelId}`, { method: 'DELETE' });
+                const data = await response.json();
+
+                if (response.ok && data.success !== false) {
+                    if (window.openToast) window.openToast("Kanál byl úspěšně odstraněn", true);
+                    deleteChannelModal.close();
+                    if (window.updateView) window.updateView(false);
+                } else {
+                    deleteChannelModal.showError(data.message || data.error || "Chyba při mazání kanálu.");
+                }
+            } catch (error) {
+                deleteChannelModal.showError("Chyba při komunikaci se serverem.");
+            } finally {
+                deleteChannelModal.submitBtn.disabled = false;
+                deleteChannelModal.submitBtn.innerHTML = 'Smazat kanál';
+            }
+        });
+    }
 }
 
 // ==========================================
@@ -277,6 +310,19 @@ window.openAddChannelModal = function(sensorId, sensorModel) {
     if (labelElement) labelElement.textContent = sensorModel;
 
     modal.clear();
+    modal.hideError();
+    modal.open();
+};
+
+window.openDeleteChannelModal = function(channelId) {
+    const modal = window.Modal?.register('deleteChannel');
+    if (!modal) return;
+
+    const idInput = document.getElementById('deleteChannelIdInput');
+    if (idInput) {
+        idInput.value = channelId;
+    }
+
     modal.hideError();
     modal.open();
 };

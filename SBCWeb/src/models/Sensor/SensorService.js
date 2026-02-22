@@ -100,6 +100,14 @@ class SensorService {
         if (!id) throw new Error('Chybí ID senzoru.');   
         return SensorRepository.delete(id);
     }
+
+
+    /**
+     * Smaže kanál.
+     */    static deleteChannel(id) {
+        if (!id) throw new Error('Chybí ID kanálu.');
+        return SensorRepository.deleteChannel(id);
+    }
 }
 
 module.exports = SensorService;
