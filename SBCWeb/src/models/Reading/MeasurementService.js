@@ -2,7 +2,8 @@ const MCUService = require('../MCU/MCUService');
 const SensorService = require('../Sensor/SensorService');
 const SocketService = require('../socketService');
 const ReadingRepository = require('./ReadingRepository'); 
-const db = require('../database.js'); // Uprav cestu podle tvé struktury, abychom mohli zapisovat do event_logs
+// 1. Zkontroluj cestu, aby správně odkazovala na tvůj EventService soubor
+const EventService = require('../Event/EventService');
 
 class MeasurementService {
     
@@ -117,11 +118,13 @@ class MeasurementService {
      */
     static logEvent(mcuId, type, message) {
         try {
-            db.prepare(`INSERT INTO event_logs (mcu_id, type, message) VALUES (?, ?, ?)`).run(mcuId, type, message);
+            // ZMĚNA 2: Voláme tvou skvěle připravenou metodu, která zapíše do DB a přes Socket.io pošle event 'new_event' na frontend
+            EventService.logEvent(mcuId, type, message);
+            
             // Volitelně si to můžeš logovat i do serverové konzole:
             console.log(`[EVENT LOG] MCU ${mcuId} | ${type.toUpperCase()}: ${message}`);
         } catch (e) {
-            console.error("Chyba při zápisu do event_logs:", e);
+            console.error("Chyba při zápisu do event_logs přes EventService:", e);
         }
     }
 
