@@ -42,8 +42,35 @@
                     
                     if (data.success) {
                         // Úspěch - zobraz zprávu a zavři modal
-                        window.refreshMCUs();
+if (data.success) {
+    // 1. Znovu načteme a vykreslíme karty v gridu
+    if (window.refreshMCUs) {
+        await window.refreshMCUs();
+    }
 
+    // 2. AKTUALIZACE SIDEBARU - hned po překreslení karet
+    // Spustíme ty funkce, které jsme spolu ladili předtím
+    if (typeof window.refreshSidebarStats === 'function') {
+        window.refreshSidebarStats();
+    }
+    if (typeof window.refreshTypeStats === 'function') {
+        window.refreshTypeStats();
+    }
+    
+    // 3. Aplikovat filtry (aby nová karta nebyla hidden)
+    if (typeof window.applyFilters === 'function') {
+        window.applyFilters();
+    }
+
+    // 4. Vyčistit, zavřít a oznámit
+    mcuModal.clear();
+    mcuModal.close(); // Tohle ti tam pravděpodobně chybělo!
+
+    window.openToast && window.openToast("Zařízení bylo úspěšně přidáno!", true);
+
+} else {
+    mcuModal.showError(data.message || "Neznámá chyba při ukládání.");
+}
                         try {
                             window.openToast("Zařízení bylo úspěšně přidáno!", true);
                         } catch (error) {

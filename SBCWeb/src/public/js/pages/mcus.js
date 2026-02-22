@@ -124,7 +124,22 @@ if (deleteMcuModal) {
                 const data = await response.json();
                 
                 if (data.success) {
-                    await window.refreshMCUs();
+                    if (window.refreshMCUs) await window.refreshMCUs();
+    
+                    // 2. Refreshneme statistiky v sidebaru (Online/Offline)
+                    if (typeof window.refreshSidebarStats === 'function') {
+                        window.refreshSidebarStats();
+                    }
+                    
+                    // 3. Refreshneme počty u typů v sidebaru
+                    if (typeof window.refreshTypeStats === 'function') {
+                        window.refreshTypeStats();
+                    }
+
+                    // 4. Aplikujeme filtry, aby se grid srovnal
+                    if (typeof window.applyFilters === 'function') {
+                        window.applyFilters();
+                    }
                     try {
                         window.openToast("Zařízení bylo úspěšně smazáno!", true);
                     } catch (error) {
