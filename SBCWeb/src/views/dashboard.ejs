@@ -26,23 +26,24 @@
 <%- include('partials/common/toastNotification') %>
 <body class="bg-ash-grey-50 min-h-screen">
   
-  <%- include('partials/common/sidebar') %>
-
   <!-- Main Content -->
-  <div id="mainContent" class="lg:ml-64 transition-all duration-300">
-    
+<div id="mainContent" class="min-h-screen transition-all duration-300">    
     <%- include('partials/dashboard/header') %>
 
-    <!-- Dashboard Content -->
-    <main class="p-6">
-      <%- include('partials/dashboard/stats') %>
-
-      <!-- Main Content Area -->
-              <%- include('partials/dashboard/commands') %>
-
+    <main class="p-4 md:p-6 w-full mx-auto">
       
+      <div class="w-full">
+        <%- include('partials/dashboard/stats') %>
+      </div>
 
-      <%- include('partials/dashboard/sensorTable') %>
+      <div class="mt-6 w-full">
+        <%- include('partials/dashboard/commands') %>
+      </div>
+
+      <div class="mt-6 w-full">
+        <%- include('partials/dashboard/sensorTable') %>
+      </div>
+
     </main>
   </div>
 
