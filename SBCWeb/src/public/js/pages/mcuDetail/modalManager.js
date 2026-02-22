@@ -34,93 +34,87 @@ export function removeMetric(index) {
 }
 
 export function initModals() {
-    // Registrace všech modalů
     const sensorModal = window.Modal?.register('sensor');
     const metricModal = window.Modal?.register('metric');
     const deleteSensorModal = window.Modal?.register('deleteSensor');
     const thresholdModal = window.Modal?.register('threshold');
+    const addChannelModal = window.Modal?.register('addChannel');
 
-    // --- LOGIKA PRO SENZOR MODAL ---
-    if (sensorModal) {
-        if (sensorModal.openModal) {
-            sensorModal.openModal.addEventListener('click', () => {
-                tempMetrics = [];
-                renderMetricsList();
-                sensorModal.open();
-                sensorModal.hideError();
-                document.getElementById('sensorNameInput').value = '';
-            });
-        }
+    // --- SENSOR MODAL ---
+    if (sensorModal && sensorModal.openModal) {
+        sensorModal.openModal.addEventListener('click', () => {
+            tempMetrics = [];
+            renderMetricsList();
+            sensorModal.open();
+            sensorModal.hideError();
+            document.getElementById('sensorNameInput').value = '';
+        });
+    }
 
-        if (sensorModal.submitBtn) {
-            sensorModal.submitBtn.addEventListener('click', async (e) => {
-                e.preventDefault();
-                const sensorName = document.getElementById('sensorNameInput').value;
-                if (!sensorName) return sensorModal.showError("Vyplňte název senzoru.");
-                if (tempMetrics.length === 0) return sensorModal.showError("Přidejte alespoň jednu veličinu.");
+    if (sensorModal && sensorModal.submitBtn) {
+        sensorModal.submitBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const sensorName = document.getElementById('sensorNameInput').value;
+            if (!sensorName) return sensorModal.showError("Vyplňte název senzoru.");
+            if (tempMetrics.length === 0) return sensorModal.showError("Přidejte alespoň jednu veličinu.");
 
-                const formData = { deviceId: getMcuId(), model: sensorName, channels: tempMetrics };
+            const formData = { deviceId: getMcuId(), model: sensorName, channels: tempMetrics };
 
-                try {
-                    sensorModal.submitBtn.disabled = true;
-                    sensorModal.submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
-                    
-                    const response = await fetch('/sensor/', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(formData)
-                    });
-                    const data = await response.json();
-                    
-                    if (response.ok) {
-                        if(window.openToast) window.openToast(data.message || "Senzor přidán", true);
-                        sensorModal.close();
-                        if(window.updateView) window.updateView(false); 
-                    } else {
-                        sensorModal.showError(data.error || "Chyba při ukládání.");
-                    }
-                } catch (error) {
-                    sensorModal.showError("Chyba při komunikaci se serverem.");
-                } finally {
-                    sensorModal.submitBtn.disabled = false;
-                    sensorModal.submitBtn.innerHTML = 'Uložit senzor';
+            try {
+                sensorModal.submitBtn.disabled = true;
+                sensorModal.submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
+                
+                const response = await fetch('/sensor/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    if(window.openToast) window.openToast(data.message || "Senzor přidán", true);
+                    sensorModal.close();
+                    if(window.updateView) window.updateView(false); 
+                } else {
+                    sensorModal.showError(data.error || "Chyba při ukládání.");
                 }
-            });
-        }
+            } catch (error) {
+                sensorModal.showError("Chyba při komunikaci se serverem.");
+            } finally {
+                sensorModal.submitBtn.disabled = false;
+                sensorModal.submitBtn.innerHTML = 'Uložit senzor';
+            }
+        });
     }
 
-    // --- LOGIKA PRO METRIC MODAL ---
-    if (metricModal) {
-        if (metricModal.openModal) {
-            metricModal.openModal.addEventListener('click', (e) => {
-                e.preventDefault();
-                metricModal.open();
-                metricModal.hideError();
-                metricModal.clear();
-            });
-        }
-
-        if (metricModal.submitBtn) {
-            metricModal.submitBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const nameVal = document.getElementById('metricNameInput').value;
-                const typeVal = document.getElementById('metricTypeInput').value;
-                const unitVal = document.getElementById('metricUnitInput').value;
-
-                if (!nameVal || !unitVal) return metricModal.showError("Vyplňte název a jednotku.");
-                tempMetrics.push({ name: nameVal, type: typeVal, unit: unitVal });
-                renderMetricsList();
-                metricModal.close();
-            });
-        }
+    // --- METRIC MODAL ---
+    if (metricModal && metricModal.openModal) {
+        metricModal.openModal.addEventListener('click', (e) => {
+            e.preventDefault();
+            metricModal.open();
+            metricModal.hideError();
+            metricModal.clear();
+        });
     }
 
-    // --- LOGIKA PRO DELETE SENSOR ---
+    if (metricModal && metricModal.submitBtn) {
+        metricModal.submitBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const nameVal = document.getElementById('metricNameInput').value;
+            const typeVal = document.getElementById('metricTypeInput').value;
+            const unitVal = document.getElementById('metricUnitInput').value;
+
+            if (!nameVal || !unitVal) return metricModal.showError("Vyplňte název a jednotku.");
+            tempMetrics.push({ name: nameVal, type: typeVal, unit: unitVal });
+            renderMetricsList();
+            metricModal.close();
+        });
+    }
+
+    // --- DELETE SENSOR MODAL ---
     if (deleteSensorModal && deleteSensorModal.submitBtn) {
         deleteSensorModal.submitBtn.addEventListener('click', async (e) => {
             e.preventDefault();
-            
-            // Tady si přečteme ID z value inputu
             const sensorId = document.getElementById('deleteSensorIdInput').value;
             
             if (!sensorId) {
@@ -131,7 +125,6 @@ export function initModals() {
                 deleteSensorModal.submitBtn.disabled = true;
                 deleteSensorModal.submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Mažu...';
 
-                // API volání pro smazání
                 const response = await fetch(`/sensor/${sensorId}`, { method: 'DELETE' });
                 const data = await response.json();
 
@@ -151,12 +144,10 @@ export function initModals() {
         });
     }
 
-    // --- LOGIKA PRO THRESHOLDS ---
+    // --- THRESHOLD MODAL ---
     if (thresholdModal && thresholdModal.submitBtn) {
         thresholdModal.submitBtn.addEventListener('click', async (e) => {
             e.preventDefault();
-            
-            // Přečtení channel ID z value
             const channelId = document.getElementById('thresholdChannelIdInput').value;
             const minInput = document.getElementById('thresholdMinInput').value;
             const maxInput = document.getElementById('thresholdMaxInput').value;
@@ -197,14 +188,57 @@ export function initModals() {
             }
         });
     }
-}
 
+    // --- ADD CHANNEL MODAL ---
+    if (addChannelModal && addChannelModal.submitBtn) {
+        addChannelModal.submitBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            
+            const sensorId = document.getElementById('addChannelSensorIdInput').value;
+            const typeVal = document.getElementById('addChannelTypeInput').value;
+            const unitVal = document.getElementById('addChannelUnitInput').value;
+
+            if (!sensorId) return addChannelModal.showError("Nebylo nalezeno ID senzoru.");
+            if (!typeVal || !unitVal) return addChannelModal.showError("Vyplňte typ a jednotku.");
+
+            const formData = {
+                type: typeVal,
+                unit: unitVal
+            };
+
+            try {
+                addChannelModal.submitBtn.disabled = true;
+                addChannelModal.submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Ukládám...';
+
+                const response = await fetch(`/sensor/${sensorId}/channels`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (window.openToast) window.openToast(data.message || "Kanál byl přidán", true);
+                    addChannelModal.close();
+                    if (window.updateView) window.updateView(false);
+                } else {
+                    addChannelModal.showError(data.error || data.message || "Chyba při ukládání kanálu.");
+                }
+            } catch (error) {
+                addChannelModal.showError("Chyba při komunikaci se serverem.");
+            } finally {
+                addChannelModal.submitBtn.disabled = false;
+                addChannelModal.submitBtn.innerHTML = 'Přidat kanál';
+            }
+        });
+    }
+}
 
 // ==========================================
 // GLOBÁLNÍ FUNKCE PRO OTEVÍRÁNÍ MODALŮ
 // ==========================================
 
-// 1. Nastavení limitů
 window.openThresholdModal = function(channelId, label) {
     const modal = window.Modal?.register('threshold');
     if (!modal) return;
@@ -219,7 +253,6 @@ window.openThresholdModal = function(channelId, label) {
     modal.open();
 };
 
-// 2. Mazání senzoru
 window.openDeleteSensorModal = function(sensorId) {
     const modal = window.Modal?.register('deleteSensor');
     if (!modal) return;
@@ -229,6 +262,21 @@ window.openDeleteSensorModal = function(sensorId) {
         idInput.value = sensorId;
     }
 
+    modal.hideError();
+    modal.open();
+};
+
+window.openAddChannelModal = function(sensorId, sensorModel) {
+    const modal = window.Modal?.register('addChannel');
+    if (!modal) return;
+
+    const sensorIdInput = document.getElementById('addChannelSensorIdInput');
+    const labelElement = document.getElementById('addChannelSensorModelLabel');
+
+    if (sensorIdInput) sensorIdInput.value = sensorId;
+    if (labelElement) labelElement.textContent = sensorModel;
+
+    modal.clear();
     modal.hideError();
     modal.open();
 };

@@ -1,5 +1,4 @@
 import { getMcuId, getSensorStyle, translateType } from './utils.js';
-// Pokud máš updateChart v mcuManager.js nebo chartManager.js, nech import jako máš aktuálně
 // import { updateChart } from './chartManager.js';
 
 export async function loadSensors(isBackground = false) {
@@ -8,7 +7,6 @@ export async function loadSensors(isBackground = false) {
 
     if (!listContainer || !cardsContainer) return;
 
-    // Loading stav
     if (!isBackground) {
         listContainer.innerHTML = '<div class="p-4 text-center text-xs text-gray-400"><i class="fas fa-spinner fa-spin"></i></div>';
     }
@@ -18,18 +16,11 @@ export async function loadSensors(isBackground = false) {
         const response = await fetch(`/sensor/device/${mcuId}`);
         const data = await response.json();
 
-        // DEBUG pro konzoli
-        // console.log("Data ze serveru:", data);
-
         if (data.success && data.sensors && data.sensors.length > 0) {
             listContainer.innerHTML = '';
             cardsContainer.innerHTML = '';
 
-            // Cyklus přes FYZICKÉ SENZORY
             data.sensors.forEach(sensor => {
-                
-                // --- 1. VYKRESLENÍ FYZICKÉHO SENZORU DO SEZNAMU VLEVO ---
-                // Jeden fyzický senzor = jeden řádek s tlačítkem pro smazání
                 const sensorHtml = `
                     <div class="group flex items-center justify-between px-3 py-2.5 hover:bg-ash-grey-50 border-b border-ash-grey-50 last:border-0 transition-colors">
                         <div class="flex items-center gap-2">
@@ -41,8 +32,11 @@ export async function loadSensors(isBackground = false) {
                                 <p class="text-[9px] text-silver-400 font-medium">Počet kanálů: ${sensor.channels ? sensor.channels.length : 0}</p>
                             </div>
                         </div>
-                        <div class="text-right">
-                            <button onclick="openDeleteSensorModal('${sensor.id}')" title="Smazat senzor" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-red-500 hover:bg-red-50 transition-all">
+                        <div class="flex items-center gap-1">
+                            <button onclick="window.openAddChannelModal('${sensor.id}', '${sensor.model}')" title="Přidat kanál" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-emerald-500 hover:bg-emerald-50 transition-all">
+                                <i class="fas fa-plus text-[10px]"></i>
+                            </button>
+                            <button onclick="window.openDeleteSensorModal('${sensor.id}')" title="Smazat senzor" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-red-500 hover:bg-red-50 transition-all">
                                 <i class="fas fa-trash-alt text-[10px]"></i>
                             </button>
                         </div>
@@ -50,8 +44,6 @@ export async function loadSensors(isBackground = false) {
                 
                 listContainer.insertAdjacentHTML('beforeend', sensorHtml);
 
-                // --- 2. VYKRESLENÍ KARTIČEK (KANÁLY TOHOTO SENZORU) Vpravo ---
-                // Pokud má senzor kanály, projdeme je a vytvoříme kartičky
                 if (sensor.channels && Array.isArray(sensor.channels)) {
                     sensor.channels.forEach(channel => {
                         const style = getSensorStyle(channel.type);
@@ -75,7 +67,7 @@ export async function loadSensors(isBackground = false) {
                                         </div>
                                     </div>
                                     <div class="flex gap-2">
-                                        <button onclick="openThresholdModal('${channel.id}', '${translated}')" title="Nastavit limity" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-yellow-500 hover:bg-yellow-50 transition-all">
+                                        <button onclick="window.openThresholdModal('${channel.id}', '${translated}')" title="Nastavit limity" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-yellow-500 hover:bg-yellow-50 transition-all">
                                             <i class="fas fa-sliders-h text-xs"></i>
                                         </button>
                                         <button onclick="window.updateChart(null, '${channel.id}', '${channel.unit}', '${sensor.model}', '${translated}')" title="Zobrazit graf" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-midnight-violet-500 hover:bg-midnight-violet-50 transition-all">
@@ -101,22 +93,5 @@ export async function loadSensors(isBackground = false) {
     } catch (e) { 
         console.error("Chyba loadSensors:", e);
         listContainer.innerHTML = '<div class="p-4 text-red-500 text-[10px]">Chyba načítání</div>';
-    }
-}
-
-// Ostatní funkce nech tak jak jsou
-window.openThresholdModal = function(channelId, label) {
-    const channelInput = document.getElementById('thresholdChannelIdInput');
-    const labelElement = document.getElementById('thresholdTargetLabel');
-
-    if (channelInput) channelInput.value = channelId;
-    if (labelElement) labelElement.textContent = label;
-};
-
-export function deleteSensorHandler(sensorId) {
-    const idInput = document.getElementById('deleteSensorIdInput');
-    
-    if (idInput) {
-        idInput.value = sensorId;
     }
 }

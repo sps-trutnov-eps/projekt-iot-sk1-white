@@ -1,5 +1,5 @@
 import { initChart, updateChart, updateChartMetric } from './chartManager.js';
-import { loadSensors, deleteSensorHandler } from './sensorManager.js';
+import { loadSensors } from './sensorManager.js';
 import { fetchMcuInfo, initApiKeyListeners } from './mcuManager.js';
 import { initModals, removeMetric } from './modalManager.js';
 import { initLiveData } from './liveData.js';
@@ -9,7 +9,6 @@ window.updateChart = updateChart;
 window.updateChartMetric = updateChartMetric;
 window.removeMetric = removeMetric;
 window.refreshSensors = loadSensors;
-window.deleteSensorHandler = deleteSensorHandler;
 
 // Centrální funkce pro překreslení dat (volá se např. po přidání/smazání senzoru)
 window.updateView = async function(isBackground = false) {

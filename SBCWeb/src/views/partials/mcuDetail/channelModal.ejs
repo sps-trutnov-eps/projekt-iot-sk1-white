@@ -1,0 +1,63 @@
+<div id="addChannelModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm transition-opacity">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 overflow-hidden flex flex-col">
+        
+        <div class="px-5 py-4 border-b border-ash-grey-100 flex justify-between items-center bg-ash-grey-50">
+            <div>
+                <h3 class="font-bold text-midnight-violet-900">Přidat měřenou veličinu</h3>
+                <p class="text-[10px] text-silver-500 uppercase mt-0.5 tracking-wide">
+                    Senzor: <span id="addChannelSensorModelLabel" class="font-bold text-midnight-violet-700"></span>
+                </p>
+            </div>
+            <button id="addChannelClose" class="text-silver-400 hover:text-midnight-violet-600 transition-colors w-8 h-8 flex items-center justify-center rounded-lg hover:bg-ash-grey-200">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="p-5">
+            <div id="addChannelError" class="hidden mb-4 p-3 bg-red-50 text-red-600 text-xs rounded-lg border border-red-100 flex items-center gap-2 font-medium">
+                <i class="fas fa-exclamation-circle"></i>
+                <p></p>
+            </div>
+
+            <form id="addChannelForm" class="flex flex-col gap-4">
+                <input type="hidden" id="addChannelSensorIdInput" value="">
+                
+                <div>
+                    <label class="block text-xs font-bold text-midnight-violet-900 mb-1.5 uppercase tracking-wide">Typ veličiny</label>
+                    <select id="addChannelTypeInput" class="w-full text-sm p-2.5 bg-ash-grey-50 border border-ash-grey-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-midnight-violet-900 font-medium cursor-pointer">
+                        <option value="">-- Vyberte typ --</option>
+                        <option value="temperature">Teplota (Temperature)</option>
+                        <option value="humidity">Vlhkost (Humidity)</option>
+                        <option value="pressure">Tlak (Pressure)</option>
+                        <option value="voltage">Napětí (Voltage)</option>
+                        <option value="current">Proud (Current)</option>
+                        <option value="power">Výkon (Power)</option>
+                        <option value="energy">Spotřeba (Energy)</option>
+                        <option value="co2">CO2</option>
+                        <option value="tvoc">TVOC (Kvalita vzduchu)</option>
+                        <option value="illuminance">Osvětlení (Illuminance)</option>
+                        <option value="moisture">Půdní vlhkost (Moisture)</option>
+                        <option value="distance">Vzdálenost (Distance)</option>
+                        <option value="weight">Hmotnost (Weight)</option>
+                        <option value="custom">Jiný (Zadejte jednotku níže)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-midnight-violet-900 mb-1.5 uppercase tracking-wide">Jednotka</label>
+                    <input type="text" id="addChannelUnitInput" placeholder="např. °C, %, hPa, V, A..." class="w-full text-sm p-2.5 bg-ash-grey-50 border border-ash-grey-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-midnight-violet-900 font-medium placeholder-silver-300">
+                </div>
+            </form>
+        </div>
+
+        <div class="px-5 py-4 border-t border-ash-grey-100 flex justify-end gap-2 bg-gray-50">
+            <button type="button" id="addChannelCancel" class="px-4 py-2 text-sm font-bold text-silver-500 hover:text-midnight-violet-900 hover:bg-ash-grey-200 rounded-lg transition-all">
+                Zrušit
+            </button>
+            <button type="button" id="addChannelSubmit" class="px-4 py-2 text-sm font-bold text-white bg-emerald-500 hover:bg-emerald-600 rounded-lg transition-all shadow-sm flex items-center justify-center min-w-[120px]">
+                Přidat kanál
+            </button>
+        </div>
+
+    </div>
+</div>

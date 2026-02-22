@@ -10,4 +10,6 @@ router.post('/:id/channels', SensorController.addChannel);
 
 router.get('/device/:deviceId', SensorController.getSensorsByDevice);
 
+
+
 module.exports = router;
