@@ -599,10 +599,6 @@ document.getElementById('mcuGrid').addEventListener('click', (e) => {
 });
 
 /* ============================================================
-    8. GLOBÁLNÍ NOTIFIKACE (Zvoneček & Sockety)
-   ============================================================ */
-
-/* ============================================================
     8. GLOBÁLNÍ NOTIFIKACE (Zvoneček & Sockety & Historie)
    ============================================================ */
 
@@ -679,10 +675,27 @@ function initNotifications() {
 
         const time = new Date(payload.timestamp).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         
-        const isAlert = payload.type === 'alert';
-        const colorClass = isAlert ? 'text-red-500' : 'text-yellow-500';
-        const bgClass = isAlert ? 'bg-red-50' : 'bg-yellow-50';
-        const iconClass = isAlert ? 'fa-exclamation-circle' : 'fa-exclamation-triangle';
+        // --- NOVÁ LOGIKA PRO BARVY A IKONY ---
+        let colorClass, bgClass, iconClass;
+
+        switch (payload.type) {
+            case 'alert':
+                colorClass = 'text-red-500';
+                bgClass = 'bg-red-50';
+                iconClass = 'fa-exclamation-circle'; // Červený křížek / vykřičník
+                break;
+            case 'warning':
+                colorClass = 'text-yellow-500';
+                bgClass = 'bg-yellow-50';
+                iconClass = 'fa-exclamation-triangle'; // Žlutý trojúhelník
+                break;
+            case 'info':
+            default:
+                colorClass = 'text-blue-500';
+                bgClass = 'bg-blue-50';
+                iconClass = 'fa-info-circle'; // Modré íčko
+                break;
+        }
 
         const item = document.createElement('div');
         item.className = `p-3 border-b border-ash-grey-100 last:border-0 rounded-lg mb-1 transition-colors ${bgClass} hover:brightness-95 cursor-default`;
@@ -715,24 +728,20 @@ function initNotifications() {
             const data = await res.json();
             
             if (!res.ok) {
-                // Tímhle si vypíšeme přesně tu zprávu z backendu!
                 console.error("DŮVOD CHYBY 500:", data.message);
                 return; // Ukončíme funkci
             }
 
             if (data.success && data.events && data.events.length > 0) {
-                // Skryjeme hlášku o prázdném seznamu
                 if (emptyState) emptyState.classList.add('hidden');
                 
                 data.events.forEach(evt => {
-                    // Namapujeme data z DB do formátu, který čeká naše HTML funkce
                     const payload = {
-                        mcuId: evt.mcu_id, // Dej pozor na jméno sloupce z DB!
+                        mcuId: evt.mcu_id, 
                         type: evt.type,
                         message: evt.message,
                         timestamp: evt.timestamp
                     };
-                    // Přidáme je do seznamu, ale označíme je false (nejsou "Nové" ze socketu)
                     addNotification(payload, false);
                 });
             }
@@ -752,8 +761,20 @@ function initNotifications() {
             }
             addNotification(payload, true); // true = je to nové, vlož nahoru
 
+            // Vylepšený toast podle typu notifikace
             if (window.openToast) {
-                window.openToast(`Varování: ${payload.message}`, false);
+                let toastPrefix = "";
+                let isSuccessToast = true; // info bude mít zelený/úspěšný toast
+                
+                if (payload.type === 'alert') {
+                    toastPrefix = "Kritická chyba: ";
+                    isSuccessToast = false; // alert bude mít červený/chybový toast
+                } else if (payload.type === 'warning') {
+                    toastPrefix = "Upozornění: ";
+                    isSuccessToast = false;
+                }
+                
+                window.openToast(`${toastPrefix}${payload.message}`, isSuccessToast);
             }
         });
     }

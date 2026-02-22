@@ -63,11 +63,11 @@ function initDB() {
   db.exec(`
     CREATE TABLE IF NOT EXISTS event_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      mcu_id INTEGER NOT NULL,
+      mcu_id INTEGER,
       type TEXT NOT NULL,
       message TEXT NOT NULL,
       timestamp TEXT DEFAULT (datetime('now')),
-      FOREIGN KEY (mcu_id) REFERENCES mcus(device_id) ON DELETE CASCADE
+      FOREIGN KEY (mcu_id) REFERENCES mcus(device_id) ON DELETE SET NULL
     )
   `);
 
@@ -78,15 +78,6 @@ function initDB() {
       min_value REAL,
       max_value REAL,
       FOREIGN KEY (channel_id) REFERENCES sensor_channels(id) ON DELETE CASCADE
-    )
-  `);
-
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS system_logs (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      type TEXT NOT NULL,       -- 'info', 'warn', 'alert'
-      message TEXT NOT NULL,
-      timestamp TEXT DEFAULT (datetime('now'))
     )
   `);
 

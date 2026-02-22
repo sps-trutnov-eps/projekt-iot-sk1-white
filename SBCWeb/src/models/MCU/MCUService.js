@@ -154,6 +154,12 @@ class MCUService {
         const newId = result.lastID || result.id || result;
         mcu.id = newId;
 
+        try {
+            EventService.logEvent(newId, 'info', `Nové zařízení "${data.name}" bylo zaregistrováno do systému.`);
+        } catch (e) {
+            console.error("Chyba logování vytvoření MCU:", e);
+        }
+
         return mcu;
     }
 
@@ -204,12 +210,25 @@ class MCUService {
     }
 
     // DELETE - smazat MCU
+    // DELETE - smazat MCU
     static deleteMCU(id) {
-        // ... (Tvůj stávající kód)
-        const success = MCURepository.delete(id);
-        if (!success) {
+        // 1. NEJDŘÍV si musíme MCU najít, abychom znali jeho jméno a IP pro log!
+        const mcu = MCURepository.findById(id);
+        
+        if (!mcu) {
             throw new Error('MCU s daným ID nebylo nalezeno');
         }
+
+        // 2. Zalogujeme smazání PŘEDTÍM, než ho reálně smažeme z databáze
+        try {
+        EventService.logEvent(null, 'warning', `Zařízení "${mcu.name}" (IP: ${mcu.ipAddress || mcu.ip_address || 'N/A'}) bylo odstraněno ze systému.`);
+        } catch (e) {
+            console.error("Chyba logování smazání MCU:", e);
+        }
+
+        // 3. Až teď provedeme samotné smazání
+        const success = MCURepository.delete(id);
+        
         return success;
     }
 
