@@ -1,16 +1,17 @@
 import { translateType } from './utils.js';
 
 let mainChart = null;
+let chartUpdateInterval = null;
 
-window.currentChartChannelId = null;
-window.currentChartRange = '24h';
-window.currentChartData = [];
-window.currentMetric = 'avg'; 
-window.currentChartUnit = '';
+// ZMĚNA 1: Správná deklarace proměnných přes let (bez window.)
+let currentChartChannelId = null;
+let currentChartRange = '24h';
+let currentChartData = [];
+let currentMetric = 'avg'; 
+let currentChartUnit = '';
 let currentSensorName = ''; 
 let currentSensorType = '';
 
-let chartUpdateInterval = null;
 
 export function startChartAutoUpdate() {
     if (chartUpdateInterval) {
@@ -18,7 +19,7 @@ export function startChartAutoUpdate() {
     }
 
     chartUpdateInterval = setInterval(() => {
-        if (window.currentChartChannelId) {
+        if (currentChartChannelId) {
             console.log("Získávám nová data pro graf (minutový update)...");
             updateChart(); 
         }
@@ -56,8 +57,8 @@ export function initChart() {
                     ticks: { 
                         color: '#9aa092', 
                         font: { size: 10 }, 
-                        maxTicksLimit: 12, // Můžeme nechat trochu víc popisků
-                        maxRotation: 45, // Delší texty (s datem) se lehce natočí
+                        maxTicksLimit: 12,
+                        maxRotation: 45,
                         minRotation: 0
                     } 
                 },
@@ -73,7 +74,6 @@ export function renderChartData(data = null) {
     if (data) currentChartData = data;
     if (!mainChart || !currentChartData || currentChartData.length === 0) return;
 
-    // V tooltipu vždy ukážeme celý popisek (aby bylo jasno, z jakého je to dne)
     mainChart.options.plugins.tooltip.callbacks = {
         title: function(tooltipItems) {
             return tooltipItems[0].label;
@@ -128,49 +128,49 @@ export function renderChartData(data = null) {
         prevDate = date;
     });
 
-    // Aktualizace popisků na ose X
     mainChart.data.labels = labels;
 
-    // DŮLEŽITÁ ZMĚNA ZDE: Datasety vytvoříme jen při úplně prvním načtení grafu
+    // Vytvoření datasetů při prvním načtení grafu
     if (mainChart.data.datasets.length === 0) {
-        const datasetsConfigs = {
-            avg: { label: 'Průměr', color: '#886c93', fill: true },
-            min: { label: 'Minimum', color: '#3b82f6', fill: false },
-            max: { label: 'Maximum', color: '#ef4444', fill: false }
-        };
-
-        Object.keys(datasetsConfigs).forEach(key => {
-            const config = datasetsConfigs[key];
-            mainChart.data.datasets.push({
-                id: key, // Přidali jsme 'id' pro snadnou identifikaci
-                label: config.label,
-                borderColor: config.color,
-                backgroundColor: config.fill ? 'rgba(136, 108, 147, 0.1)' : 'transparent',
-                borderWidth: 2,
-                tension: 0.4,
-                pointRadius: 0,
-                fill: config.fill,
-                spanGaps: true,
-                data: [] // Data zatím necháme prázdná
-            });
-        });
+        mainChart.data.datasets = [
+            {
+                label: 'Průměr',
+                borderColor: '#886c93',
+                backgroundColor: 'rgba(136, 108, 147, 0.1)',
+                borderWidth: 2, tension: 0.4, pointRadius: 0, fill: true, spanGaps: true, data: []
+            },
+            {
+                label: 'Minimum',
+                borderColor: '#3b82f6',
+                backgroundColor: 'transparent',
+                borderWidth: 2, tension: 0.4, pointRadius: 0, fill: false, spanGaps: true, data: []
+            },
+            {
+                label: 'Maximum',
+                borderColor: '#ef4444',
+                backgroundColor: 'transparent',
+                borderWidth: 2, tension: 0.4, pointRadius: 0, fill: false, spanGaps: true, data: []
+            }
+        ];
     }
 
-    // Projdeme již existující datasety a POUZE jim přepíšeme data
-    mainChart.data.datasets.forEach(dataset => {
-        // Natlačíme nová data
-        dataset.data = processedData[dataset.id];
+    // ZMĚNA 2: Řešíme spárování hodnot spolehlivě přes pořadí v poli, ne přes nestandardní "id"
+    const dataKeys = ['avg', 'min', 'max'];
+
+    mainChart.data.datasets.forEach((dataset, index) => {
+        const key = dataKeys[index]; // První je avg, druhý min, třetí max
         
-        // Místo mazání datasetů je chytře skryjeme nebo ukážeme podle přepínače
-        if (currentMetric === 'all' || currentMetric === dataset.id) {
+        // Aktualizujeme data
+        dataset.data = processedData[key];
+        
+        // Zobrazení / skrytí datasetu
+        if (currentMetric === 'all' || currentMetric === key) {
             dataset.hidden = false;
         } else {
             dataset.hidden = true;
         }
     });
 
-    // Chart.js teď vidí, že datasety zůstaly stejné, jen se jim změnila data.
-    // Automaticky proto udělá hezký a plynulý posun.
     mainChart.update();
 }
 
@@ -204,7 +204,10 @@ export async function updateChart(range = null, channelId = null, unit = null, s
 export function updateChartMetric() {
     const radios = document.getElementsByName('chartMetric');
     for (const radio of radios) {
-        if (radio.checked) { currentMetric = radio.value; break; }
+        if (radio.checked) { 
+            currentMetric = radio.value; 
+            break; 
+        }
     }
     renderChartData();
 }
