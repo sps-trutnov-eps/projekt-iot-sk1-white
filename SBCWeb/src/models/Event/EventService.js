@@ -35,5 +35,14 @@ class EventService {
     static getHistory(mcuId) {
         return EventRepository.getByMcuId(mcuId);
     }
+
+    static logSystemEvent(type, message) {
+        try {
+            const db = require('../../database.js'); // Uprav cestu k db podle potřeby
+            db.prepare(`INSERT INTO system_logs (type, message) VALUES (?, ?)`).run(type, message);
+        } catch (e) {
+            console.error("Chyba při zápisu do system_logs:", e);
+        }
+    }
 }
 module.exports = EventService;

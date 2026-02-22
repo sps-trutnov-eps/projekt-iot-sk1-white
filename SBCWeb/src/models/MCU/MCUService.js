@@ -43,8 +43,8 @@ class MCUService {
 
     static startStatusMonitor() {
         // Zkontrolujeme stav každých 5 vteřin
-        const checkIntervalMs = 5000; 
-        const timeoutMs = 8000; 
+        const checkIntervalMs = 15 * 1000; 
+        const timeoutMs = 60 * 1000; 
         
         console.log(`[MCUService] Monitor stavu startuje (interval: ${checkIntervalMs}ms)`);
 
@@ -192,6 +192,12 @@ class MCUService {
             mac_address: data.macAddress ?? mcu.macAddress,
             location: data.location ?? mcu.location,
             description: data.description ?? mcu.description
+        }
+
+        try {
+            EventService.logEvent(id, 'info', `Nastavení zařízení bylo upraveno.`);
+        } catch (e) {
+            console.error("Chyba logování editace MCU:", e);
         }
 
         return MCURepository.update(id, updateData);

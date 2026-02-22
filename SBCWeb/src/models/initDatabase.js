@@ -80,6 +80,16 @@ function initDB() {
       FOREIGN KEY (channel_id) REFERENCES sensor_channels(id) ON DELETE CASCADE
     )
   `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS system_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      type TEXT NOT NULL,       -- 'info', 'warn', 'alert'
+      message TEXT NOT NULL,
+      timestamp TEXT DEFAULT (datetime('now'))
+    )
+  `);
+
 }
 
 initDB();

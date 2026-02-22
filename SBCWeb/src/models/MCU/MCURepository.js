@@ -71,11 +71,11 @@ class MCURepository{
         }));
     }
 
-    static findByMac(macAddress){
-        const query = `SELECT * FROM mcus WHERE mac_address = ?`;
-        const row = db.prepare(query).get(macAddress);
-
-        return row ? new MCU(row) : null
+    static findByMac(macAddress) {
+        const normalizedMac = macAddress.replace(/[-.]/g, ':').toLowerCase();
+        
+        const query = `SELECT * FROM mcus WHERE LOWER(mac_address) = ?`;
+        return db.prepare(query).get(normalizedMac);
     }
 
     static findByApiKey(apiKey) {
