@@ -62,7 +62,7 @@ class SocketService {
         this.io.to('all_data').emit('mcu_status', payload); 
     }
 
-    static broadcastAlert(mcuId, type, message) {
+    broadcastAlert(mcuId, type, message) {
         if (!this.io) return;
         
         // type může být 'info', 'warn', 'alert'

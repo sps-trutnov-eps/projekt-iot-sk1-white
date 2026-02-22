@@ -186,5 +186,5 @@ function initNotifications() {
 // Inicializace po načtení HTML
 document.addEventListener('DOMContentLoaded', () => {
     initNotifications();
-    initSettingsDropdown();
+    
 });
