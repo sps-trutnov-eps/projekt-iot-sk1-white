@@ -272,6 +272,11 @@ class MCUService {
         }
         return true;
     }
+
+    static getActiveCount() {
+    // Předpokládá, že jsi do MCURepository přidal metodu countActive()
+    return MCURepository.countActive();
+    }
 }
 
 module.exports = MCUService;

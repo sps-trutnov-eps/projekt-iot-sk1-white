@@ -32,5 +32,11 @@ class EventRepository {
         // Vytáhneme posledních X záznamů od nejnovějšího
         return db.prepare(`SELECT * FROM event_logs ORDER BY timestamp DESC LIMIT ?`).all(limit);
     }
+    
+    static countTodayAlerts() {
+    const row = db.prepare("SELECT COUNT(*) as count FROM event_logs WHERE type = 'alert' AND date(timestamp) = date('now')").get();
+    return row ? row.count : 0;
+    }
+
 }
 module.exports = EventRepository;

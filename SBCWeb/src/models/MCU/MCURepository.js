@@ -129,6 +129,12 @@ class MCURepository{
         const result = db.prepare(query).run(id);
         return result;
     }
+
+    static countActive() {
+    // Příklad pro SQLite/MySQL pomocí db.prepare nebo db.query
+    const row = db.prepare('SELECT COUNT(*) as count FROM mcus WHERE is_online = 1').get();
+    return row ? row.count : 0;
+    }
 }
 
 module.exports = MCURepository;

@@ -121,6 +121,10 @@ class SensorService {
         // Pokud frontend pošle null (prázdné políčko), uložíme do DB null
         return SensorRepository.setThreshold(channelId, min_value, max_value);
     }
+
+    static getTotalCount() {
+    return SensorRepository.countAll();
+    }
 }
 
 module.exports = SensorService;

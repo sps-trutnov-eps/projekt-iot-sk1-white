@@ -137,6 +137,9 @@ class MeasurementService {
      * Agregace dat (minuta) - voláno z Controlleru
      */
     static processMinuteAggregation() {
+        const SocketService = require('../socketService');
+        let wasDbUpdated = false;
+
         for (const channelId in this.buffers) {
             const values = this.buffers[channelId];
             
@@ -153,8 +156,12 @@ class MeasurementService {
                 min: min.toFixed(2),
                 max: max.toFixed(2)
             });
-
+            wasDbUpdated = true;
             this.buffers[channelId] = [];
+        }
+
+        if (wasDbUpdated && SocketService.io) {
+            SocketService.io.to('all_data').emit('db_changed');
         }
     }
 
@@ -168,6 +175,10 @@ class MeasurementService {
             default:    modifier = '-24 hours';
         }
         return ReadingRepository.getHistory(channelId, modifier);
+    }
+
+    static getTodayReadingsCount() {
+    return ReadingRepository.countTodayReadings();
     }
 }
 

@@ -56,5 +56,9 @@ class EventService {
     static getRecentEvents(limit = 20) {
         return EventRepository.getRecent(limit);
     }
+
+    static getTodayAlertsCount() {
+        return EventRepository.countTodayAlerts();
+    }
 }
 module.exports = EventService;

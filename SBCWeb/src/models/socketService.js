@@ -16,6 +16,7 @@ class SocketService {
                 console.log(`[SOCKET] Klient (ID: ${socket.id}) se připojil do roomu: ${roomName}`);
             });
 
+
             // 2. Klient chce poslouchat úplně všechno (Dashboard)
             socket.on('subscribe_all', () => {
                 socket.join('all_data');

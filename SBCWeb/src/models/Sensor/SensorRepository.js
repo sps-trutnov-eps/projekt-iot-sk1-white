@@ -87,6 +87,11 @@ class SensorRepository {
         `;
         return db.prepare(query).run(channelId, minVal, maxVal);
     }
+
+    static countAll() {
+    const row = db.prepare('SELECT COUNT(*) as count FROM sensor_channels').get();
+    return row ? row.count : 0;
+    }
 }
 
 module.exports = SensorRepository;

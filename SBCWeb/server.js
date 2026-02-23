@@ -17,6 +17,7 @@ const io = socketIo(server, { cors: { origin: "*" } });
 
 const SocketService = require('./src/models/socketService');
 const McuService = require('./src/models/MCU/MCUService')
+const DashboardService = require('./src/models/dashboardService');
 
 initDB();
 seedDB();
@@ -47,8 +48,8 @@ app.use('/event', eventRoutes);
 
 
 SocketService.init(io); 
-McuService.startStatusMonitor(SocketService);
-
+McuService.startStatusMonitor();
+DashboardService.initSockets(SocketService);
 
 MqttHandler.init();
 

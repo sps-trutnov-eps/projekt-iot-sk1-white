@@ -50,6 +50,17 @@ class ReadingRepository {
         `;
         return db.prepare(query).all(channelId, timeModifier);
     }
+
+    static countTodayReadings() {
+        // Použijeme 'localtime', aby se "dnešek" ořízl podle našeho časového pásma (např. CET/CEST)
+        const row = db.prepare(`
+            SELECT COUNT(*) as count 
+            FROM readings 
+            WHERE date(timestamp, 'localtime') = date('now')
+        `).get();
+        
+        return row ? row.count : 0;
+    }
 }
 
 module.exports = ReadingRepository;

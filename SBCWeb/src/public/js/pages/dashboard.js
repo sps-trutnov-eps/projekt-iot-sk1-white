@@ -1,86 +1,75 @@
-// Globální proměnné pro dashboard stats (inicializuj z DB při startu)
-window.dashboardLiveStats = {
-    uniqueSensors: new Set(),
-    dataPointsToday: 0,
-    alertsToday: 0
-};
-
-function initDashboardSockets() {
-    if (!dashboardSocket) {
-        dashboardSocket = io();
-
-        dashboardSocket.on('connect', () => {
-            console.log("Dashboard připojen k socketům.");
-            dashboardSocket.emit('subscribe_all'); 
-        });
-
-        // 1. Změna stavu MCU (Active MCUs)
-        dashboardSocket.on('mcu_status', (payload) => {
-            const isOnline = (payload.status === 1 || payload.status === true);
-            updateMcuCardStatus(payload.mcuId, isOnline, payload.lastSeen);
-            
-            // Po každé změně stavu aktualizujeme i hlavní kartu "Active MCUs"
-            // Využijeme k tomu už vypočítanou hodnotu ze sidebar stats
-            setTimeout(() => {
-                const onlineCount = document.getElementById('countOnline')?.textContent || "0";
-                const el = document.getElementById('statActiveMCUs');
-                if (el) el.textContent = onlineCount;
-            }, 100);
-        });
-
-        // 2. Příchozí měření (Connected Sensors & Data Points)
-        dashboardSocket.on('live_reading', (payload) => {
-            // Data Points: prostá inkrementace
-            window.dashboardLiveStats.dataPointsToday++;
-            const elData = document.getElementById('statDataPoints');
-            if (elData) elData.textContent = window.dashboardLiveStats.dataPointsToday.toLocaleString();
-
-            // Sensors: Použijeme Set, abychom počítali unikátní ID kanálů (channelId)
-            if (!window.dashboardLiveStats.uniqueSensors.has(payload.channelId)) {
-                window.dashboardLiveStats.uniqueSensors.add(payload.channelId);
-                const elSensors = document.getElementById('statConnectedSensors');
-                if (elSensors) elSensors.textContent = window.dashboardLiveStats.uniqueSensors.size;
-            }
-        });
-
-        // 3. Systémové alerty
-        dashboardSocket.on('system_alert', (payload) => {
-            window.dashboardLiveStats.alertsToday++;
-            const elAlerts = document.getElementById('statAlerts');
-            if (elAlerts) elAlerts.textContent = window.dashboardLiveStats.alertsToday;
-        });
-    }
-}
-
-async function loadInitialDashboardStats() {
-    try {
-        // Předpokládám, že máš endpoint, který vrátí sumární data
-        const stats = await fetchData('/api/dashboard-summary'); 
-        
-        if (stats) {
-            window.dashboardStats.dataPointsToday = stats.totalReadings || 0;
-            window.dashboardStats.alertsToday = stats.totalAlerts || 0;
-            // Naplníme Set existujícími senzory z DB
-            if (stats.sensorIds) stats.sensorIds.forEach(id => window.dashboardStats.sensors.add(id));
-
-            // Zápis do UI
-            document.getElementById('stat-data-points').textContent = window.dashboardStats.dataPointsToday;
-            document.getElementById('stat-alerts').textContent = window.dashboardStats.alertsToday;
-            document.getElementById('stat-sensors').textContent = window.dashboardStats.sensors.size;
-        }
-    } catch (err) {
-        console.error("Nepodařilo se načíst počáteční statistiky:", err);
-    }
-}
-
-// Přidej do svého DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
-    // ... tvůj stávající kód ...
+    // 1. Inicializace spojení se serverem
+    // (Jelikož voláme io() bez parametrů, automaticky se připojí na hostitele, ze kterého běží stránka)
+    const socket = io();
+
+    // 2. Zachycení DOM elementů (tvých kartiček)
+    const elActiveMCUs = document.getElementById('statActiveMCUs');
+    const elConnectedSensors = document.getElementById('statConnectedSensors');
+    const elDataPoints = document.getElementById('statDataPoints');
+    const elAlerts = document.getElementById('statAlerts');
+
+    // 3. Lokální stav (State) pro ukládání aktuálních čísel, abychom je mohli inkrementovat
+    let currentStats = {
+        activeMcus: 0,
+        totalSensors: 0,
+        dataPointsToday: 0,
+        alertsToday: 0
+    };
+
+    // Pomocná funkce pro vypsání dat do HTML
+    const renderStats = () => {
+        if (elActiveMCUs) elActiveMCUs.innerText = currentStats.activeMcus;
+        if (elConnectedSensors) elConnectedSensors.innerText = currentStats.totalSensors;
+        if (elDataPoints) elDataPoints.innerText = currentStats.dataPointsToday;
+        if (elAlerts) elAlerts.innerText = currentStats.alertsToday;
+    };
+
+    // --- SOCKET EVENTY ---
+
+    // A) Po úspěšném připojení
+    socket.on('connect', () => {
+        console.log('[Dashboard] Připojeno k WebSocket serveru.');
+        
+        // Přihlásíme se k odběru všech dat (nastaveno na backendu)
+        socket.emit('subscribe_all');
+        
+        // Vyžádáme si aktuální čísla z DB pro prvotní zobrazení
+        socket.emit('request_dashboard_stats');
+    });
+
+    // B) Příjem počátečních dat z backendu
+    socket.on('dashboard_stats_update', (stats) => {
+        console.log('[Dashboard] Přijata úvodní data:', stats);
+        
+        // Přepíšeme náš lokální stav daty ze serveru
+        currentStats.activeMcus = stats.activeMcus ?? 0;
+        currentStats.totalSensors = stats.totalSensors ?? 0;
+        currentStats.dataPointsToday = stats.dataPointsToday ?? 0;
+        currentStats.alertsToday = stats.alertsToday ?? 0;
+        
+        renderStats();
+    });
+
+    // C) ŽIVÉ UPDATY (Inkrementace)
     
-    // Propojení Active MCUs karty s počty v sidebaru (po malém zpoždění, až se sidebar spočítá)
-    setTimeout(() => {
-        const onlineVal = document.getElementById('countOnline')?.textContent || "0";
-        const statActive = document.getElementById('statActiveMCUs');
-        if (statActive) statActive.textContent = onlineVal;
-    }, 1000);
+ 
+
+    // Nový Alert (přičteme +1 do Alerts)
+    socket.on('system_alert', (payload) => {
+        currentStats.alertsToday += 1;
+        if (elAlerts) elAlerts.innerText = currentStats.alertsToday;
+    });
+
+    // Změna stavu MCU (online / offline)
+    socket.on('mcu_status', (payload) => {
+        // Zde je nejbezpečnější požádat server o přepočet celkového počtu, 
+        // abychom nemuseli složitě řešit, jestli se zapnul, nebo vypnul a vyhnuli se desynchronizaci.
+        socket.emit('request_dashboard_stats');
+    });
+
+    // D) Ztráta spojení
+    socket.on('disconnect', () => {
+        console.warn('[Dashboard] Ztraceno spojení se serverem.');
+    });
 });
