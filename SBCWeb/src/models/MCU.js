@@ -10,11 +10,11 @@ class MCU {
     this.lastSeen = data.last_seen || data.lastSeen;
     this.apiKey = data.api_key || data.apiKey || null;
     
-    // NOVÉ: Mapování statusu z databáze (výchozí je 0 / offline)
-    this.is_online = data.is_online !== undefined ? data.is_online : (data.isOnline !== undefined ? data.isOnline : 0);
+    // Uložíme jako číslo (0, 1, 2)
+    this.is_online = data.is_online !== undefined ? Number(data.is_online) : 0;   
   }
 
-  // Převod pro DB (camelCase → snake_case)
+  // Převod pro DB (zůstává stejné)
   toDatabase() {
     return {
       type: this.type,
@@ -25,11 +25,11 @@ class MCU {
       description: this.description,
       api_key: this.apiKey,
       last_seen: this.lastSeen,
-      is_online: this.is_online // Pro jistotu přidáno i sem
+      is_online: this.is_online 
     };
   }
 
-  // Převod pro frontend (snake_case → camelCase)
+  // Převod pro frontend - TADY JE OPRAVA
   toJSON() {
     return {
       id: this.id,
@@ -41,7 +41,8 @@ class MCU {
       description: this.description,
       apiKey: this.apiKey,
       lastSeen: this.lastSeen,
-      isOnline: !!this.is_online // Převede 1 na true a 0 na false pro čistší práci ve frontendu
+      // POSÍLÁME ČÍSLO, NE BOOLEAN
+      isOnline: Number(this.is_online) 
     };
   }
 }

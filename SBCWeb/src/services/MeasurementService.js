@@ -30,6 +30,8 @@ class MeasurementService {
             const mcu = await MCUService.validateAndGetDevice(data.apiKey);
             if (!mcu) return;
 
+            MCUService.updateLastSeen(mcu.id);
+
             // Načtení senzorů (nyní by měly obsahovat i min_value a max_value)
             const sensors = await SensorService.getSensorsByDevice(mcu.id);
 

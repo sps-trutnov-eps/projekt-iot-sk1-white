@@ -56,7 +56,6 @@ class MCURepository{
     static findAll(){
         const query = `SELECT * FROM mcus ORDER BY name`
         const rows = db.prepare(query).all();
-
         return rows.map(row => new MCU({
             id: row.device_id,
             type: row.type_id, 
@@ -66,7 +65,7 @@ class MCURepository{
             description: row.description,
             location: row.location,
             last_seen: row.last_seen,
-            is_online: row.is_online, // NOVÉ: Mapování statusu
+            is_online: row.is_online,
             api_key: row.api_key
         }));
     }
@@ -106,22 +105,21 @@ class MCURepository{
         return this.findById(id);
     }
 
-    // NOVÉ: Pokud updatujeme last_seen, zařízení automaticky označíme jako online (1)
-    static async updateLastSeen(id) {
+    static updateLastSeen(id) {
         const query = `UPDATE mcus SET last_seen = datetime('now'), is_online = 1 WHERE device_id = ?`;
-        const result = db.prepare(query).run(id);
-        return result;
+        return db.prepare(query).run(id);
     }
 
-    // NOVÉ: Speciální metoda pro explicitní změnu stavu (typicky z online na offline, když neodpoví ping)
-    static updateOnlineStatus(id, isOnline) {
-        console.log('zde')
-        const status = isOnline ? 1 : 0;
-        console.log('status:' + status)
-        const query = `UPDATE mcus SET is_online = ? WHERE device_id = ?`;
-        const result = db.prepare(query).run(status, id);
-        console.log(result);
-        return result;
+    static updateOnlineStatus(id, newStatus) {
+    if (![0, 1, 2].includes(newStatus)) {
+        console.warn(`[MCURepository] Varování: Pokus o uložení neznámého stavu (${newStatus}) pro MCU ID ${id}`);
+        newStatus = 0; 
+    }
+
+    const query = `UPDATE mcus SET is_online = ? WHERE device_id = ?`;
+    const result = db.prepare(query).run(newStatus, id);
+    
+    return result;
     }
 
     static delete(id) {

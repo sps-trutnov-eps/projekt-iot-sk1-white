@@ -82,6 +82,7 @@ const getMCU = (req, res) => {
 const getALLMCUs = (req,res) =>{
   try{
     const MCUs = MCUService.getAllMCUs();
+    console.log(MCUs);
     res.json({
       success: true,
       result: MCUs
