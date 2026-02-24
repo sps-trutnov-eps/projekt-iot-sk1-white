@@ -95,10 +95,10 @@ export function renderMCUGrid(mcusArray) {
         statusColor = 'bg-green-400';
         pulseEffect = 'animate-pulse';
     } else if (statusVal === 2) {
-        dataStatus = 'warning'; // Přejmenováno z frozen
-        statusDisplay = 'Pasivní'; // Nový text
-        timeColorClass = 'text-yellow-600 font-medium'; // Žlutá barva textu
-        statusColor = 'bg-yellow-400'; // Žlutá tečka
+        dataStatus = 'frozen'; // Sjednoceno s tvým data-filter="frozen"
+        statusDisplay = 'Passive'; // Sjednoceno s tvým HTML
+        timeColorClass = 'text-yellow-600 font-medium'; 
+        statusColor = 'bg-yellow-400'; 
         pulseEffect = '';
     }
 

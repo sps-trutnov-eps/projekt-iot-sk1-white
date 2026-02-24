@@ -35,20 +35,20 @@ export async function refreshSidebarStats() {
         
         const stats = mcus.reduce((acc, mcu) => {
             if (mcu.isOnline === 1 || mcu.isOnline === true) acc.online++;
-            else if (mcu.isOnline === 2) acc.warning++; // Přejmenováno pro statistiky
+            else if (mcu.isOnline === 2) acc.frozen++; 
             else acc.offline++;
             return acc;
-        }, { online: 0, offline: 0, warning: 0 }); // Výchozí warning
+        }, { online: 0, offline: 0, frozen: 0 }); 
 
         const elAll = document.getElementById('countAll');
         const elOnline = document.getElementById('countOnline');
         const elOffline = document.getElementById('countOffline');
-        const elWarning = document.getElementById('countWarning'); // Upravené ID z countFrozen na countWarning
+        const elFrozen = document.getElementById('countFrozen'); // Spárováno s tvým id="countFrozen"
 
         if (elAll) elAll.textContent = mcus.length;
         if (elOnline) elOnline.textContent = stats.online;
         if (elOffline) elOffline.textContent = stats.offline;
-        if (elWarning) elWarning.textContent = stats.warning;
+        if (elFrozen) elFrozen.textContent = stats.frozen;
     } catch (err) {
         console.error("Chyba statistik statusů:", err);
     }

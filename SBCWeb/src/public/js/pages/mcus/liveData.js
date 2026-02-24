@@ -35,11 +35,11 @@ function updateMcuCardStatus(mcuId, statusVal, lastSeenStr) {
         timeColor = 'text-green-600 font-medium text-xs';
         statusText = 'Online';
     } else if (statusVal === 2) {
-        dataStatus = 'warning'; // Přejmenováno
-        dotColor = 'bg-yellow-400'; // Žlutá tečka
+        dataStatus = 'frozen'; // Sjednoceno s HTML
+        dotColor = 'bg-yellow-400';
         pulseEffect = '';
-        timeColor = 'text-yellow-600 font-medium text-xs'; // Žlutý text
-        statusText = 'Pasivní'; // Nový text
+        timeColor = 'text-yellow-600 font-medium text-xs';
+        statusText = 'Passive'; // Sjednoceno s HTML
     }
 
     card.dataset.status = dataStatus;
