@@ -4,33 +4,10 @@ class SocketService {
         this.lastReadings = new Map(); 
     }
 
-    // Tuto metodu volá app.js a předá jí skutečný socket server
+    // Tuto metodu zavolá náš nový Router a předá jí socket server
     init(io) {
         this.io = io;
-
-        this.io.on('connection', (socket) => {
-            // 1. Klient chce poslouchat konkrétní MCU (Detail stránka)
-            socket.on('subscribe_mcu', (mcuId) => {
-                const roomName = `mcu_${mcuId}`;
-                socket.join(roomName);
-                console.log(`[SOCKET] Klient (ID: ${socket.id}) se připojil do roomu: ${roomName}`);
-            });
-
-
-            // 2. Klient chce poslouchat úplně všechno (Dashboard)
-            socket.on('subscribe_all', () => {
-                socket.join('all_data');
-            });
-            
-            // 3. Odhlášení
-            socket.on('unsubscribe_mcu', (mcuId) => {
-                socket.leave(`mcu_${mcuId}`);
-            });
-
-            socket.on('unsubscribe_all', () => {
-                socket.leave('all_data');
-            });
-        }); // <-- TADY SPRÁVNĚ KONČÍ init()
+        console.log('[SocketService] Vysílač je připraven.');
     }
 
     broadcastReading(mcuId, channelId, value) {
@@ -52,7 +29,7 @@ class SocketService {
 
     broadcastMcuStatus(mcuId, lastSeenDate, status) {
         if (!this.io) {
-            console.error('[SOCKET ERROR] Socket nebyl inicializován. Chybí this.io!');
+            console.error('[SOCKET ERROR] Socket nebyl inicializován!');
             return;
         }
 
@@ -63,18 +40,28 @@ class SocketService {
         this.io.to('all_data').emit('mcu_status', payload); 
     }
 
+    // Přejmenováno pro konzistenci s EventService
     broadcastAlert(mcuId, type, message) {
         if (!this.io) return;
         
-        // type může být 'info', 'warn', 'alert'
-        this.io.emit('system_alert', {
+        const payload = {
             mcuId: mcuId,
             type: type,
             message: message,
             timestamp: new Date().toISOString()
-        });
+        };
+
+        // Pošleme to do detailu konkrétního MCU
+        if (mcuId) {
+            this.io.to(`mcu_${mcuId}`).emit('new_event', payload);
+        }
+
+        // Pokud je to varování nebo alert, pošleme to všem (i na hlavní dashboard)
+        if (type === 'alert' || type === 'warn') {
+            this.io.emit('global_alert', payload);
+        }
     }
 }
 
-// Exportujeme vytvořenou INSTANCI (Singleton)
+// Exportujeme jako Singleton
 module.exports = new SocketService();
