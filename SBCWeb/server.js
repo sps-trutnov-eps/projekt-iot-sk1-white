@@ -10,7 +10,6 @@ const initDB = require('./src/config/initDatabase');
 const seedDB = require('./src/config/seedDatabase');
 
 // --- Importy služeb a handlerů ---
-const McuService = require('./src/services/mcuService'); 
 const MeasurementService = require('./src/services/MeasurementService');
 const MqttHandler = require('./src/sockets/mqttHandler');
 const WebSocketHandler = require('./src/sockets/webSocketHandler');
