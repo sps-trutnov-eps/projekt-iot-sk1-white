@@ -1,5 +1,7 @@
+// common/loadDataMCUs.js
+import { applyFilters } from '../pages/mcus/filterManager.js'; 
 
-async function fetchMcu(mcuId) {
+export async function fetchMcu(mcuId) {
     if (!mcuId) return null;
 
     try {
@@ -14,29 +16,26 @@ async function fetchMcu(mcuId) {
             throw new Error(errorData.message || 'Server vrátil chybu');
         }
 
-        const data = await response.json();
-        return data;
+        return await response.json();
     } catch (error) {
         console.error("Chyba při fetchování MCU:", error);
         return null;
     }
 }
 
-async function fetchData(url) {
+export async function fetchData(url) {
   try {
     const response = await fetch(url);
     const jsonData = await response.json();
     return jsonData.result || [];
-    
-
   } catch (error) {
     console.error('Chyba při načítání dat:', error);
     return null;
   }
 }
 
-function populateSelector(selecotrId,typesArray) {
-  const selectElement = document.getElementById(selecotrId);
+export function populateSelector(selectorId, typesArray) {
+  const selectElement = document.getElementById(selectorId);
   if (!selectElement) return;
 
   selectElement.innerHTML = '';
@@ -50,7 +49,7 @@ function populateSelector(selecotrId,typesArray) {
   const seen = new Set();
   typesArray.forEach(function(item) {
     const id = item.id ?? item._id ?? item.type ?? String(item);
-    if (seen.has(id)) return; // dedupe
+    if (seen.has(id)) return; 
     seen.add(id);
 
     const option = document.createElement('option');
@@ -60,8 +59,7 @@ function populateSelector(selecotrId,typesArray) {
   });
 }
 
-
-function renderMCUGrid(mcusArray) {
+export function renderMCUGrid(mcusArray) {
   const grid = document.getElementById('mcuGrid');
   if (!grid) return;
 
@@ -77,18 +75,35 @@ function renderMCUGrid(mcusArray) {
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[m]));
 
-    // 1. ZÍSKÁNÍ NÁZVU TYPU
     const typeName = window.typeMap && window.typeMap[mcu.type] 
         ? window.typeMap[mcu.type] 
         : mcu.type;
 
-    // 2. TVRDÁ LOGIKA STAVU (Z databáze)
-    const isOnline = (mcu.isOnline === 1 || mcu.isOnline === true);
+    // LOGIKA TŘÍ STAVŮ
+    const statusVal = mcu.isOnline;
+    
+    let dataStatus = 'offline';
+    let statusDisplay = 'Offline';
+    let timeColorClass = 'text-red-500 font-semibold';
+    let statusColor = 'bg-red-500';
+    let pulseEffect = '';
 
-    // 3. FORMÁTOVÁNÍ ČASU (Pro zobrazení u offline stavu)
+    if (statusVal === 1 || statusVal === true) {
+        dataStatus = 'online';
+        statusDisplay = 'Online';
+        timeColorClass = 'text-green-600 font-medium';
+        statusColor = 'bg-green-400';
+        pulseEffect = 'animate-pulse';
+    } else if (statusVal === 2) {
+        dataStatus = 'warning'; // Přejmenováno z frozen
+        statusDisplay = 'Pasivní'; // Nový text
+        timeColorClass = 'text-yellow-600 font-medium'; // Žlutá barva textu
+        statusColor = 'bg-yellow-400'; // Žlutá tečka
+        pulseEffect = '';
+    }
+
     let dbTime = mcu.lastSeen;
-    let lastSeenDisplay = 'Nikdy';
-    let formattedDateStr = '';
+    let formattedDateStr = 'Nikdy';
 
     if (dbTime) {
       if (typeof dbTime === 'string') {
@@ -109,18 +124,12 @@ function renderMCUGrid(mcusArray) {
       }
     }
 
-    // Nastavení textu a barev podle reálného stavu isOnline
-    let timeColorClass = isOnline ? 'text-green-600 font-medium' : 'text-red-500 font-semibold';
-    let statusColor = isOnline ? 'bg-green-400' : 'bg-red-500';
-    let pulseEffect = isOnline ? 'animate-pulse' : '';
-    
-    // Finální text v kartě
-    lastSeenDisplay = isOnline ? 'Online' : `${formattedDateStr}`;
+    let lastSeenDisplay = (statusVal === 1 || statusVal === 2) ? statusDisplay : formattedDateStr;
 
     return `
       <div class="mcu-card cursor-pointer bg-white rounded-lg shadow-sm border border-ash-grey-200 hover:shadow-md transition-shadow mb-4" 
            data-id="${mcu.id}" 
-           data-status="${isOnline ? 'online' : 'offline'}"
+           data-status="${dataStatus}"
            data-type="${escape(mcu.type)}"> 
         <div class="flex items-center p-4">
           <div class="flex items-center space-x-4">
@@ -150,7 +159,7 @@ function renderMCUGrid(mcusArray) {
               <span class="text-silver-700 truncate">${escape(mcu.location)}</span>
             </div>
             <div class="flex items-center space-x-2">
-              <i class="fas fa-clock ${!isOnline ? 'text-red-400' : 'text-silver-400'} w-4"></i>
+              <i class="fas fa-clock ${dataStatus === 'offline' ? 'text-red-400' : 'text-silver-400'} w-4"></i>
               <span class="last-seen-text ${timeColorClass} text-xs uppercase">${lastSeenDisplay}</span>
             </div>
           </div>
@@ -168,23 +177,21 @@ function renderMCUGrid(mcusArray) {
     `;
   }).join('');
   
-  if (typeof window.applyFilters === 'function') {
-      window.applyFilters();
+  if (typeof applyFilters === 'function') {
+      applyFilters();
   }
 }
 
-window.refreshMCUs = async function() {
+export async function refreshMCUs() {
     const mcus = await fetchData('/mcu/mcus');
     if (mcus) renderMCUGrid(mcus);
     
-    // BEZPEČNÉ VOLÁNÍ FILTRŮ
-    if (typeof window.applyFilters === 'function') {
-        window.applyFilters();
+    if (typeof applyFilters === 'function') {
+        applyFilters();
     }
-};
+}
 
-
-function dedupeTypes(typesArray) {
+export function dedupeTypes(typesArray) {
   const seen = new Set();
   return typesArray.filter(item => {
     const id = item.id ?? item._id ?? item.type ?? String(item);
@@ -194,11 +201,10 @@ function dedupeTypes(typesArray) {
   });
 }
 
-function populateTypeList(typesArray) {
+export function populateTypeList(typesArray) {
   const container = document.getElementById('typeListContainer');
   if (!container) return;
 
-  // Pokud nejsou žádná data
   if (!typesArray || !typesArray.length) {
     container.innerHTML = `
       <div class="p-8 text-center text-silver-500 bg-white/50 rounded-lg border border-dashed border-ash-grey-300">
@@ -209,12 +215,10 @@ function populateTypeList(typesArray) {
     return;
   }
 
-  // Funkce pro ošetření XSS (stejná jako u MCU gridu)
   const escape = (str) => String(str || '').replace(/[&<>"']/g, m => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   }[m]));
 
-  // Sestavení seznamu
   container.innerHTML = `
     <div class="divide-y divide-ash-grey-200 border border-ash-grey-200 rounded-lg bg-white overflow-hidden">
       ${typesArray.map(typeObj => `
@@ -237,28 +241,25 @@ function populateTypeList(typesArray) {
   `;
 }
 
-window.refreshTypes = async () => {
+export async function refreshTypes() {
     const types = await fetchData('/type/types');
-    populateTypeList(types); // zavolání naší nové funkce
+    populateTypeList(types); 
     const dedupedTypes = dedupeTypes(types);
-    populateSelector("TypeSelectorSearchBar",dedupedTypes);
-    populateSelector("TypeSelectorMCUForm",dedupedTypes);
-};
+    populateSelector("TypeSelectorSearchBar", dedupedTypes);
+    populateSelector("TypeSelectorMCUForm", dedupedTypes);
+}
 
-
-document.addEventListener('DOMContentLoaded', async function() {
-  // načtení typů //
+export async function initDataLoad() {
   const types = await fetchData('/type/types');
   if (types) {
     const dedupedTypes = dedupeTypes(types);
-    populateSelector("TypeSelectorSearchBar",dedupedTypes);
-    populateSelector("TypeSelectorMCUForm",dedupedTypes);
-    populateSelector("editTypeSelector",dedupedTypes);
-    refreshTypes();
+    populateSelector("TypeSelectorSearchBar", dedupedTypes);
+    populateSelector("TypeSelectorMCUForm", dedupedTypes);
+    populateSelector("editTypeSelector", dedupedTypes);
+    await refreshTypes();
   } else {
     console.warn('Žádné typy nebyla načtena.');
   }
-  // načtení MCU //
-  if (window.refreshMCUs) await window.refreshMCUs();
-
-});
+  
+  await refreshMCUs();
+}
