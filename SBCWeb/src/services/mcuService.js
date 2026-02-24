@@ -1,9 +1,9 @@
 const ping = require('ping');
-const SocketService = require('../socketService');
-const EventService = require('../Event/EventService');
+const SocketService = require('../sockets/socketService');
+const EventService = require('../services/EventService');
 
-const MCU = require('./MCU');
-const MCURepository = require('./MCURepository');
+const MCU = require('../models/MCU');
+const MCURepository = require('../repositories/MCURepository');
 
 class MCUService {
     

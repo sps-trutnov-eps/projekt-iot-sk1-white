@@ -1,4 +1,4 @@
-const TypeService = require('../models/Type/TypeService');
+const TypeService = require('../services/TypeService');
 
 
 const createType = (req,res) =>{

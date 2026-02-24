@@ -1,5 +1,5 @@
-const MCU = require('../models/MCU/MCU');
-const MCUService = require('../models/MCU/MCUService');
+const MCU = require('../models/MCU');
+const MCUService = require('../services/mcuService');
 
 const renderMCU = (req, res) =>{
   try{

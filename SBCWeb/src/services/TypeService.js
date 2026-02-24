@@ -1,5 +1,5 @@
-const Type = require('./Type');
-const TypeRepository = require('./TypeRepository');
+const Type = require('../models/Type');
+const TypeRepository = require('../repositories/TypeRepository');
 
 class TypeService{
     static createType(data){

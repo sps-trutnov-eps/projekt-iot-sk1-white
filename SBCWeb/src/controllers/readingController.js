@@ -1,4 +1,4 @@
-const MeasurementService = require('../models/Reading/MeasurementService');
+const MeasurementService = require('../services/MeasurementService');
 
 const getReadingsHistory = async (req, res) => { // Přidáno async pro jistotu
     try {

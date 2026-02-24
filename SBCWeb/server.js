@@ -5,19 +5,19 @@ const socketIo = require('socket.io');
 const path = require('path');
 const app = express();
 const PORT = 3000;
-const MqttHandler = require('./src/controllers/mqttHandler');
+const MqttHandler = require('./src/sockets/mqttHandler');
 
-const db = require('./src/models/database');
-const initDB = require('./src/models/initDatabase');
-const seedDB = require('./src/models/seedDatabase');
+const db = require('./src/config/database');
+const initDB = require('./src/config/initDatabase');
+const seedDB = require('./src/config/seedDatabase');
 
 const server = http.createServer(app);
 
 const io = socketIo(server, { cors: { origin: "*" } });
 
-const SocketService = require('./src/models/socketService');
-const McuService = require('./src/models/MCU/MCUService')
-const DashboardService = require('./src/models/dashboardService');
+const SocketService = require('./src/sockets/socketService');
+const McuService = require('./src/services/mcuService')
+const DashboardService = require('./src/services/dashboardService');
 
 initDB();
 seedDB();

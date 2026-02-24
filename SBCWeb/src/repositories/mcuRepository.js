@@ -1,5 +1,5 @@
-const db = require('../database.js');
-const MCU = require('./MCU');
+const db = require('../config/database.js');
+const MCU = require('../models/MCU');
 
 class MCURepository{
     static create(mcuData) {

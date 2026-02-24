@@ -1,4 +1,4 @@
-const EventService = require('../models/Event/EventService');
+const EventService = require('../services/EventService');
 
 class EventController {
     static async getByMcuId(req, res) {

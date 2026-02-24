@@ -29,10 +29,11 @@ class DashboardService {
      * Vypočítá a vrátí aktuální čísla z DB
      */
     static getDashboardStats() {
-        const MCUService = require('./MCU/MCUService');
-        const SensorService = require('./Sensor/SensorService');
-        const MeasurementService = require('./Reading/MeasurementService');
-        const EventService = require('./Event/EventService');
+        const MCUService = require('./mcuService');
+        const SensorService = require('./SensorService');
+        const MeasurementService = require('./MeasurementService');
+        const EventService = require('./EventService');
+        
         return {
             activeMcus: MCUService.getActiveCount(),
             totalSensors: SensorService.getTotalCount(),

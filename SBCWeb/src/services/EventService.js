@@ -1,6 +1,6 @@
-const Event = require('./Event');
-const EventRepository = require('./EventRepository');
-const SocketService = require('../socketService');
+const Event = require('../models/Event');
+const EventRepository = require('../repositories/EventRepository');
+const SocketService = require('../sockets/socketService');
 
 class EventService {
     /**

@@ -1,5 +1,3 @@
-statistiky na dashboardu
-seznam senzorů
 
 tabulka pro typy jednotek
 dynamické vykreslování ikonek u příkazů

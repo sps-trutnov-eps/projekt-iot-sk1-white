@@ -1,5 +1,5 @@
-const SensorService = require('../models/Sensor/SensorService');
-const SocketService = require('../models/socketService');
+const SensorService = require('../services/SensorService');
+const SocketService = require('../sockets/socketService');
 module.exports = {
 
     /**

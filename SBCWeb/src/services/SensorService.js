@@ -1,4 +1,4 @@
-const SensorRepository = require('./SensorRepository');
+const SensorRepository = require('../repositories/SensorRepository');
 // Volitelně můžeš natáhnout i MCURepository, abys ověřil, zda zařízení existuje
 // const MCURepository = require('./MCURepository'); 
 

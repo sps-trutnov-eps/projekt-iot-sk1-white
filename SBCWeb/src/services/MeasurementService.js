@@ -1,16 +1,13 @@
-const MCUService = require('../MCU/MCUService');
-const SensorService = require('../Sensor/SensorService');
-const SocketService = require('../socketService');
-const ReadingRepository = require('./ReadingRepository'); 
-// 1. Zkontroluj cestu, aby správně odkazovala na tvůj EventService soubor
-const EventService = require('../Event/EventService');
+const MCUService = require('../services/mcuService');
+const SensorService = require('../services/SensorService');
+const SocketService = require('../sockets/socketService');
+const ReadingRepository = require('../repositories/ReadingRepository'); 
+const EventService = require('../services/EventService');
 
 class MeasurementService {
     
-    // Buffer pro data: { 'channelId': [hodnoty...] }
     static buffers = {}; 
     
-    // Paměť pro stavy limitů: { 'channelId': { isExceeded: boolean } }
     static thresholdStates = {};
 
     /**
@@ -137,7 +134,7 @@ class MeasurementService {
      * Agregace dat (minuta) - voláno z Controlleru
      */
     static processMinuteAggregation() {
-        const SocketService = require('../socketService');
+        const SocketService = require('../sockets/socketService');
         let wasDbUpdated = false;
 
         for (const channelId in this.buffers) {

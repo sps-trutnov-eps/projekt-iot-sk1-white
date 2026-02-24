@@ -1,5 +1,5 @@
 const mqtt = require('mqtt');
-const MeasurementService = require('../models/Reading/MeasurementService');
+const MeasurementService = require('../services/MeasurementService');
 
 class MqttHandler {
     

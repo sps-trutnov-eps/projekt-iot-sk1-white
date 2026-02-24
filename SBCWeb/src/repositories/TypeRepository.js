@@ -1,5 +1,5 @@
-const db = require('../database.js');
-const Type = require('./Type.js');
+const db = require('../config/database.js');
+const Type = require('../models/Type.js');
 
 class TypeRepository{
     static create(data) {

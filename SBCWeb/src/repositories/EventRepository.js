@@ -1,5 +1,5 @@
-const db = require('../database.js');
-const Event = require('./Event');
+const db = require('../config/database.js');
+const Event = require('../models/Event');
 
 class EventRepository {
     static create(eventData) {
