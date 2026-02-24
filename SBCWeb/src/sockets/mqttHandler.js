@@ -44,9 +44,6 @@ class MqttHandler {
             console.error("MQTT Connection Error:", err.message);
         });
         
-        setInterval(() => {
-            MeasurementService.processMinuteAggregation();
-        }, 5000);
     }
 }
 

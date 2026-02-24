@@ -10,6 +10,16 @@ class MeasurementService {
     
     static thresholdStates = {};
 
+    static startAggregationWorker() {
+        console.log('[MeasurementService] Startuji worker pro minutovou agregaci dat...');
+        
+        // Spustí se každých 60 vteřin (nebo 5, jak jsi to měl na testování)
+        setInterval(() => {
+            this.processMinuteAggregation();
+        }, 60000); 
+    }
+
+
     /**
      * Hlavní metoda volaná z MQTT Controlleru
      */
