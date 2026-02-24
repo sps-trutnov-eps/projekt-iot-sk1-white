@@ -44,7 +44,6 @@ app.use('/event', eventRoutes);
 
 WebSocketHandler.init(io); 
 
-McuService.startStatusMonitor();
 
 MeasurementService.startAggregationWorker();
 
