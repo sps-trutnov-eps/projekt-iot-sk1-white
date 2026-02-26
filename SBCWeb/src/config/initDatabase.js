@@ -103,6 +103,18 @@ function initDB() {
     )
   `);
 
+    db.exec(`
+    CREATE TABLE IF NOT EXISTS command_history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      command_id INTEGER NOT NULL,
+      status TEXT NOT NULL,
+      output TEXT,
+      error_output TEXT,
+      executed_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (command_id) REFERENCES commands(id) ON DELETE CASCADE
+    )
+  `);
+
 }
 initDB();
 
