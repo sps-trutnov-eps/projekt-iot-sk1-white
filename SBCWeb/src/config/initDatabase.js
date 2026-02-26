@@ -81,8 +81,29 @@ function initDB() {
     )
   `);
 
-}
 
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS servers (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      ip TEXT NOT NULL,
+      api_key TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now'))
+    )
+  `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS commands (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      server_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      command TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (server_id) REFERENCES servers(id) ON DELETE CASCADE
+    )
+  `);
+
+}
 initDB();
 
 console.log('Databáze inicializována (s kaskádovým mazáním)');
