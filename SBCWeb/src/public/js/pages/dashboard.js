@@ -182,3 +182,67 @@ if (addCommandModal && addCommandModal.form) {
         addCommandModal.close();
     });
 }
+
+// Registrace modalu (pokud přidáš tlačítko s id="addServerOpen", napojí se samo)
+const addServerModal = Modal.register('addServer');
+
+if (addServerModal && addServerModal.form) {
+    addServerModal.form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(addServerModal.form);
+        const name = formData.get('name');
+        const ip = formData.get('ip');
+        const api_key = formData.get('api_key');
+
+        // Jednoduchá validace
+        if (!name || !ip || !api_key) {
+            return addServerModal.showError('Vyplňte prosím všechna pole.');
+        }
+
+        // Validace IPv4 adresy (dobrovolná, ale praktická pojistka)
+        const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+        // Můžeš upravit regex, pokud chceš povolit i domény (např. mujserver.cz)
+        // if (!ipRegex.test(ip) && !ip.includes('.cz') && !ip.includes('.com')) { ... }
+
+        addServerModal.hideError();
+
+        const payload = { name, ip, api_key };
+        
+        const submitBtn = document.getElementById('addServerSubmit');
+        const originalBtnText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
+        submitBtn.disabled = true;
+
+        try {
+            // Odeslání na endpoint (který si za chvíli vytvoříme)
+            const response = await fetch('/api/servers/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || 'Nepodařilo se přidat server.');
+            }
+
+            console.log("Server přidán:", result.result);
+            
+            addServerModal.clear();
+            addServerModal.close();
+
+            // Zde bys měl zavolat funkci pro obnovení dat - např. znovunačtení <select> 
+            // nabídky v modalu pro příkazy, aby se tam nový server hned ukázal!
+            // refreshServerSelect(); 
+
+        } catch (error) {
+            console.error("Chyba:", error);
+            addServerModal.showError(error.message);
+        } finally {
+            submitBtn.innerHTML = originalBtnText;
+            submitBtn.disabled = false;
+        }
+    });
+}
