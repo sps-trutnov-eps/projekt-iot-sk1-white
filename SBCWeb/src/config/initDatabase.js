@@ -97,7 +97,8 @@ function initDB() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       server_id INTEGER NOT NULL,
       name TEXT NOT NULL,
-      command TEXT NOT NULL,
+      type TEXT NOT NULL DEFAULT 'shell', -- PŘIDÁNO: 'shell' nebo 'wol'
+      command TEXT NOT NULL, -- Zde bude buď bash skript, nebo MAC adresa
       created_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (server_id) REFERENCES servers(id) ON DELETE CASCADE
     )
