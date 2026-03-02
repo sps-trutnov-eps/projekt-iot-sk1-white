@@ -9,5 +9,5 @@ router.get('/', ServerController.renderServer);
 router.get('/all', ServerController.getAll);       // cesta: GET /server/all
 router.post('/add', ServerController.create);      // cesta: POST /server/add
 router.delete('/:id', ServerController.delete);    // cesta: DELETE /server/1
-
+router.put('/edit/:id', ServerController.update);
 module.exports = router;

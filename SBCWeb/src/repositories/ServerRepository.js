@@ -34,6 +34,12 @@ class ServerRepository {
         const result = db.prepare(query).run(id);
         return result.changes > 0;
     }
+
+    static update(id, data) {
+        const query = `UPDATE servers SET name = ?, ip = ?, api_key = ?, type = ? WHERE id = ?`;
+        const result = db.prepare(query).run(data.name, data.ip, data.api_key, data.type, id);
+        return result.changes > 0;
+    }
 }
 
 module.exports = ServerRepository;

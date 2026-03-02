@@ -56,6 +56,14 @@ class ServerService {
         
         return ServerRepository.delete(id);
     }
+
+    static updateServer(id, data) {
+        if (!data.name || !data.ip) throw new Error('Název a IP jsou povinné.');
+        return ServerRepository.update(id, {
+            name: data.name, ip: data.ip, api_key: data.api_key || null, type: data.type || 'server'
+        });
+    }
+
 }
 
 module.exports = ServerService;

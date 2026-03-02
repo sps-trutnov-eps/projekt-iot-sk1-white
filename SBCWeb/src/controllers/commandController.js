@@ -51,6 +51,22 @@ class CommandController {
             res.status(400).json({ success: false, message: error.message });
         }
     }
+
+    static async update(req, res) {
+        try {
+            const id = req.params.id;
+            CommandService.updateCommand(id, req.body);
+            res.status(200).json({ 
+                success: true, 
+                message: 'Příkaz úspěšně upraven.' 
+            });
+        } catch (error) {
+            res.status(400).json({ 
+                success: false, 
+                message: error.message 
+            });
+        }
+    }
 }
 
 module.exports = CommandController;

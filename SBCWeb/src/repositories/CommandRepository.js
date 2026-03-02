@@ -44,6 +44,12 @@ class CommandRepository {
         const result = db.prepare(query).run(id);
         return result.changes > 0; // Vrací true, pokud byl záznam smazán
     }
+
+    static update(id, data) {
+        const query = `UPDATE commands SET name = ?, type = ?, command = ? WHERE id = ?`;
+        const result = db.prepare(query).run(data.name, data.type, data.command, id);
+        return result.changes > 0;
+    }
 }
 
 module.exports = CommandRepository;

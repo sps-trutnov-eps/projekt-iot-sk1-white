@@ -1,6 +1,15 @@
 // public/js/pages/servers/serverManager.js
 
-// Místo spinneru ukážeme "Skeleton loader" (obrys budoucí karty)
+// Globální proměnná pro uchování aktuálních dat (využívá ji modalManager.js pro editaci)
+export let currentServersData = [];
+
+// Helper pro bezpečné vložení textu s apostrofy do onclick atributů
+function escapeQuotes(str) {
+    if (!str) return '';
+    return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+// Skeleton loader - zobrazí se při načítání dat
 function showLoadingState() {
     const container = document.getElementById('servers-container');
     if (container) {
@@ -65,6 +74,7 @@ function showErrorOrEmptyState(message, subMessage) {
     }
 }
 
+// Hlavní funkce pro načtení a vykreslení serverů
 export async function loadServers(isBackground = false) {
     const container = document.getElementById('servers-container');
     if (!container) return;
@@ -74,23 +84,25 @@ export async function loadServers(isBackground = false) {
     }
 
     try {
-        const response = await fetch('/server/all');
+        const response = await fetch('/server/all'); 
         
-        // Pokud API vrací 404/500, vyhodíme rovnou error
         if (!response.ok) throw new Error("API server neodpověděl správně.");
 
         const result = await response.json();
         
         if (result.success && result.data && result.data.length > 0) {
+            currentServersData = result.data; // Uložení do globální paměti pro modály
             container.innerHTML = ''; 
             
             result.data.forEach(server => {
                 const isOnline = (server.status === 'online' || server.status === 1);
                 const isDatabase = (server.type === 'database');
                 
+                // --- Generování příkazů ---
                 let commandsHtml = '';
                 if (server.commands && server.commands.length > 0) {
                     server.commands.forEach(cmd => {
+                        const safeCmdName = escapeQuotes(cmd.name);
                         commandsHtml += `
                             <div class="group relative bg-white border border-ash-grey-200 rounded-xl p-5 hover:border-vintage-grape-400 transition-all shadow-sm hover:shadow-md cursor-pointer flex flex-col justify-between min-h-[130px]" data-cmd-id="${cmd.id}">
                                 <div class="flex items-center gap-4">
@@ -103,9 +115,15 @@ export async function loadServers(isBackground = false) {
                                     ${cmd.value}
                                 </p>
                                 <div class="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button class="p-1.5 bg-white text-silver-500 hover:text-vintage-grape-600 rounded border border-ash-grey-200 shadow-sm" title="Spustit" onclick="window.runCommand(${cmd.id})"><i class="fas fa-play text-xs"></i></button>
-                                    <button class="p-1.5 bg-white text-silver-500 hover:text-vintage-grape-600 rounded border border-ash-grey-200" title="Upravit"><i class="fas fa-edit text-xs"></i></button>
-                                    <button class="p-1.5 bg-white text-silver-500 hover:text-red-500 rounded border border-ash-grey-200" title="Smazat"><i class="fas fa-trash text-xs"></i></button>
+                                    <button class="p-1.5 bg-white text-silver-500 hover:text-vintage-grape-600 rounded border border-ash-grey-200 shadow-sm" title="Spustit" onclick="window.runCommand(${cmd.id})">
+                                        <i class="fas fa-play text-xs"></i>
+                                    </button>
+                                    <button class="p-1.5 bg-white text-silver-500 hover:text-vintage-grape-600 rounded border border-ash-grey-200" title="Upravit" onclick="window.openEditCommandModal(${server.id}, ${cmd.id})">
+                                        <i class="fas fa-edit text-xs"></i>
+                                    </button>
+                                    <button class="p-1.5 bg-white text-silver-500 hover:text-red-500 rounded border border-ash-grey-200" title="Smazat" onclick="window.openDeleteModal(${cmd.id}, 'command', '${safeCmdName}')">
+                                        <i class="fas fa-trash text-xs"></i>
+                                    </button>
                                 </div>
                             </div>
                         `;
@@ -118,6 +136,8 @@ export async function loadServers(isBackground = false) {
                     `;
                 }
 
+                // --- Generování celého bloku serveru ---
+                const safeServerName = escapeQuotes(server.name);
                 const serverHtml = `
                     <div class="server-block" data-id="${server.id}">
                         <div class="bg-white rounded-t-xl shadow-sm border border-ash-grey-200 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
@@ -143,10 +163,10 @@ export async function loadServers(isBackground = false) {
                                 <button onclick="window.openAddCommandModal(${server.id})" class="flex-1 md:flex-none px-4 py-2 bg-vintage-grape-50 border border-vintage-grape-200 text-vintage-grape-700 font-semibold rounded-lg hover:bg-vintage-grape-100 transition-colors shadow-sm flex items-center justify-center gap-2" title="Nová akce">
                                     <i class="fas fa-plus"></i> Nová akce
                                 </button>
-                                <button class="flex-none px-4 py-2 bg-white border border-ash-grey-300 text-midnight-violet-900 font-semibold rounded-lg hover:bg-ash-grey-50 transition-colors shadow-sm" title="Upravit server">
+                                <button onclick="window.openEditServerModal(${server.id})" class="flex-none px-4 py-2 bg-white border border-ash-grey-300 text-midnight-violet-900 font-semibold rounded-lg hover:bg-ash-grey-50 transition-colors shadow-sm" title="Upravit server">
                                     <i class="fas fa-pen text-silver-400"></i>
                                 </button>
-                                <button class="flex-none px-4 py-2 bg-white border border-red-200 text-red-600 font-semibold rounded-lg hover:bg-red-50 transition-colors shadow-sm" title="Smazat server">
+                                <button onclick="window.openDeleteModal(${server.id}, 'server', '${safeServerName}')" class="flex-none px-4 py-2 bg-white border border-red-200 text-red-600 font-semibold rounded-lg hover:bg-red-50 transition-colors shadow-sm" title="Smazat server">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
                             </div>
@@ -164,15 +184,13 @@ export async function loadServers(isBackground = false) {
             });
 
         } else if (result.success && (!result.data || result.data.length === 0)) {
-            // Prázdný seznam z databáze
+            currentServersData = [];
             showErrorOrEmptyState("Zatím tu nic není", "Seznam serverů je prázdný. Přidej svůj první server přes tlačítko v levém menu.");
         } else {
-            // API vrátilo success: false
             showErrorOrEmptyState("Data se nepodařilo načíst", result.message || "Server hlásí neznámou chybu.");
         }
     } catch (error) {
         console.error("Chyba loadServers:", error);
-        // Spadne fetch (např. server offline)
         showErrorOrEmptyState("Chyba při komunikaci", "Nepodařilo se připojit k backendu. Zkontrolujte připojení nebo zkuste obnovit stránku.");
     }
 }
