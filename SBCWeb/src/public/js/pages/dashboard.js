@@ -116,3 +116,51 @@ function renderCommands() {
 }
 
 renderCommands();
+
+
+/*********************************************
+        Modal pro commandy
+ *********************************************/
+
+        // 1. Zaregistrujeme modal pod názvem "addCommand"
+const addCommandModal = Modal.register('addCommand');
+
+// 2. Extra napojení (volitelné): Máš tam ještě kartičku "Přidat novou zkratku" s id="addCommandCard".
+// Tvoje třída Modal bere defaultně jen id="addCommandOpen", takže kartičku napojíme ručně:
+
+const addCommandCardBtn = document.getElementById('addCommandCard');
+
+if (addCommandCardBtn && addCommandModal) {
+    addCommandCardBtn.addEventListener('click', addCommandModal.open);
+    addCommandCardBtn.addEventListener('click', console.log("klik"));
+    
+}
+
+// 3. Logika uložení formuláře
+if (addCommandModal && addCommandModal.form) {
+    addCommandModal.form.addEventListener('submit', (e) => {
+        e.preventDefault(); // Zabráníme znovunačtení stránky
+        
+        // Získáme data z formuláře
+        const formData = new FormData(addCommandModal.form);
+        const server = formData.get('server');
+        const name = formData.get('name');
+        const command = formData.get('command');
+
+        // Jednoduchá validace s využitím tvojí chybové hlášky!
+        if (!server || !name || !command) {
+            addCommandModal.showError('Vyplňte prosím všechna pole.');
+            return;
+        }
+
+        // Tady by následoval fetch() pro odeslání na server...
+        console.log("Odesílám data na server:", { server, name, command });
+
+        // Simulace úspěšného uložení
+        // Zde bys např. zavolal funkci renderCommands() z předchozího řešení
+        
+        // Vyčistíme a zavřeme
+        addCommandModal.clear();
+        addCommandModal.close();
+    });
+}

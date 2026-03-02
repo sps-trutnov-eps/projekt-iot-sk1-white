@@ -1,0 +1,56 @@
+<div id="addCommandModal" class="fixed inset-0 z-50 flex items-center justify-center bg-midnight-violet-900/40 backdrop-blur-sm hidden transition-opacity">
+  
+  <div class="bg-white rounded-xl shadow-xl w-full max-w-lg border border-ash-grey-200 overflow-hidden">
+    
+    <div class="flex items-center justify-between px-6 py-4 border-b border-ash-grey-100 bg-silver-50">
+      <h3 class="text-lg font-bold text-midnight-violet-900 flex items-center gap-2">
+        <i class="fas fa-terminal text-vintage-grape-600"></i>
+        Přidat nový příkaz
+      </h3>
+      <button id="addCommandClose" class="text-ash-grey-400 hover:text-red-500 transition-colors">
+        <i class="fas fa-times text-lg"></i>
+      </button>
+    </div>
+
+    <div class="p-6">
+      <div id="addCommandError" class="hidden mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2 text-red-600">
+        <i class="fas fa-exclamation-circle mt-0.5"></i>
+        <p class="text-sm font-medium"></p>
+      </div>
+
+      <form id="addCommandForm" class="space-y-4">
+        
+        <div>
+          <label for="serverSelect" class="block text-sm font-semibold text-midnight-violet-900 mb-1">Server</label>
+          <select id="serverSelect" name="server" class="w-full px-4 py-2 bg-silver-50 border border-ash-grey-200 rounded-lg text-sm text-midnight-violet-900 focus:outline-none focus:border-vintage-grape-400 focus:ring-1 focus:ring-vintage-grape-400 transition-all">
+            <option value="" disabled selected>Vyberte server...</option>
+            <option value="debian-main">Debian Server (Main)</option>
+            <option value="ubuntu-db">Ubuntu Database</option>
+            <option value="centos-web">CentOS WebServer</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="commandName" class="block text-sm font-semibold text-midnight-violet-900 mb-1">Název akce</label>
+          <input type="text" id="commandName" name="name" placeholder="např. Restart Apache" class="w-full px-4 py-2 bg-silver-50 border border-ash-grey-200 rounded-lg text-sm text-midnight-violet-900 focus:outline-none focus:border-vintage-grape-400 focus:ring-1 focus:ring-vintage-grape-400 transition-all">
+        </div>
+
+        <div>
+          <label for="commandCode" class="block text-sm font-semibold text-midnight-violet-900 mb-1">Příkaz (Shell)</label>
+          <textarea id="commandCode" name="command" rows="3" placeholder="sudo systemctl restart apache2" class="w-full px-4 py-2 bg-silver-50 border border-ash-grey-200 rounded-lg text-sm font-mono text-ash-grey-600 focus:outline-none focus:border-vintage-grape-400 focus:ring-1 focus:ring-vintage-grape-400 transition-all resize-none"></textarea>
+        </div>
+
+      </form>
+    </div>
+
+    <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-ash-grey-100 bg-silver-50">
+      <button id="addCommandCancel" type="button" class="px-4 py-2 text-sm font-semibold text-ash-grey-600 hover:text-midnight-violet-900 hover:bg-ash-grey-100 rounded-lg transition-all">
+        Zrušit
+      </button>
+      <button id="addCommandSubmit" type="submit" form="addCommandForm" class="px-5 py-2 text-sm font-semibold text-white bg-vintage-grape-600 hover:bg-vintage-grape-700 rounded-lg shadow-sm transition-all flex items-center gap-2">
+        <i class="fas fa-save"></i> Uložit příkaz
+      </button>
+    </div>
+
+  </div>
+</div>
