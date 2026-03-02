@@ -32,6 +32,8 @@ const typeRoutes = require('./src/routes/typeRouter');
 const sensorRoutes = require('./src/routes/sensorRouter');
 const readingRoutes = require('./src/routes/readingRouter');
 const eventRoutes = require('./src/routes/eventRouter');
+const serverRoutes = require('./src/routes/serverRouter');
+const commandRoutes = require('./src/routes/commandRouter');
 
 app.use('/', indexRoutes);
 app.use('/mcu', MCURoutes)
@@ -39,7 +41,8 @@ app.use('/type', typeRoutes);
 app.use('/sensor', sensorRoutes);
 app.use('/readings', readingRoutes);
 app.use('/event', eventRoutes);
-
+app.use('/server', serverRoutes);
+app.use('/command', commandRoutes);
 
 WebSocketHandler.init(io); 
 
