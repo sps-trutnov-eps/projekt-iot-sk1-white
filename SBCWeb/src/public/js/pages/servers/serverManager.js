@@ -74,7 +74,7 @@ export async function loadServers(isBackground = false) {
     }
 
     try {
-        const response = await fetch('/api/servers'); 
+        const response = await fetch('/server/all');
         
         // Pokud API vrací 404/500, vyhodíme rovnou error
         if (!response.ok) throw new Error("API server neodpověděl správně.");

@@ -81,13 +81,15 @@ function initDB() {
     )
   `);
 
-
+  // --- OPRAVENÁ TABULKA SERVERS ---
   db.exec(`
     CREATE TABLE IF NOT EXISTS servers (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       ip TEXT NOT NULL,
-      api_key TEXT NOT NULL,
+      api_key TEXT, -- OPRAVA: Odstraněno NOT NULL, aby fungovalo jako volitelné
+      type TEXT DEFAULT 'server', -- PŘIDÁNO: Rozlišení DB vs normální server
+      is_online INTEGER DEFAULT 0, -- PŘIDÁNO: Sledování online/offline stavu
       created_at TEXT DEFAULT (datetime('now'))
     )
   `);
