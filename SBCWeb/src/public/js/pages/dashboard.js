@@ -73,3 +73,46 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn('[Dashboard] Ztraceno spojení se serverem.');
     });
 });
+
+
+/*******************************************
+    Vykreslování kartiček příkazů
+*******************************************/
+
+
+const commands = [
+  { id: 1, title: "Restart Apache", cmd: "sudo systemctl restart apache2", icon: "fa-sync", iconColor: "text-blue-500" },
+  { id: 2, title: "Vyčistit logy", cmd: "sudo journalctl --vacuum-time=1d", icon: "fa-broom", iconColor: "text-yellow-600" },
+  { id: 3, title: "Update Systému", cmd: "sudo apt update && sudo apt upgrade -y", icon: "fa-download", iconColor: "text-green-600" },
+  { id: 5, title: "Update Systému", cmd: "sudo apt update && sudo apt upgrade -y", icon: "fa-download", iconColor: "text-green-600" }
+];
+
+function renderCommands() {
+  const grid = document.getElementById('commandsGrid');
+  
+  const cardsHtml = commands.map(item => `
+    <div class="group relative bg-silver-50 border border-ash-grey-200 rounded-xl p-5 hover:border-vintage-grape-400 transition-all shadow-sm hover:shadow-md cursor-pointer flex flex-col justify-between min-h-[130px]">
+      <div class="flex items-center gap-4">
+        <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm shrink-0">
+          <i class="fas ${item.icon} text-sm ${item.iconColor}"></i>
+        </div>
+        <span class="font-bold text-midnight-violet-900 text-base truncate">${item.title}</span>
+      </div>
+      <p class="mt-4 text-[11px] font-mono text-ash-grey-500 truncate bg-ash-grey-100 px-3 py-2 rounded border border-ash-grey-200">${item.cmd}</p>
+      
+      <div class="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button onclick="editCmd(${item.id})" class="p-1.5 bg-white text-silver-500 hover:text-vintage-grape-600 rounded border border-ash-grey-200"><i class="fas fa-edit text-xs"></i></button>
+        <button onclick="deleteCmd(${item.id})" class="p-1.5 bg-white text-silver-500 hover:text-red-500 rounded border border-ash-grey-200"><i class="fas fa-trash text-xs"></i></button>
+      </div>
+    </div>
+  `).join('');
+
+  grid.innerHTML = cardsHtml + `
+    <button id="addCommandCard" class="flex flex-col items-center justify-center p-6 border-2 border-dashed border-ash-grey-200 rounded-xl text-ash-grey-400 hover:border-vintage-grape-300 hover:text-vintage-grape-400 transition-all min-h-[130px] group">
+      <i class="fas fa-plus-circle text-2xl mb-2 group-hover:scale-110 transition-transform"></i>
+      <span class="text-xs font-bold uppercase tracking-wider">Přidat novou zkratku</span>
+    </button>
+  `;
+}
+
+renderCommands();
