@@ -1,4 +1,4 @@
-const MCUService = require('../services/MCUService');
+const MCUService = require('../services/mcuService');
 const SensorService = require('../services/SensorService');
 const SocketService = require('../sockets/socketService');
 const ReadingRepository = require('../repositories/ReadingRepository'); 
@@ -19,47 +19,6 @@ class MeasurementService {
         }, 60000); 
 
         // NOVÉ: Spuštění našeho rychlého hlídače spojení
-        this.startWatchdog();
-    }
-
-    /**
-     * NOVÉ: Hlídá, jestli se MCU odmlčelo (běží každých 5 vteřin)
-     */
-    static startWatchdog() {
-        console.log('[MeasurementService] Startuji watchdog pro kontrolu komunikace (Passive 20s / Offline 40s)...');
-        
-        setInterval(() => {
-            const now = Date.now();
-            
-            for (const [mcuId, state] of Object.entries(this.mcuStates)) {
-                const diffMs = now - state.lastSeen;
-                let newStatus = state.status;
-
-                // Vyhodnocení stavů podle tvých limitů
-                if (diffMs >= 40000) {
-                    newStatus = 0; // Offline
-                } else if (diffMs >= 20000) {
-                    newStatus = 2; // Passive
-                }
-
-                // Pokud se stav změnil, aktualizujeme ho a dáme vědět frontendu
-                if (newStatus !== state.status) {
-                    state.status = newStatus;
-                    
-                    // Odeslání nového stavu přes Socket.io do prohlížečů
-                    if (SocketService.io) {
-                        SocketService.io.emit('mcu_status', { 
-                            mcuId: mcuId, 
-                            status: newStatus, 
-                            lastSeen: new Date(state.lastSeen).toISOString() 
-                        });
-                    }
-
-                    // TIP: Zde můžeš volitelně zavolat i update do DB, pokud potřebuješ mít stav 2/0 zapsaný okamžitě
-                    // např.: MCUService.updateStatus(mcuId, newStatus);
-                }
-            }
-        }, 1000); // Kontrola každých 5 vteřin
     }
 
     /**
