@@ -136,6 +136,24 @@ if (addCommandCardBtn && addCommandModal) {
     
 }
 
+// Elementy pro přepínání
+const commandTypeSelect = document.getElementById('commandType');
+const shellWrapper = document.getElementById('shellInputWrapper');
+const wolWrapper = document.getElementById('wolInputWrapper');
+
+if (commandTypeSelect) {
+    commandTypeSelect.addEventListener('change', (e) => {
+        if (e.target.value === 'wol') {
+            shellWrapper.classList.add('hidden');
+            wolWrapper.classList.remove('hidden');
+        } else {
+            wolWrapper.classList.add('hidden');
+            shellWrapper.classList.remove('hidden');
+        }
+    });
+}
+
+
 // 3. Logika uložení formuláře
 if (addCommandModal && addCommandModal.form) {
     addCommandModal.form.addEventListener('submit', (e) => {

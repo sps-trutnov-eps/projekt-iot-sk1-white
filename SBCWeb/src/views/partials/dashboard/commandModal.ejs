@@ -36,8 +36,21 @@
         </div>
 
         <div>
+          <label for="commandType" class="block text-sm font-semibold text-midnight-violet-900 mb-1">Typ akce</label>
+          <select id="commandType" name="type" class="w-full px-4 py-2 bg-silver-50 border border-ash-grey-200 rounded-lg text-sm text-midnight-violet-900 focus:outline-none focus:border-vintage-grape-400 focus:ring-1 focus:ring-vintage-grape-400 transition-all">
+            <option value="shell" selected>Příkaz (Shell)</option>
+            <option value="wol">Wake on LAN (Magic Packet)</option>
+          </select>
+        </div>
+
+        <div id="shellInputWrapper">
           <label for="commandCode" class="block text-sm font-semibold text-midnight-violet-900 mb-1">Příkaz (Shell)</label>
           <textarea id="commandCode" name="command" rows="3" placeholder="sudo systemctl restart apache2" class="w-full px-4 py-2 bg-silver-50 border border-ash-grey-200 rounded-lg text-sm font-mono text-ash-grey-600 focus:outline-none focus:border-vintage-grape-400 focus:ring-1 focus:ring-vintage-grape-400 transition-all resize-none"></textarea>
+        </div>
+
+        <div id="wolInputWrapper" class="hidden">
+          <label for="macAddress" class="block text-sm font-semibold text-midnight-violet-900 mb-1">MAC adresa zařízení</label>
+          <input type="text" id="macAddress" name="macAddress" placeholder="např. 00:1A:2B:3C:4D:5E" class="w-full px-4 py-2 bg-silver-50 border border-ash-grey-200 rounded-lg text-sm font-mono text-ash-grey-600 focus:outline-none focus:border-vintage-grape-400 focus:ring-1 focus:ring-vintage-grape-400 transition-all">
         </div>
 
       </form>
