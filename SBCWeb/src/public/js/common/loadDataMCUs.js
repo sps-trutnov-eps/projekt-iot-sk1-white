@@ -34,6 +34,7 @@ export async function fetchData(url) {
   }
 }
 
+// ... [funkce populateSelector zůstává beze změny] ...
 export function populateSelector(selectorId, typesArray) {
   const selectElement = document.getElementById(selectorId);
   if (!selectElement) return;
@@ -59,12 +60,52 @@ export function populateSelector(selectorId, typesArray) {
   });
 }
 
+// Funkce pro skeleton načítání MCU karet
+export function showMcuLoadingState() {
+  const grid = document.getElementById('mcuGrid');
+  if (!grid) return;
+  
+  // Vygenerujeme 3 skeleton karty pod sebou
+  grid.innerHTML = Array(3).fill(`
+      <div class="mcu-card bg-white rounded-lg shadow-sm border border-ash-grey-200 mb-4 animate-pulse"> 
+        <div class="flex items-center p-4">
+          <div class="flex items-center space-x-4">
+            <div class="w-12 h-12 bg-ash-grey-200 rounded-xl"></div>
+            <div class="min-w-[140px] space-y-2">
+              <div class="h-4 bg-ash-grey-200 rounded w-24"></div>
+              <div class="h-3 bg-ash-grey-100 rounded w-16"></div>
+            </div>
+          </div>
+          <div class="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-1 mx-6">
+            <div class="h-4 bg-ash-grey-100 rounded w-20"></div>
+            <div class="h-4 bg-ash-grey-100 rounded w-32 hidden lg:block"></div>
+            <div class="h-4 bg-ash-grey-100 rounded w-16"></div>
+            <div class="h-4 bg-ash-grey-100 rounded w-20"></div>
+          </div>
+          <div class="flex items-center space-x-2">
+            <div class="w-9 h-9 bg-ash-grey-100 rounded-lg"></div>
+            <div class="w-9 h-9 bg-ash-grey-100 rounded-lg"></div>
+          </div>
+        </div>
+      </div>
+  `).join('');
+}
+
 export function renderMCUGrid(mcusArray) {
   const grid = document.getElementById('mcuGrid');
   if (!grid) return;
 
-  if (!mcusArray.length) {
-    grid.innerHTML = '<div class="text-center text-silver-500 py-8">Žádné MCU nebyly nalezeny.</div>';
+  // Prázdný stav s INBOX ikonou
+  if (!mcusArray || !mcusArray.length) {
+    grid.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-20 text-center">
+            <div class="w-24 h-24 bg-ash-grey-100 rounded-full flex items-center justify-center mb-5 text-ash-grey-400 shadow-inner">
+                <i class="fas fa-inbox text-4xl"></i>
+            </div>
+            <h2 class="text-xl font-bold text-midnight-violet-900">Zatím tu nic není</h2>
+            <p class="text-ash-grey-500 mt-2 max-w-sm">Nebylo nalezeno žádné MCU zařízení. Přidejte své první zařízení kliknutím na tlačítko v levém menu.</p>
+        </div>
+    `;
     return;
   }
 
@@ -95,8 +136,8 @@ export function renderMCUGrid(mcusArray) {
         statusColor = 'bg-green-400';
         pulseEffect = 'animate-pulse';
     } else if (statusVal === 2) {
-        dataStatus = 'frozen'; // Sjednoceno s tvým data-filter="frozen"
-        statusDisplay = 'Passive'; // Sjednoceno s tvým HTML
+        dataStatus = 'frozen'; 
+        statusDisplay = 'Passive'; 
         timeColorClass = 'text-yellow-600 font-medium'; 
         statusColor = 'bg-yellow-400'; 
         pulseEffect = '';
@@ -183,13 +224,17 @@ export function renderMCUGrid(mcusArray) {
 }
 
 export async function refreshMCUs() {
+    // Ukázat skeleton před načtením dat
+    showMcuLoadingState(); 
+    
     const mcus = await fetchData('/mcu/mcus');
-    if (mcus) renderMCUGrid(mcus);
+    renderMCUGrid(mcus || []); // Ošetření pro null (zobrazí se INBOX)
     
     if (typeof applyFilters === 'function') {
         applyFilters();
     }
 }
+
 
 export function dedupeTypes(typesArray) {
   const seen = new Set();

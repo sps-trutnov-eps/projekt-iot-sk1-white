@@ -1,3 +1,4 @@
+const ping = require('ping');
 const SocketService = require('../sockets/socketService');
 const EventService = require('../services/EventService');
 
@@ -6,6 +7,97 @@ const MCURepository = require('../repositories/MCURepository');
 
 class MCUService {
     
+    /**
+     * Spustí nekonečnou smyčku pro kontrolu stavu MCU (Watchdog)
+     */
+    static startStatusMonitor() {
+        console.log('[MONITOR] Startuji hlídače stavu MCU (Ping/Timeout)...');
+        
+        setInterval(async () => {
+            try {
+                const allMcus = MCURepository.findAll();
+                const now = Date.now(); // Aktuální čas v milisekundách
+
+                for (const mcu of allMcus) {
+                    let dbTime = mcu.lastSeen;
+                    let lastSeenTime = 0;
+                    
+                    if (dbTime) {
+                        if (typeof dbTime === 'string') {
+                            dbTime = dbTime.replace(' ', 'T');
+                            // OPRAVA ČASOVÉ ZÓNY: Přidáme Z, pokud tam není, aby to Node bral jako UTC z DB
+                            if (!dbTime.endsWith('Z')) {
+                                dbTime += 'Z'; 
+                            }
+                        }
+                        const parsedDate = new Date(dbTime);
+                        if (!isNaN(parsedDate)) {
+                            lastSeenTime = parsedDate.getTime();
+                        }
+                    }
+
+                    // Výpočet skutečného zpoždění
+                    const diffMs = now - lastSeenTime;
+                    
+                    let currentState = mcu.is_online !== undefined ? mcu.is_online : (mcu.isOnline || 0);
+                    const targetIp = mcu.ipAddress || mcu.ip_address;
+                    let newStatus = currentState;
+
+                    // Pokud nemáme data víc jak 20 vteřin
+                    // Pokud MCU nedalo žádná MQTT data déle než 20 vteřin
+                    if (diffMs > 20000) {
+                        
+                        // Přidán .trim() pro odstranění případných neviditelných mezer
+                        const cleanIp = targetIp ? String(targetIp).trim() : null;
+
+                        if (!cleanIp) {
+                            console.log(`[MONITOR DEBUG] MCU ${mcu.name} nemá IP adresu! Odesílám do Offline.`);
+                            newStatus = 0; 
+                        } else {
+                            try {
+                                console.log(`[MONITOR DEBUG] Zkouším propingnout MCU ${mcu.name} na čisté IP: '${cleanIp}'`);
+                                
+                                // Volání pingu
+                                const pingRes = await ping.promise.probe(cleanIp, { timeout: 2 });
+                                
+                                // Vypíšeme si KOMPLETNÍ odpověď z knihovny
+                                console.log(`[MONITOR DEBUG] Kompletní odpověď pingu pro ${cleanIp}:`, pingRes);
+                                
+                                if (pingRes.alive) {
+                                    newStatus = 2; // Odpovídá na ping = Passive
+                                    console.log(`[MONITOR DEBUG] -> Vyhodnoceno jako PASSIVE`);
+                                } else {
+                                    newStatus = 0; // Zcela mrtvé = Offline
+                                    console.log(`[MONITOR DEBUG] -> Vyhodnoceno jako OFFLINE (pingRes.alive je false)`);
+                                }
+                            } catch (e) {
+                                console.error(`[MONITOR ERROR] Ping na ${cleanIp} hodil výjimku/chybu:`, e.message);
+                                newStatus = 0;
+                            }
+                        }
+                    } else {
+                        newStatus = 1; // Máme data mladší než 20s = Online
+                    }
+
+                    // Pokud se stav změnil
+                    if (newStatus !== currentState) {
+                        console.log(`[MONITOR] MCU ${mcu.name} (IP: ${targetIp}) změnil stav: ${currentState} -> ${newStatus} (Rozdíl času: ${Math.round(diffMs/1000)}s)`);
+                        
+                        MCURepository.updateOnlineStatus(mcu.id, newStatus);
+                        
+                        if (SocketService.io) {
+                            SocketService.broadcastMcuStatus(mcu.id, mcu.lastSeen, newStatus);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('[MONITOR CHYBA]', error);
+            }
+        }, 10000); // Necháme běžet každých 10 vteřin
+    }
+
+
+
     /**
      * Ověří zařízení podle API klíče.
      * Volá to MeasurementService při příjmu dat.

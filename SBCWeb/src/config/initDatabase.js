@@ -81,8 +81,44 @@ function initDB() {
     )
   `);
 
-}
+  // --- OPRAVENÁ TABULKA SERVERS ---
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS servers (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      ip TEXT NOT NULL,
+      api_key TEXT, -- OPRAVA: Odstraněno NOT NULL, aby fungovalo jako volitelné
+      type TEXT DEFAULT 'server', -- PŘIDÁNO: Rozlišení DB vs normální server
+      is_online INTEGER DEFAULT 0, -- PŘIDÁNO: Sledování online/offline stavu
+      created_at TEXT DEFAULT (datetime('now'))
+    )
+  `);
 
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS commands (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      server_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      type TEXT NOT NULL DEFAULT 'shell', -- PŘIDÁNO: 'shell' nebo 'wol'
+      command TEXT NOT NULL, -- Zde bude buď bash skript, nebo MAC adresa
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (server_id) REFERENCES servers(id) ON DELETE CASCADE
+    )
+  `);
+
+    db.exec(`
+    CREATE TABLE IF NOT EXISTS command_history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      command_id INTEGER NOT NULL,
+      status TEXT NOT NULL,
+      output TEXT,
+      error_output TEXT,
+      executed_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (command_id) REFERENCES commands(id) ON DELETE CASCADE
+    )
+  `);
+
+}
 initDB();
 
 console.log('Databáze inicializována (s kaskádovým mazáním)');

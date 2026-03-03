@@ -73,3 +73,176 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn('[Dashboard] Ztraceno spojení se serverem.');
     });
 });
+
+
+/*******************************************
+    Vykreslování kartiček příkazů
+*******************************************/
+
+
+const commands = [
+  { id: 1, title: "Restart Apache", cmd: "sudo systemctl restart apache2", icon: "fa-sync", iconColor: "text-blue-500" },
+  { id: 2, title: "Vyčistit logy", cmd: "sudo journalctl --vacuum-time=1d", icon: "fa-broom", iconColor: "text-yellow-600" },
+  { id: 3, title: "Update Systému", cmd: "sudo apt update && sudo apt upgrade -y", icon: "fa-download", iconColor: "text-green-600" },
+  { id: 5, title: "Update Systému", cmd: "sudo apt update && sudo apt upgrade -y", icon: "fa-download", iconColor: "text-green-600" }
+];
+
+function renderCommands() {
+  const grid = document.getElementById('commandsGrid');
+  
+  const cardsHtml = commands.map(item => `
+    <div class="group relative bg-silver-50 border border-ash-grey-200 rounded-xl p-5 hover:border-vintage-grape-400 transition-all shadow-sm hover:shadow-md cursor-pointer flex flex-col justify-between min-h-[130px]">
+      <div class="flex items-center gap-4">
+        <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm shrink-0">
+          <i class="fas ${item.icon} text-sm ${item.iconColor}"></i>
+        </div>
+        <span class="font-bold text-midnight-violet-900 text-base truncate">${item.title}</span>
+      </div>
+      <p class="mt-4 text-[11px] font-mono text-ash-grey-500 truncate bg-ash-grey-100 px-3 py-2 rounded border border-ash-grey-200">${item.cmd}</p>
+      
+      <div class="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button onclick="editCmd(${item.id})" class="p-1.5 bg-white text-silver-500 hover:text-vintage-grape-600 rounded border border-ash-grey-200"><i class="fas fa-edit text-xs"></i></button>
+        <button onclick="deleteCmd(${item.id})" class="p-1.5 bg-white text-silver-500 hover:text-red-500 rounded border border-ash-grey-200"><i class="fas fa-trash text-xs"></i></button>
+      </div>
+    </div>
+  `).join('');
+
+  grid.innerHTML = cardsHtml + `
+    <button id="addCommandCard" class="flex flex-col items-center justify-center p-6 border-2 border-dashed border-ash-grey-200 rounded-xl text-ash-grey-400 hover:border-vintage-grape-300 hover:text-vintage-grape-400 transition-all min-h-[130px] group">
+      <i class="fas fa-plus-circle text-2xl mb-2 group-hover:scale-110 transition-transform"></i>
+      <span class="text-xs font-bold uppercase tracking-wider">Přidat novou zkratku</span>
+    </button>
+  `;
+}
+
+renderCommands();
+
+
+/*********************************************
+        Modal pro commandy
+ *********************************************/
+
+        // 1. Zaregistrujeme modal pod názvem "addCommand"
+const addCommandModal = Modal.register('addCommand');
+
+// 2. Extra napojení (volitelné): Máš tam ještě kartičku "Přidat novou zkratku" s id="addCommandCard".
+// Tvoje třída Modal bere defaultně jen id="addCommandOpen", takže kartičku napojíme ručně:
+
+const addCommandCardBtn = document.getElementById('addCommandCard');
+
+if (addCommandCardBtn && addCommandModal) {
+    addCommandCardBtn.addEventListener('click', addCommandModal.open);
+    addCommandCardBtn.addEventListener('click', console.log("klik"));
+    
+}
+
+// Elementy pro přepínání
+const commandTypeSelect = document.getElementById('commandType');
+const shellWrapper = document.getElementById('shellInputWrapper');
+const wolWrapper = document.getElementById('wolInputWrapper');
+
+if (commandTypeSelect) {
+    commandTypeSelect.addEventListener('change', (e) => {
+        if (e.target.value === 'wol') {
+            shellWrapper.classList.add('hidden');
+            wolWrapper.classList.remove('hidden');
+        } else {
+            wolWrapper.classList.add('hidden');
+            shellWrapper.classList.remove('hidden');
+        }
+    });
+}
+
+
+// 3. Logika uložení formuláře
+if (addCommandModal && addCommandModal.form) {
+    addCommandModal.form.addEventListener('submit', (e) => {
+        e.preventDefault(); // Zabráníme znovunačtení stránky
+        
+        // Získáme data z formuláře
+        const formData = new FormData(addCommandModal.form);
+        const server = formData.get('server');
+        const name = formData.get('name');
+        const command = formData.get('command');
+
+        // Jednoduchá validace s využitím tvojí chybové hlášky!
+        if (!server || !name || !command) {
+            addCommandModal.showError('Vyplňte prosím všechna pole.');
+            return;
+        }
+
+        // Tady by následoval fetch() pro odeslání na server...
+        console.log("Odesílám data na server:", { server, name, command });
+
+        // Simulace úspěšného uložení
+        // Zde bys např. zavolal funkci renderCommands() z předchozího řešení
+        
+        // Vyčistíme a zavřeme
+        addCommandModal.clear();
+        addCommandModal.close();
+    });
+}
+
+// Registrace modalu (pokud přidáš tlačítko s id="addServerOpen", napojí se samo)
+const addServerModal = Modal.register('addServer');
+
+if (addServerModal && addServerModal.form) {
+    addServerModal.form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(addServerModal.form);
+        const name = formData.get('name');
+        const ip = formData.get('ip');
+        const api_key = formData.get('api_key');
+
+        // Jednoduchá validace
+        if (!name || !ip || !api_key) {
+            return addServerModal.showError('Vyplňte prosím všechna pole.');
+        }
+
+        // Validace IPv4 adresy (dobrovolná, ale praktická pojistka)
+        const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+        // Můžeš upravit regex, pokud chceš povolit i domény (např. mujserver.cz)
+        // if (!ipRegex.test(ip) && !ip.includes('.cz') && !ip.includes('.com')) { ... }
+
+        addServerModal.hideError();
+
+        const payload = { name, ip, api_key };
+        
+        const submitBtn = document.getElementById('addServerSubmit');
+        const originalBtnText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
+        submitBtn.disabled = true;
+
+        try {
+            // Odeslání na endpoint (který si za chvíli vytvoříme)
+            const response = await fetch('/api/servers/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || 'Nepodařilo se přidat server.');
+            }
+
+            console.log("Server přidán:", result.result);
+            
+            addServerModal.clear();
+            addServerModal.close();
+
+            // Zde bys měl zavolat funkci pro obnovení dat - např. znovunačtení <select> 
+            // nabídky v modalu pro příkazy, aby se tam nový server hned ukázal!
+            // refreshServerSelect(); 
+
+        } catch (error) {
+            console.error("Chyba:", error);
+            addServerModal.showError(error.message);
+        } finally {
+            submitBtn.innerHTML = originalBtnText;
+            submitBtn.disabled = false;
+        }
+    });
+}

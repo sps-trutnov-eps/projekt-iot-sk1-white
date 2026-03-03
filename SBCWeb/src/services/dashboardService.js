@@ -1,4 +1,4 @@
-const MCUService = require('./MCUService');
+const MCUService = require('./mcuService');
 const SensorService = require('./SensorService');
 const MeasurementService = require('./MeasurementService');
 const EventService = require('./EventService');

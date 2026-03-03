@@ -1,0 +1,26 @@
+<%- include('partials/servers/head') %>
+<%- include('partials/servers/sidebar') %>
+
+<div id="mainContent" class="lg:ml-64 transition-all duration-300">
+  <%- include('partials/servers/header') %>
+
+  <main id="servers-container" class="p-6 max-w-7xl mx-auto space-y-10">
+    <div class="flex justify-center py-20">
+       <i class="fas fa-spinner fa-spin text-3xl text-vintage-grape-600"></i>
+    </div>
+  </main>
+</div>
+
+<%- include('partials/servers/addServerModal') %>
+<%- include('partials/servers/addCommandModal') %>
+
+<%- include('partials/servers/editCommandModal') %>
+<%- include('partials/servers/editServerModal') %>
+
+<%- include('partials/servers/deleteModal') %>
+
+<script src="/js/components/modals.js"></script>
+
+<script type="module" src="/js/pages/servers/main.js"></script>
+
+<%- include('partials/servers/footer') %>

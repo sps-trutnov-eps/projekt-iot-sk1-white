@@ -1,5 +1,47 @@
+// pages/mcuDetail/sensorManager.js
 import { getMcuId, getSensorStyle, translateType } from './utils.js';
-// import { updateChart } from './chartManager.js';
+
+function showSensorsLoadingState(listContainer, cardsContainer) {
+    // Levé menu (seznam senzorů)
+    listContainer.innerHTML = Array(3).fill(`
+        <div class="flex items-center justify-between px-3 py-2.5 border-b border-ash-grey-50 animate-pulse">
+            <div class="flex items-center gap-2 w-full">
+                <div class="w-6 h-6 rounded bg-ash-grey-200 shrink-0"></div>
+                <div class="flex flex-col space-y-1 w-full">
+                    <div class="h-3 bg-ash-grey-200 rounded w-16"></div>
+                    <div class="h-2 bg-ash-grey-100 rounded w-12"></div>
+                </div>
+            </div>
+            <div class="flex gap-1">
+                <div class="w-6 h-6 rounded bg-ash-grey-100"></div>
+                <div class="w-6 h-6 rounded bg-ash-grey-100"></div>
+            </div>
+        </div>
+    `).join('');
+
+    // Hlavní plocha (karty kanálů)
+    cardsContainer.innerHTML = Array(4).fill(`
+        <div class="bg-white rounded-xl border border-ash-grey-200 p-5 shadow-sm min-h-[140px] animate-pulse">
+            <div class="flex justify-between items-start mb-4 mt-1">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-ash-grey-100"></div>
+                    <div class="space-y-1">
+                        <div class="h-3 bg-ash-grey-200 rounded w-20"></div>
+                        <div class="h-2 bg-ash-grey-100 rounded w-12"></div>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <div class="w-6 h-6 rounded bg-ash-grey-100"></div>
+                    <div class="w-6 h-6 rounded bg-ash-grey-100"></div>
+                </div>
+            </div>
+            <div class="mt-4 flex items-baseline gap-1.5">
+                <div class="h-8 bg-ash-grey-200 rounded w-16"></div>
+                <div class="h-4 bg-ash-grey-100 rounded w-6"></div>
+            </div>
+        </div>
+    `).join('');
+}
 
 export async function loadSensors(isBackground = false) {
     const listContainer = document.getElementById('sensorListContainer');
@@ -8,7 +50,7 @@ export async function loadSensors(isBackground = false) {
     if (!listContainer || !cardsContainer) return;
 
     if (!isBackground) {
-        listContainer.innerHTML = '<div class="p-4 text-center text-xs text-gray-400"><i class="fas fa-spinner fa-spin"></i></div>';
+        showSensorsLoadingState(listContainer, cardsContainer);
     }
 
     try {
@@ -19,6 +61,8 @@ export async function loadSensors(isBackground = false) {
         if (data.success && data.sensors && data.sensors.length > 0) {
             listContainer.innerHTML = '';
             cardsContainer.innerHTML = '';
+
+            let hasAnyChannels = false;
 
             data.sensors.forEach(sensor => {
                 const sensorHtml = `
@@ -44,7 +88,8 @@ export async function loadSensors(isBackground = false) {
                 
                 listContainer.insertAdjacentHTML('beforeend', sensorHtml);
 
-                if (sensor.channels && Array.isArray(sensor.channels)) {
+                if (sensor.channels && Array.isArray(sensor.channels) && sensor.channels.length > 0) {
+                    hasAnyChannels = true;
                     sensor.channels.forEach(channel => {
                         const style = getSensorStyle(channel.type);
                         const translated = translateType(channel.type);
@@ -89,12 +134,37 @@ export async function loadSensors(isBackground = false) {
                 }
             });
 
+            // Co když senzory existují, ale nemají vůbec žádné kanály?
+            if (!hasAnyChannels) {
+                cardsContainer.innerHTML = `
+                    <div class="col-span-full flex items-center justify-center p-6 border-2 border-dashed border-ash-grey-200 rounded-xl text-ash-grey-400 bg-white/50 min-h-[160px]">
+                        <span class="text-xs font-semibold">U senzorů zatím nebyly vytvořeny žádné kanály.</span>
+                    </div>`;
+            }
+
         } else {
-            listContainer.innerHTML = '<div class="p-8 text-center text-[10px] text-silver-400 italic">Žádné senzory</div>';
-            cardsContainer.innerHTML = '<div class="col-span-2 py-10 text-center text-silver-400">Zatím nebyl přidán žádný senzor.</div>';
+            // Prázdný stav
+            listContainer.innerHTML = `
+                <div class="p-8 flex flex-col items-center justify-center text-silver-400">
+                    <i class="fas fa-microchip mb-2 text-xl opacity-50"></i>
+                    <p class="text-[10px] italic">Zatím bez senzorů</p>
+                </div>`;
+            
+            cardsContainer.innerHTML = `
+                <div class="col-span-full flex flex-col items-center justify-center py-16 text-center">
+                    <div class="w-16 h-16 bg-ash-grey-100 rounded-full flex items-center justify-center mb-4 text-ash-grey-300">
+                        <i class="fas fa-inbox text-2xl"></i>
+                    </div>
+                    <p class="text-sm font-bold text-ash-grey-500">Senzory nenalezeny</p>
+                    <p class="text-xs text-ash-grey-400 mt-1">Zaregistrujte do tohoto zařízení první senzor.</p>
+                </div>`;
         }
     } catch (e) { 
         console.error("Chyba loadSensors:", e);
-        listContainer.innerHTML = '<div class="p-4 text-red-500 text-[10px]">Chyba načítání</div>';
+        listContainer.innerHTML = '<div class="p-4 text-center text-red-500 text-[10px] font-medium">Chyba načítání</div>';
+        cardsContainer.innerHTML = `
+            <div class="col-span-full py-10 text-center">
+                <p class="text-red-400 text-sm font-medium"><i class="fas fa-exclamation-triangle mr-2"></i>Chyba při stahování dat senzorů</p>
+            </div>`;
     }
 }
