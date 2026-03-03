@@ -4,6 +4,17 @@ import time
 import dht
 import machine
 import math
+import network
+import json
+from umqtt.simple import MQTTClient
+
+# --- NASTAVENÍ SÍTĚ A MQTT ---
+WIFI_SSID = "Vincent"
+WIFI_PASSWORD = "password"
+MQTT_BROKER_IP = "172.20.10.13"  # Doplň IP adresu svého RPi 4
+MQTT_PORT = 1883
+CLIENT_ID = "mcu_kuba_kancl"
+TOPIC_COMMANDS = "server/commands"
 
 # --- NASTAVENÍ PINŮ ---
 # I2C pro OLED
@@ -39,6 +50,70 @@ edit_mode = False
 current_index = 0
 scroll_delta = 0
 button_pressed = False
+
+# --- PŘIPOJENÍ K WIFI A MQTT ---
+def connect_wifi_and_mqtt():
+    global mqtt_client
+    oled.fill(0)
+    oled.text("Pripojuji WiFi..", 0, 20, 1)
+    oled.show()
+    
+    wlan = network.WLAN(network.STA_IF)
+    wlan.active(True)
+    wlan.connect(WIFI_SSID, WIFI_PASSWORD)
+    
+    max_wait = 10
+    while max_wait > 0:
+        if wlan.status() < 0 or wlan.status() >= 3:
+            break
+        max_wait -= 1
+        time.sleep(1)
+        
+    if wlan.status() != 3:
+        oled.fill(0)
+        oled.text("WiFi Chyba!", 0, 20, 1)
+        oled.show()
+        time.sleep(2)
+        return False
+        
+    oled.fill(0)
+    oled.text("WiFi OK", 0, 10, 1)
+    oled.text("Pripojuji MQTT..", 0, 30, 1)
+    oled.show()
+    
+    try:
+        mqtt_client = MQTTClient(CLIENT_ID, MQTT_BROKER_IP, port=MQTT_PORT)
+        mqtt_client.connect()
+        oled.text("MQTT OK", 0, 50, 1)
+        oled.show()
+        time.sleep(1)
+        return True
+    except Exception as e:
+        oled.fill(0)
+        oled.text("MQTT Chyba!", 0, 20, 1)
+        oled.show()
+        time.sleep(2)
+        return False
+
+def send_mqtt_command(command_id):
+    """Sestaví JSON podle tvého protokolu a odešle ho"""
+    if not mqtt_client:
+        return False
+        
+    payload = {
+        "sender_id": CLIENT_ID,
+        "message_id": time.time(),
+        "action": "execute",
+        "command_id": command_id
+    }
+    
+    try:
+        json_data = json.dumps(payload)
+        mqtt_client.publish(TOPIC_COMMANDS, json_data)
+        return True
+    except Exception as e:
+        print("Chyba odesilani MQTT:", e)
+        return False
 
 # --- LOGIKA ENKODÉRU ---
 last_clk = clk.value()
@@ -265,6 +340,21 @@ def perform_action(item_name):
         
     elif item_name == "Jas Displeje":
         change_brightness()
+
+    # --- TENTO NOVÝ BLOK PŘIDEJ ---
+    elif item_name == "Informace o sys":
+        oled.fill(0)
+        oled.text("Odesilam...", 10, 30, 1)
+        oled.show()
+        
+        # Odeslání příkazu na RPi 4
+        if send_mqtt_command("cmd_uptime"):
+            oled.text("OK!", 10, 50, 1)
+        else:
+            oled.text("Chyba!", 10, 50, 1)
+        oled.show()
+        time.sleep(1.5)
+    # ------------------------------
         
     elif item_name == "Restartovat":
         oled.fill(0)
@@ -279,9 +369,10 @@ def perform_action(item_name):
         oled.text("Potvrzeno:", 5, 20, 1)
         oled.text(item_name, 5, 40, 1)
         oled.show()
-        time.sleep(1) 
+        time.sleep(1)
 
 # --- HLAVNÍ SMYČKA ---
+connect_wifi_and_mqtt()
 draw_menu() # Prvotní vykreslení
 
 while True:
@@ -340,3 +431,4 @@ while True:
                     draw_menu()
         
     time.sleep_ms(10) # Malá pauza pro uvolnění CPU
+
