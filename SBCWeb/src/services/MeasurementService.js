@@ -1,3 +1,4 @@
+// services/MeasurementService.js
 const MCUService = require('../services/mcuService');
 const SensorService = require('../services/SensorService');
 const SocketService = require('../sockets/socketService');
@@ -8,8 +9,6 @@ class MeasurementService {
     
     static buffers = {}; 
     static thresholdStates = {};
-    
-    // NOVÉ: Paměť pro rychlé hlídání stavů bez zatěžování databáze
     static mcuStates = {}; 
 
     static startAggregationWorker() {
@@ -17,51 +16,23 @@ class MeasurementService {
         setInterval(() => {
             this.processMinuteAggregation();
         }, 60000); 
-
-        // NOVÉ: Spuštění našeho rychlého hlídače spojení
     }
 
     /**
      * Hlavní metoda volaná z MQTT Controlleru
      */
     static async processPayload(data) {
-        console.log("!!! MQTT DATA DORAZILA DO SERVERU !!!", data)
+        // console.log("!!! MQTT DATA DORAZILA DO SERVERU !!!", data);
         try {
             if (!data.apiKey) return;
             
             const mcu = await MCUService.validateAndGetDevice(data.apiKey);
             if (!mcu) return;
 
-            // Zápis do DB (aktualizuje timestamp)
+            // Zápis do DB (aktualizuje timestamp, nastaví online stav a případně loguje připojení)
             await MCUService.updateLastSeen(mcu.id);
-            console.log("Čas last_seen v databázi byl úspěšně aktualizován pro ID:", mcu.id);
 
-            // NOVÉ: Aktualizace vnitřní paměti pro Watchdog
-            const now = Date.now();
-            const mcuIdStr = String(mcu.id);
-
-            if (!this.mcuStates[mcuIdStr]) {
-                // Pokud MCU vidíme poprvé po startu serveru
-                this.mcuStates[mcuIdStr] = { lastSeen: now, status: 1 };
-            } else {
-                this.mcuStates[mcuIdStr].lastSeen = now;
-                // Pokud bylo MCU předtím Offline (0) nebo Passive (2), "probudíme" ho do Online (1)
-                if (this.mcuStates[mcuIdStr].status !== 1) {
-                    this.mcuStates[mcuIdStr].status = 1;
-                    
-                    if (SocketService.io) {
-                        SocketService.io.emit('mcu_status', { 
-                            mcuId: mcu.id, 
-                            status: 1, 
-                            lastSeen: new Date().toISOString() 
-                        });
-                    }
-                    
-                    // TIP: Stejně tak tady můžeš zavolat MCUService.updateStatus(mcu.id, 1);
-                }
-            }
-
-            // Načtení senzorů (nyní by měly obsahovat i min_value a max_value)
+            // Načtení senzorů (včetně min_value a max_value)
             const sensors = await SensorService.getSensorsByDevice(mcu.id);
 
             const keyMap = {
@@ -95,7 +66,7 @@ class MeasurementService {
                 if (targetChannel) {
                     const parsedValue = parseFloat(value);
                     
-                    // --- NOVÁ LOGIKA: KONTROLA THRESHOLDŮ ---
+                    // --- KONTROLA THRESHOLDŮ (ALERTŮ) ---
                     this.checkThreshold(mcu.id, targetChannel, parsedValue);
 
                     // A) Uložit do bufferu pro minutový průměr DB
@@ -115,10 +86,12 @@ class MeasurementService {
      * Zkontroluje, zda hodnota překročila limity, a uloží to do DB pouze jednou (dokud se nevrátí do normálu)
      */
     static checkThreshold(mcuId, channel, value) {
+        // Pokud nemá kanál nastavené žádné limity, nic se neděje
         if (channel.min_value === null && channel.max_value === null) return;
 
         const channelId = channel.id;
         
+        // Inicializace paměti pro daný kanál, abychom nespamovali logy každou vteřinu
         if (!this.thresholdStates[channelId]) {
             this.thresholdStates[channelId] = { isExceeded: false };
         }
@@ -127,33 +100,41 @@ class MeasurementService {
         let isCurrentlyExceeded = false;
         let reason = "";
 
+        // Kontrola minima
         if (channel.min_value !== null && value < channel.min_value) {
             isCurrentlyExceeded = true;
-            reason = `klesla pod limitní minimum (${channel.min_value} ${channel.unit || ''})`;
-        } else if (channel.max_value !== null && value > channel.max_value) {
+            reason = `klesla na ${value} ${channel.unit || ''} (Limit: min ${channel.min_value} ${channel.unit || ''})`;
+        } 
+        // Kontrola maxima
+        else if (channel.max_value !== null && value > channel.max_value) {
             isCurrentlyExceeded = true;
-            reason = `stoupla nad limitní maximum (${channel.max_value} ${channel.unit || ''})`;
+            reason = `stoupla na ${value} ${channel.unit || ''} (Limit: max ${channel.max_value} ${channel.unit || ''})`;
         }
 
+        // Pokud to PRÁVĚ TEĎ překročilo limit a předtím to bylo OK
         if (isCurrentlyExceeded && !state.isExceeded) {
             state.isExceeded = true;
-            this.logEvent(mcuId, 'alert', `Hodnota ${channel.type} (${value} ${channel.unit || ''}) ${reason}.`);
+            
+            // Voláme PŘÍMO EventService pro uložení a rozeslání notifikace
+            EventService.logEvent(
+                mcuId, 
+                'alert', 
+                `Kritická hodnota! Senzor "${channel.type}" ${reason}.`
+            );
+            
+            console.log(`[ALERT] MCU ${mcuId} | ${channel.type} překročil limit!`);
         } 
+        // Pokud se to PRÁVĚ TEĎ vrátilo do normálu a předtím to hlásilo chybu
         else if (!isCurrentlyExceeded && state.isExceeded) {
             state.isExceeded = false;
-            this.logEvent(mcuId, 'info', `Hodnota ${channel.type} se úspěšně vrátila do normálu (${value} ${channel.unit || ''}).`);
-        }
-    }
-
-    /**
-     * Pomocná metoda pro zápis rovnou do tabulky event_logs
-     */
-    static logEvent(mcuId, type, message) {
-        try {
-            EventService.logEvent(mcuId, type, message);
-            console.log(`[EVENT LOG] MCU ${mcuId} | ${type.toUpperCase()}: ${message}`);
-        } catch (e) {
-            console.error("Chyba při zápisu do event_logs přes EventService:", e);
+            
+            EventService.logEvent(
+                mcuId, 
+                'info', 
+                `Hodnota senzoru "${channel.type}" se úspěšně vrátila do normálu (${value} ${channel.unit || ''}).`
+            );
+            
+            console.log(`[ALERT VYŘEŠEN] MCU ${mcuId} | ${channel.type} je zpět v normě.`);
         }
     }
 
@@ -163,7 +144,7 @@ class MeasurementService {
     }
 
     /**
-     * Agregace dat (minuta) - voláno z Controlleru
+     * Agregace dat (minuta) - voláno z Controlleru (nebo Workru)
      */
     static processMinuteAggregation() {
         const SocketService = require('../sockets/socketService');

@@ -104,7 +104,7 @@ export async function loadServers(isBackground = false) {
         // 1. Nastavíme minimální čas zpoždění (např. 500 ms) - ale jen pokud nejsme na pozadí
         const minimumDelay = isBackground 
             ? Promise.resolve() 
-            : new Promise(resolve => setTimeout(resolve, 500));
+            : new Promise(resolve => setTimeout(resolve, 250));
 
         // 2. Spustíme fetch a odpočet času SOUČASNĚ. 
         // Kód bude pokračovat až tehdy, kdy se dokončí OBOJÍ.

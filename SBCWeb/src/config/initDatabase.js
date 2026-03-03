@@ -63,11 +63,13 @@ function initDB() {
   db.exec(`
     CREATE TABLE IF NOT EXISTS event_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      mcu_id INTEGER,
+      mcu_id INTEGER, -- NULL pokud jde o server
+      server_id INTEGER, -- NULL pokud jde o MCU
       type TEXT NOT NULL,
       message TEXT NOT NULL,
       timestamp TEXT DEFAULT (datetime('now')),
-      FOREIGN KEY (mcu_id) REFERENCES mcus(device_id) ON DELETE SET NULL
+      FOREIGN KEY (mcu_id) REFERENCES mcus(device_id) ON DELETE SET NULL,
+      FOREIGN KEY (server_id) REFERENCES servers(id) ON DELETE SET NULL
     )
   `);
 
