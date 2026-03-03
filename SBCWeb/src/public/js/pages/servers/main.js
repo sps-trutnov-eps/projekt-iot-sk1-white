@@ -1,5 +1,5 @@
 // public/js/pages/servers/main.js
-import { loadServers } from './serverManager.js';
+import { loadServers, loadRecentLogs } from './serverManager.js';
 import { runCommand } from './commandManager.js';
 import { 
     openAddServerModal,
@@ -12,6 +12,7 @@ import {
 // Inicializace po načtení DOM
 document.addEventListener('DOMContentLoaded', () => {
     loadServers();
+    loadRecentLogs();
 
     // Pokud chceme otevřít modál pro přidání nového serveru z postranního menu
     const addServerBtn = document.getElementById('addServerOpen');

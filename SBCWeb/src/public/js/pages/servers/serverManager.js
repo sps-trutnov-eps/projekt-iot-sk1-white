@@ -194,3 +194,47 @@ export async function loadServers(isBackground = false) {
         showErrorOrEmptyState("Chyba při komunikaci", "Nepodařilo se připojit k backendu. Zkontrolujte připojení nebo zkuste obnovit stránku.");
     }
 }
+
+export async function loadRecentLogs() {
+    const container = document.getElementById('mini-log-container');
+    if (!container) return;
+
+    try {
+        const response = await fetch('/command/history');
+        const result = await response.json();
+
+        if (result.success && result.data.length > 0) {
+            container.innerHTML = result.data.map(log => {
+                const isSuccess = log.status === 'success';
+                // Barvy upravené pro tvůj tmavý sidebar
+                const iconColor = isSuccess ? 'text-green-400' : 'text-red-400';
+                const bgColor = isSuccess ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20';
+                const icon = isSuccess ? 'fa-check' : 'fa-times';
+                
+                const date = new Date(log.executed_at.replace(' ', 'T') + 'Z');
+                const timeStr = date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+
+                return `
+                    <div class="flex gap-3 items-start group">
+                        <div class="w-7 h-7 rounded-full ${bgColor} border flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+                            <i class="fas ${icon} text-[10px] ${iconColor}"></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <p class="text-[12px] font-semibold text-ash-grey-50 leading-tight truncate" title="${log.command_name}">${log.command_name}</p>
+                            <p class="text-[10px] text-ash-grey-400 font-medium truncate">${log.server_name} • ${timeStr}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            container.innerHTML = `
+                <div class="text-center py-6 opacity-60">
+                    <i class="fas fa-history text-ash-grey-500 text-2xl mb-2 block"></i>
+                    <span class="text-[11px] text-ash-grey-400 font-medium">Zatím žádná historie</span>
+                </div>
+            `;
+        }
+    } catch (e) {
+        container.innerHTML = `<p class="text-[10px] text-red-400/80 text-center bg-red-900/20 p-2 rounded border border-red-900/50">Chyba načítání historie.</p>`;
+    }
+}
