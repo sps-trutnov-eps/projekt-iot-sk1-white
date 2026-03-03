@@ -9,7 +9,23 @@ function escapeQuotes(str) {
     return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 }
 
-// Skeleton loader - zobrazí se při načítání dat
+// Pomocná funkce pro přepočet čísel v sidebaru
+function updateStatistics(servers) {
+    const total = servers.length;
+    // Počítáme online servery (zohledňujeme různé formáty dat - isOnline, is_online nebo status)
+    const online = servers.filter(s => s.status === 'online' || s.isOnline === 1 || s.is_online === 1).length;
+    const offline = total - online;
+
+    const statOnline = document.getElementById('stat-online');
+    const statOffline = document.getElementById('stat-offline');
+    const statTotal = document.getElementById('stat-total');
+
+    if (statOnline) statOnline.innerText = online;
+    if (statOffline) statOffline.innerText = offline;
+    if (statTotal) statTotal.innerText = total;
+}
+
+// Skeleton loader - zobrazí se při načítání dat v hlavní části
 function showLoadingState() {
     const container = document.getElementById('servers-container');
     if (container) {
@@ -92,10 +108,14 @@ export async function loadServers(isBackground = false) {
         
         if (result.success && result.data && result.data.length > 0) {
             currentServersData = result.data; // Uložení do globální paměti pro modály
+            
+            // ---> PŘEPOČET STATISTIK V SIDEBARU <---
+            updateStatistics(currentServersData);
+            
             container.innerHTML = ''; 
             
             result.data.forEach(server => {
-                const isOnline = (server.status === 'online' || server.status === 1);
+                const isOnline = (server.status === 'online' || server.status === 1 || server.isOnline === 1 || server.is_online === 1);
                 const isDatabase = (server.type === 'database');
                 
                 // --- Generování příkazů ---
@@ -112,7 +132,7 @@ export async function loadServers(isBackground = false) {
                                     <span class="font-bold text-midnight-violet-900 text-base truncate">${cmd.name}</span>
                                 </div>
                                 <p class="mt-4 text-[11px] font-mono text-ash-grey-500 truncate bg-ash-grey-50 px-3 py-2 rounded border border-ash-grey-100">
-                                    ${cmd.value}
+                                    ${cmd.value || cmd.command}
                                 </p>
                                 <div class="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button class="p-1.5 bg-white text-silver-500 hover:text-vintage-grape-600 rounded border border-ash-grey-200 shadow-sm" title="Spustit" onclick="window.runCommand(${cmd.id})">
@@ -185,16 +205,20 @@ export async function loadServers(isBackground = false) {
 
         } else if (result.success && (!result.data || result.data.length === 0)) {
             currentServersData = [];
+            updateStatistics([]); // Vynulování statistik
             showErrorOrEmptyState("Zatím tu nic není", "Seznam serverů je prázdný. Přidej svůj první server přes tlačítko v levém menu.");
         } else {
+            updateStatistics([]); // Vynulování statistik
             showErrorOrEmptyState("Data se nepodařilo načíst", result.message || "Server hlásí neznámou chybu.");
         }
     } catch (error) {
         console.error("Chyba loadServers:", error);
+        updateStatistics([]); // Vynulování statistik
         showErrorOrEmptyState("Chyba při komunikaci", "Nepodařilo se připojit k backendu. Zkontrolujte připojení nebo zkuste obnovit stránku.");
     }
 }
 
+// Funkce pro načítání mini-logů v tmavém sidebaru
 export async function loadRecentLogs() {
     const container = document.getElementById('mini-log-container');
     if (!container) return;
@@ -206,12 +230,12 @@ export async function loadRecentLogs() {
         if (result.success && result.data.length > 0) {
             container.innerHTML = result.data.map(log => {
                 const isSuccess = log.status === 'success';
-                // Barvy upravené pro tvůj tmavý sidebar
+                // Tmavé barvy pro sidebar design
                 const iconColor = isSuccess ? 'text-green-400' : 'text-red-400';
                 const bgColor = isSuccess ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20';
                 const icon = isSuccess ? 'fa-check' : 'fa-times';
                 
-                const date = new Date(log.executed_at.replace(' ', 'T') + 'Z');
+                const date = new Date(log.executed_at.replace(' ', 'T') + (log.executed_at.includes('Z') ? '' : 'Z'));
                 const timeStr = date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
 
                 return `
@@ -220,8 +244,8 @@ export async function loadRecentLogs() {
                             <i class="fas ${icon} text-[10px] ${iconColor}"></i>
                         </div>
                         <div class="overflow-hidden">
-                            <p class="text-[12px] font-semibold text-ash-grey-50 leading-tight truncate" title="${log.command_name}">${log.command_name}</p>
-                            <p class="text-[10px] text-ash-grey-400 font-medium truncate">${log.server_name} • ${timeStr}</p>
+                            <p class="text-[12px] font-semibold text-ash-grey-50 leading-tight truncate" title="${escapeQuotes(log.command_name)}">${escapeQuotes(log.command_name)}</p>
+                            <p class="text-[10px] text-ash-grey-400 font-medium truncate">${escapeQuotes(log.server_name)} • ${timeStr}</p>
                         </div>
                     </div>
                 `;
