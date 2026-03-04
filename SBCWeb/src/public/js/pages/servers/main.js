@@ -29,3 +29,4 @@ window.openAddCommandModal = openAddCommandModal;
 window.openEditServerModal = openEditServerModal;
 window.openEditCommandModal = openEditCommandModal;
 window.openDeleteModal = openDeleteModal;
+

@@ -52,13 +52,11 @@ class SocketService {
         };
 
         // Pošleme to do detailu konkrétního MCU
-        if (mcuId) {
-            this.io.to(`mcu_${mcuId}`).emit('new_event', payload);
-        }
-
+        
         // Pokud je to varování nebo alert, pošleme to všem (i na hlavní dashboard)
-        if (type === 'alert' || type === 'warn') {
+        if (type === 'alert' || type === 'warning' || type === 'info') {
             this.io.emit('global_alert', payload);
+            console.log("emmit");
         }
     }
 }
