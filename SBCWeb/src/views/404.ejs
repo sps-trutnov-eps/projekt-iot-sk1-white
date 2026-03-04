@@ -3,22 +3,45 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= title %></title>
+  <title><%= title || 'Stránka nenalezena | IoT Control' %></title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'ash-grey': {'50':'#f2f3f1','100':'#e6e7e4','200':'#ccd0c8','300':'#b3b8ad','400':'#9aa092','500':'#808877','600':'#676d5f','700':'#4d5247','800':'#33372f','900':'#1a1b18','950':'#121311'},
+            'vintage-grape': {'50':'#f3f0f4','100':'#e7e2e9','200':'#cfc4d4','300':'#b7a7be','400':'#a08aa8','500':'#886c93','600':'#6d5775','700':'#514158','800':'#362b3b','900':'#1b161d','950':'#130f15'},
+            'midnight-violet': {'50':'#f3eff5','100':'#e8e0eb','200':'#d0c1d7','300':'#b9a2c3','400':'#a183af','500':'#8a639c','600':'#6e507c','700':'#533c5d','800':'#37283e','900':'#1c141f','950':'#130e16'}
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center">
-  <div class="max-w-md mx-auto px-4">
-    <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-12 text-center">
-      <div class="w-20 h-20 bg-gradient-to-br from-red-400 to-pink-500 rounded-2xl flex items-center justify-center text-white text-4xl mx-auto mb-6">
-        ⚠️
+<body class="bg-ash-grey-50 min-h-screen flex items-center justify-center font-sans antialiased">
+  
+  <div class="max-w-md mx-auto px-4 w-full">
+    <div class="bg-white rounded-2xl shadow-xl border border-ash-grey-200 p-10 md:p-12 text-center">
+      
+      <div class="w-20 h-20 bg-gradient-to-br from-midnight-violet-500 to-vintage-grape-600 rounded-2xl flex items-center justify-center text-white text-4xl mx-auto mb-6 shadow-lg">
+        <i class="fas fa-ghost"></i>
       </div>
-      <h1 class="text-6xl font-bold bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent mb-4">404</h1>
-      <h2 class="text-2xl font-semibold text-slate-800 mb-3">Stránka nenalezena</h2>
-      <p class="text-slate-500 mb-8">Omlouváme se, požadovaná stránka neexistuje.</p>
-      <a href="/" class="inline-block px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg font-medium shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transform hover:-translate-y-0.5 transition">
+      
+      <h1 class="text-6xl font-black text-midnight-violet-900 mb-4 tracking-tight">404</h1>
+      <h2 class="text-2xl font-bold text-midnight-violet-800 mb-3">Stránka nenalezena</h2>
+      <p class="text-ash-grey-500 font-medium mb-8 leading-relaxed">
+        Omlouváme se, ale zřejmě jste zabloudili. Požadovaná stránka neexistuje nebo byla přesunuta.
+      </p>
+      
+      <a href="/dashboard" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-vintage-grape-600 text-white rounded-lg font-semibold shadow-md hover:bg-vintage-grape-700 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 w-full sm:w-auto">
+        <i class="fas fa-arrow-left"></i>
         Zpět na Dashboard
       </a>
+      
     </div>
   </div>
+
 </body>
 </html>
