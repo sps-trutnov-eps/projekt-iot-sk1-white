@@ -51,5 +51,10 @@ class EventRepository {
     return row ? row.count : 0;
     }
 
+    static deleteAll() {
+    const result = db.prepare(`DELETE FROM event_logs`).run();
+    return result.changes; 
+    }
+
 }
 module.exports = EventRepository;
