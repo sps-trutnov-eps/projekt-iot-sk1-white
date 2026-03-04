@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nastavení | IoT Control</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css"> 
+</head>
+<body class="bg-ash-grey-50 text-midnight-violet-900 font-sans antialiased flex h-screen overflow-hidden">
+
+    <%- include('partials/sidebar') %>
+
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto lg:ml-64 transition-all duration-300 relative z-10">
+        
+        <header class="bg-white border-b border-ash-grey-200 px-8 py-5 flex items-center justify-between sticky top-0 z-20 shadow-sm">
+            <div>
+                <h1 class="text-2xl font-black text-midnight-violet-900">Nastavení systému</h1>
+                <p class="text-sm text-silver-500 font-medium mt-1">Konfigurace backendu a uživatelského prostředí</p>
+            </div>
+            <button id="saveSettingsBtn" class="px-6 py-2.5 bg-vintage-grape-600 hover:bg-vintage-grape-700 text-white text-sm font-semibold rounded-lg shadow-md transition-colors flex items-center gap-2">
+                <i class="fas fa-save"></i> Uložit vše
+            </button>
+        </header>
+
+        <div class="p-8 max-w-4xl mx-auto w-full space-y-8 pb-20">
+
+            <section class="bg-white rounded-xl shadow-sm border border-ash-grey-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-ash-grey-100 bg-silver-50/50 flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-midnight-violet-100 text-midnight-violet-700 flex items-center justify-center">
+                        <i class="fas fa-network-wired"></i>
+                    </div>
+                    <h2 class="text-lg font-bold text-midnight-violet-900">Síť a Komunikace</h2>
+                </div>
+                
+                <div class="p-6 space-y-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-midnight-violet-900 mb-1">IP adresa MQTT Brokeru</label>
+                        <p class="text-xs text-ash-grey-500 mb-2">Adresa, kam se budou odesílat a ze které se budou číst data ze senzorů.</p>
+                        <div class="relative">
+                            <i class="fas fa-wifi absolute left-4 top-1/2 transform -translate-y-1/2 text-silver-400"></i>
+                            <input type="text" id="setting_mqtt_broker_ip" placeholder="např. 192.168.1.150" class="w-full pl-10 pr-4 py-2 bg-white border border-ash-grey-300 rounded-lg text-sm font-mono focus:outline-none focus:border-vintage-grape-500 focus:ring-1 focus:ring-vintage-grape-500 transition-colors">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-midnight-violet-900 mb-1">Interval kontroly MCU (ms)</label>
+                            <p class="text-xs text-ash-grey-500 mb-2">Jak často zjišťovat dostupnost čipů.</p>
+                            <input type="number" id="setting_mcu_ping_interval" placeholder="30000" class="w-full px-4 py-2 bg-white border border-ash-grey-300 rounded-lg text-sm font-mono focus:outline-none focus:border-vintage-grape-500 focus:ring-1 focus:ring-vintage-grape-500 transition-colors">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-midnight-violet-900 mb-1">Interval kontroly Serverů (ms)</label>
+                            <p class="text-xs text-ash-grey-500 mb-2">Jak často odesílat ICMP ping na servery.</p>
+                            <input type="number" id="setting_server_ping_interval" placeholder="60000" class="w-full px-4 py-2 bg-white border border-ash-grey-300 rounded-lg text-sm font-mono focus:outline-none focus:border-vintage-grape-500 focus:ring-1 focus:ring-vintage-grape-500 transition-colors">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-white rounded-xl shadow-sm border border-ash-grey-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-ash-grey-100 bg-silver-50/50 flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-vintage-grape-100 text-vintage-grape-600 flex items-center justify-center">
+                        <i class="fas fa-desktop"></i>
+                    </div>
+                    <h2 class="text-lg font-bold text-midnight-violet-900">Vzhled a Prostředí</h2>
+                </div>
+                
+                <div class="p-6 space-y-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-midnight-violet-900 mb-3">Vzhled rozhraní</label>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            <label class="cursor-pointer relative">
+                                <input type="radio" name="ui_theme" value="light" class="peer sr-only" checked>
+                                <div class="p-4 border-2 border-ash-grey-200 rounded-xl hover:bg-ash-grey-50 peer-checked:border-vintage-grape-500 peer-checked:bg-vintage-grape-50 transition-all text-center">
+                                    <i class="fas fa-sun text-2xl text-amber-500 mb-2"></i>
+                                    <span class="block text-sm font-bold text-midnight-violet-900">Světlý</span>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer relative">
+                                <input type="radio" name="ui_theme" value="dark" class="peer sr-only">
+                                <div class="p-4 border-2 border-ash-grey-200 rounded-xl hover:bg-ash-grey-50 peer-checked:border-vintage-grape-500 peer-checked:bg-vintage-grape-50 transition-all text-center">
+                                    <i class="fas fa-moon text-2xl text-midnight-violet-700 mb-2"></i>
+                                    <span class="block text-sm font-bold text-midnight-violet-900">Tmavý</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-midnight-violet-900 mb-1">Časová zóna pro zobrazení</label>
+                        <p class="text-xs text-ash-grey-500 mb-2">Jak se budou převádět časy z databáze (z nultého poledníku) ve tvém prohlížeči.</p>
+                        <select id="ui_timezone" class="w-full px-4 py-2 bg-white border border-ash-grey-300 rounded-lg text-sm text-midnight-violet-900 focus:outline-none focus:border-vintage-grape-500 transition-colors">
+                            <option value="auto" selected>Automaticky (podle systému)</option>
+                            <option value="Europe/Prague">Středoevropský čas (Praha)</option>
+                            <option value="UTC">Nultý poledník (UTC)</option>
+                            </select>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    </body>
+</html>
