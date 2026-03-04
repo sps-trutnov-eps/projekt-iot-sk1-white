@@ -1,9 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const SettingsController = require('../controllers/settingsController');
+const SettingController = require('../controllers/settingsController');
 
-// Zobrazení HTML stránky (cesta: GET /server/)
-router.get('/', SettingsController.renderSettings);
+// HTML Stránka
+router.get('/', SettingController.renderSettings);
 
+// API Endpointy
+router.get('/get', SettingController.getSettings);
+router.post('/save', SettingController.saveSettings);
 
 module.exports = router;
