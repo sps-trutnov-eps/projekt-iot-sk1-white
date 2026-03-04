@@ -4,6 +4,8 @@ const EventController = require('../controllers/eventController');
 
 router.get('/mcu/:mcuId', EventController.getByMcuId);
 
+router.get('/server/:serverId', EventController.getByServerId);
+
 router.delete('/clear', EventController.clearAll);
 
 router.get('/recent', EventController.getRecent);

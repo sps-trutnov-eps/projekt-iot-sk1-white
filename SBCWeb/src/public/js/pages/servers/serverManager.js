@@ -91,6 +91,7 @@ function showErrorOrEmptyState(message, subMessage) {
 }
 
 // Hlavní funkce pro načtení a vykreslení serverů
+// Hlavní funkce pro načtení a vykreslení serverů
 export async function loadServers(isBackground = false) {
     const container = document.getElementById('servers-container');
     if (!container) return;
@@ -100,7 +101,17 @@ export async function loadServers(isBackground = false) {
     }
 
     try {
-        const response = await fetch('/server/all'); 
+        // 1. Nastavíme minimální čas zpoždění (např. 500 ms) - ale jen pokud nejsme na pozadí
+        const minimumDelay = isBackground 
+            ? Promise.resolve() 
+            : new Promise(resolve => setTimeout(resolve, 250));
+
+        // 2. Spustíme fetch a odpočet času SOUČASNĚ. 
+        // Kód bude pokračovat až tehdy, kdy se dokončí OBOJÍ.
+        const [response] = await Promise.all([
+            fetch('/server/all'),
+            minimumDelay
+        ]);
         
         if (!response.ok) throw new Error("API server neodpověděl správně.");
 
@@ -115,6 +126,7 @@ export async function loadServers(isBackground = false) {
             container.innerHTML = ''; 
             
             result.data.forEach(server => {
+                // ... (zbytek tvého původního kódu pro generování HTML zůstává beze změny)
                 const isOnline = (server.status === 'online' || server.status === 1 || server.isOnline === 1 || server.is_online === 1);
                 const isDatabase = (server.type === 'database');
                 
