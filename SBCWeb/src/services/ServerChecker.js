@@ -1,5 +1,6 @@
 const ping = require('ping');
 const ServerRepository = require('../repositories/ServerRepository');
+const SettingService = require('./SettingsService');
 
 class ServerChecker {
     static async checkAllServers() {
@@ -18,7 +19,6 @@ class ServerChecker {
                 let isOnline = res.alive ? 1 : 0;
 
                 // --- FIX PRO WINDOWS A ČESKOU LOKALIZACI ---
-                // Pokud ping prošel podle exit code, ale text obsahuje chybové hlášky
                 const output = res.output.toLowerCase();
                 if (output.includes('nedostupn') ||      // Cílový hostitel není dostupný
                     output.includes('unreachable') ||    // Destination net unreachable
@@ -36,9 +36,6 @@ class ServerChecker {
                 if (currentStatus !== isOnline) {
                     ServerRepository.updateStatus(server.id, isOnline);
                     console.log(`[ServerChecker] Server ${server.name} (${ipToPing}) změnil stav na: ${isOnline ? 'ONLINE 🟢' : 'OFFLINE 🔴'}`);
-                    
-                    // Odkomentuj si tento řádek, pokud chceš vidět, co Windows reálně odpověděl
-                    // console.log(`[Detail] Výstup pingu: ${res.output.trim()}`);
                 }
             }
         } catch (error) {
@@ -46,12 +43,22 @@ class ServerChecker {
         }
     }
 
-    static start(intervalMs = 60000) {
-        console.log(`[ServerChecker] Spouštím automatický ping serverů každých ${intervalMs / 1000} sekund.`);
-        this.checkAllServers();
-        setInterval(() => {
-            this.checkAllServers();
-        }, intervalMs);
+    static start() {
+        console.log(`[ServerChecker] Spouštím automatický ping serverů (dynamický časovač).`);
+        
+        const runChecker = async () => {
+            // Zjistíme aktuální interval z DB (výchozí 60000 ms = 60s)
+            const intervalMs = Number(SettingService.getSettingValue('mcu_ping_interval', 30000));
+
+            // Spustíme kontrolu a počkáme na dokončení
+            await this.checkAllServers();
+
+            // Naplánujeme další kolo podle aktuálního nastavení
+            setTimeout(runChecker, intervalMs);
+        };
+
+        // Spustíme první iteraci
+        runChecker();
     }
 }
 

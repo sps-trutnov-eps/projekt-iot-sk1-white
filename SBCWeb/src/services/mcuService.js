@@ -1,7 +1,8 @@
 // services/MCUService.js
 const ping = require('ping');
 const SocketService = require('../sockets/socketService');
-const EventService = require('../services/EventService'); // Můžeme nechat, je to ve stejné složce
+const EventService = require('./EventService'); // Můžeme nechat, je to ve stejné složce
+const SettingService = require('./SettingsService'); // Změněno na Service!
 
 const MCU = require('../models/MCU');
 const MCURepository = require('../repositories/MCURepository');
@@ -11,10 +12,17 @@ class MCUService {
     /**
      * Spustí nekonečnou smyčku pro kontrolu stavu MCU (Watchdog)
      */
+/**
+     * Spustí nekonečnou smyčku pro kontrolu stavu MCU (Watchdog) s dynamickým intervalem
+     */
     static startStatusMonitor() {
         console.log('[MONITOR] Startuji hlídače stavu MCU (Ping/Timeout)...');
         
-        setInterval(async () => {
+        // Rekurzivní funkce, která nahrazuje setInterval
+        const runMonitor = async () => {
+            // 1. Zjistíme aktuální interval z DB (výchozí 30000 ms = 30s)
+            const intervalMs = Number(SettingService.getSettingValue('mcu_ping_interval', 30000));
+
             try {
                 const allMcus = MCURepository.findAll();
                 const now = Date.now(); 
@@ -41,7 +49,10 @@ class MCUService {
                     const targetIp = mcu.ipAddress || mcu.ip_address;
                     let newStatus = currentState;
 
-                    if (diffMs > 20000) {
+                    // Timeout práh se nyní dynamicky odvíjí od intervalu
+                    const timeoutThreshold = intervalMs < 20000 ? 20000 : intervalMs;
+
+                    if (diffMs > timeoutThreshold) {
                         const cleanIp = targetIp ? String(targetIp).trim() : null;
 
                         if (!cleanIp) {
@@ -70,7 +81,7 @@ class MCUService {
                             SocketService.broadcastMcuStatus(mcu.id, mcu.lastSeen, newStatus);
                         }
 
-                        // PŘIDÁNO: Logování změny stavu do Eventů
+                        // Logování změny stavu do Eventů
                         let statusText = '';
                         let type = 'info';
                         if (newStatus === 1) { statusText = 'Online'; type = 'info'; }
@@ -83,7 +94,13 @@ class MCUService {
             } catch (error) {
                 console.error('[MONITOR CHYBA]', error);
             }
-        }, 10000); 
+
+            // 2. Naplánujeme další spuštění podle aktuálního DB intervalu!
+            setTimeout(runMonitor, intervalMs);
+        };
+
+        // Spustíme první iteraci ihned
+        runMonitor();
     }
 
     static validateAndGetDevice(apiKey) {
