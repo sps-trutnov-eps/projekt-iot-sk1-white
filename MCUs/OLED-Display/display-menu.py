@@ -35,6 +35,14 @@ sw = Pin(SW_PIN, Pin.IN, Pin.PULL_UP)
 # Senzor teploty (shodné s MQTTsensors.py)
 dht_sensor = dht.DHT11(Pin(14))
 
+# --- TLAČÍTKA RYCHLÉ VOLBY ---
+btn_restart = Pin(18, Pin.IN, Pin.PULL_UP)   # Restart MCU
+btn_shutdown = Pin(19, Pin.IN, Pin.PULL_UP)  # Vypnout Server
+btn_info = Pin(20, Pin.IN, Pin.PULL_UP)      # Info o Sys
+
+# Stav pro dvoufázové potvrzení (bezpečnostní pojistka)
+confirm_state = {"action": None, "time": 0}
+
 # --- DEFINICE MENU ---
 menu_items = [
     {"label": "Mereni Teploty", "visible": True},
@@ -371,11 +379,84 @@ def perform_action(item_name):
         oled.show()
         time.sleep(1)
 
+def check_quick_buttons():
+    """Obsluha 3 hardwarových tlačítek s ochranou proti náhodnému stisku"""
+    global confirm_state
+    now = time.ticks_ms()
+    
+    # 1. RESTART (GPIO 18) - Dvoufázové
+    if btn_restart.value() == 0:
+        print("DEBUG: Stisknuto tlacitko RESTART (GPIO 18)")
+        time.sleep_ms(50) # Debounce
+        if btn_restart.value() == 0:
+            # Pokud už čekáme na potvrzení a stisk je v limitu 3s
+            if confirm_state["action"] == "restart" and time.ticks_diff(now, confirm_state["time"]) < 3000:
+                oled.fill(0)
+                oled.text("RESTARTUJI...", 10, 30, 1)
+                oled.show()
+                time.sleep(1)
+                machine.reset()
+            else:
+                # První stisk - vyžádání potvrzení
+                confirm_state["action"] = "restart"
+                confirm_state["time"] = now
+                oled.fill(0)
+                oled.text("OPRAVDU?", 30, 10, 1)
+                oled.text("Stiskni znovu", 10, 30, 1)
+                oled.text("pro RESTART", 15, 50, 1)
+                oled.show()
+            while btn_restart.value() == 0: time.sleep_ms(10) # Čekání na uvolnění
+            return True
+
+    # 2. VYPNOUT (GPIO 19) - Dvoufázové
+    if btn_shutdown.value() == 0:
+        print("DEBUG: Stisknuto tlacitko SHUTDOWN (GPIO 19)")
+        time.sleep_ms(50)
+        if btn_shutdown.value() == 0:
+            if confirm_state["action"] == "shutdown" and time.ticks_diff(now, confirm_state["time"]) < 3000:
+                oled.fill(0)
+                oled.text("ODESILAM", 30, 20, 1)
+                oled.text("VYPNUTI...", 25, 40, 1)
+                oled.show()
+                send_mqtt_command("cmd_shutdown") # Odešle příkaz na server
+                time.sleep(2)
+                confirm_state["action"] = None
+                draw_menu()
+            else:
+                confirm_state["action"] = "shutdown"
+                confirm_state["time"] = now
+                oled.fill(0)
+                oled.text("OPRAVDU?", 30, 10, 1)
+                oled.text("Stiskni znovu", 10, 30, 1)
+                oled.text("pro VYPNUTI", 15, 50, 1)
+                oled.show()
+            while btn_shutdown.value() == 0: time.sleep_ms(10)
+            return True
+
+    # 3. INFO (GPIO 20) - Okamžitá akce
+    if btn_info.value() == 0:
+        print("DEBUG: Stisknuto tlacitko INFO (GPIO 20)")
+        perform_action("Informace o sys") # Využijeme existující logiku
+        while btn_info.value() == 0: time.sleep_ms(10)
+        draw_menu() # Návrat do menu po akci
+        return True
+
+    # Timeout pro zrušení potvrzovací obrazovky (pokud uživatel nestiskne podruhé)
+    if confirm_state["action"] is not None:
+        if time.ticks_diff(now, confirm_state["time"]) > 3000:
+            confirm_state["action"] = None
+            draw_menu()
+            
+    return False
+
 # --- HLAVNÍ SMYČKA ---
 connect_wifi_and_mqtt()
 draw_menu() # Prvotní vykreslení
 
 while True:
+    # 0. Kontrola rychlých tlačítek
+    check_quick_buttons()
+
     # 1. Zpracování pohybu enkodéru
     if scroll_delta != 0:
         # Zjistíme délku aktuálního seznamu
@@ -431,4 +512,3 @@ while True:
                     draw_menu()
         
     time.sleep_ms(10) # Malá pauza pro uvolnění CPU
-
