@@ -59,6 +59,25 @@ class CommandRepository {
         const result = db.prepare(query).run(isFavoriteStatus ? 1 : 0, id);
         return result.changes > 0;
     }
+
+    // repositories/CommandRepository.js (přidej dovnitř třídy CommandRepository)
+    
+    static getFavorites() {
+        const query = `
+            SELECT c.*, s.name as server_name 
+            FROM commands c
+            LEFT JOIN servers s ON c.server_id = s.id
+            WHERE c.is_favorite = 1
+            ORDER BY c.created_at DESC
+        `;
+        const rows = db.prepare(query).all();
+        
+        return rows.map(row => {
+            const cmd = new Command(row);
+            cmd.server_name = row.server_name;
+            return cmd;
+        });
+    }
 }
 
 module.exports = CommandRepository;

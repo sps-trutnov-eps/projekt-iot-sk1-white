@@ -85,6 +85,24 @@ class CommandController {
             });
         }
     }
+
+    // controllers/CommandController.js (přidej dovnitř třídy CommandController)
+
+    static async getFavorites(req, res) {
+        try {
+            const favorites = CommandService.getFavoriteCommands();
+            res.status(200).json({ 
+                success: true, 
+                data: favorites // Použijeme 'data' aby to bylo konzistentní
+            });
+        } catch (error) {
+            res.status(500).json({ 
+                success: false, 
+                message: 'Chyba serveru při načítání oblíbených příkazů.',
+                error: error.message
+            });
+        }
+    }
 }
 
 module.exports = CommandController;

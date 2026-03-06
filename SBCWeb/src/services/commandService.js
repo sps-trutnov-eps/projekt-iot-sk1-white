@@ -74,6 +74,12 @@ class CommandService {
         // 4. Vrátíme nový stav, aby UI vědělo, jakou ikonu ukázat
         return newStatus === 1; 
     }
+    // services/CommandService.js (přidej dovnitř třídy CommandService)
+
+    static getFavoriteCommands() {
+        return CommandRepository.getFavorites();
+    }
+
 }
 
 module.exports = CommandService;

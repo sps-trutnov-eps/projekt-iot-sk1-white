@@ -2,53 +2,64 @@
  * DASHBOARD.JS - Kompletní správa příkazů, serverů a statistik
  */
 
-// --- 1. PLACEHOLDER DATA ---
-// Ujisti se, že data obsahují 'type' a 'serverId', aby modal věděl, co vybrat.
-const commands = [
-    { id: 1, title: "Restart Apache", cmd: "sudo systemctl restart apache2", type: "shell", serverId: "1", icon: "fa-sync", iconColor: "text-blue-500" },
-    { id: 2, title: "Vyčistit logy", cmd: "sudo journalctl --vacuum-time=1d", type: "shell", serverId: "2", icon: "fa-broom", iconColor: "text-yellow-600" },
-    { id: 3, title: "Probudit NAS", cmd: "00:1A:2B:3C:4D:5E", type: "wol", serverId: "3", icon: "fa-power-off", iconColor: "text-orange-500" }
-];
+// --- 1. GLOBÁLNÍ DATA ---
+// Data už nejsou natvrdo v kódu, budeme je stahovat z API
+let favoriteCommands = [];
+let availableServers = [];
 
-const servers = [
-    { id: "1", name: "Produkční Web" },
-    { id: "2", name: "Záložní DB" },
-    { id: "3", name: "Home Lab" }
-];
+// Helper pro bezpečné vložení textu (např. do smazávacího modalu)
+function escapeQuotes(str) {
+    if (!str) return '';
+    return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
 
-// --- 2. POMOCNÉ FUNKCE (GLOBÁLNÍ) ---
+// --- 2. NAČÍTÁNÍ DAT Z API ---
 
 /**
- * Naplní <select> v editačním modalu dostupnými servery
+ * Načte oblíbené příkazy a servery z backendu a překreslí UI
  */
+async function loadDashboardData() {
+    try {
+        // 1. Načtení oblíbených příkazů
+        const favRes = await fetch('/command/favorites'); // <-- Zkontroluj si, že URL odpovídá tvému routeru
+        const favData = await favRes.json();
+        if (favData.success) {
+            favoriteCommands = favData.data;
+        }
+
+        // 2. Načtení serverů (potřebujeme je do <select> v editačním modalu)
+        const srvRes = await fetch('/server/all');
+        const srvData = await srvRes.json();
+        if (srvData.success) {
+            availableServers = srvData.data;
+        }
+
+        renderCommands();
+    } catch (error) {
+        console.error("Chyba při načítání dat dashboardu:", error);
+    }
+}
+
+// --- 3. POMOCNÉ FUNKCE (GLOBÁLNÍ) ---
+
 function populateServerSelect() {
     const select = document.getElementById('editCommandServer');
     if (!select) return;
-    select.innerHTML = servers.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    // Tady už používáme dynamicky stažené servery
+    select.innerHTML = availableServers.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
 }
 
-/**
- * Hlavní funkce pro otevření editace. 
- * Je vázána na window, aby ji onclick v HTML mohl volat.
- */
 window.handleEditClick = (id) => {
-    console.log("[Edit] Otevírám editaci pro ID:", id);
-    
-    const item = commands.find(c => c.id == id);
-    if (!item) {
-        console.error("[Edit] Příkaz nenalezen!");
-        return;
-    }
+    const item = favoriteCommands.find(c => c.id == id);
+    if (!item) return;
 
     populateServerSelect();
 
-    // Plnění polí podle tvých ID v HTML
     document.getElementById('editCommandId').value = item.id;
-    document.getElementById('editCommandName').value = item.title;
-    document.getElementById('editCommandServer').value = item.serverId || "";
+    document.getElementById('editCommandName').value = item.name;
+    document.getElementById('editCommandServer').value = item.serverId || item.server_id || "";
     document.getElementById('editCommandType').value = item.type || 'shell';
     
-    // Logika zobrazení Shell vs WoL
     const isWol = item.type === 'wol';
     const shellWrapper = document.getElementById('editShellInputWrapper');
     const wolWrapper = document.getElementById('editWolInputWrapper');
@@ -56,23 +67,19 @@ window.handleEditClick = (id) => {
     if (isWol) {
         shellWrapper.classList.add('hidden');
         wolWrapper.classList.remove('hidden');
-        document.getElementById('editCommandMac').value = item.cmd;
+        document.getElementById('editCommandMac').value = item.command;
     } else {
         wolWrapper.classList.add('hidden');
         shellWrapper.classList.remove('hidden');
-        document.getElementById('editCommandValue').value = item.cmd;
+        document.getElementById('editCommandValue').value = item.command;
     }
 
-    // Vyčištění chyb a otevření modalu
     if (window.editModal) {
         window.editModal.clear();
         window.editModal.open();
     }
 };
 
-/**
- * Logika pro smazání
- */
 window.handleDeleteClick = (id, name) => {
     document.getElementById('deleteTargetId').value = id;
     document.getElementById('deleteTargetName').textContent = name;
@@ -82,63 +89,109 @@ window.handleDeleteClick = (id, name) => {
     }
 };
 
-/**
- * Vykreslení kartiček do gridu
- */
+// Funkce pro odebrání z oblíbených přímo z dashboardu
+window.toggleFavOnDashboard = async (event, commandId) => {
+    if (event) event.stopPropagation();
+    
+    // Okamžitě kartičku vizuálně skryjeme pro lepší pocit z UI (Optimistic Update)
+    const card = document.querySelector(`.fav-card[data-cmd-id="${commandId}"]`);
+    if (card) card.style.display = 'none';
+
+    try {
+        const response = await fetch(`/command/${commandId}/favorite`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const result = await response.json();
+        
+        // Načteme nová data pro jistotu
+        if (result.success) loadDashboardData();
+    } catch (e) {
+        console.error("Chyba při odebírání z oblíbených:", e);
+        if (card) card.style.display = 'block'; // Vrátíme ji zpět v případě chyby
+    }
+};
+
+// --- 4. VYKRESLOVÁNÍ ---
+
 function renderCommands() {
     const grid = document.getElementById('commandsGrid');
     if (!grid) return;
     
-    const cardsHtml = commands.map(item => `
-        <div class="group relative bg-silver-50 border border-ash-grey-200 rounded-xl p-5 hover:border-vintage-grape-400 transition-all shadow-sm hover:shadow-md cursor-pointer flex flex-col justify-between min-h-[130px]">
-            <div class="flex items-center gap-4">
-                <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm shrink-0">
-                    <i class="fas ${item.icon} text-sm ${item.iconColor}"></i>
-                </div>
-                <span class="font-bold text-midnight-violet-900 text-base truncate">${item.title}</span>
+    if (favoriteCommands.length === 0) {
+        grid.innerHTML = `
+            <div class="col-span-full flex flex-col items-center justify-center p-8 border-2 border-dashed border-ash-grey-200 rounded-xl text-ash-grey-400 min-h-[150px]">
+                <i class="far fa-star text-3xl mb-3 text-ash-grey-300"></i>
+                <span class="text-sm font-medium">Zatím nemáš žádné oblíbené zkratky.</span>
+                <span class="text-xs mt-1 text-ash-grey-400">Přidej si je pomocí hvězdičky v sekci Serverů.</span>
             </div>
-            <p class="mt-4 text-[11px] font-mono text-ash-grey-500 truncate bg-ash-grey-100 px-3 py-2 rounded border border-ash-grey-200">${item.cmd}</p>
-            
-            <div class="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onclick="handleEditClick(${item.id})" class="p-1.5 bg-white text-silver-500 hover:text-vintage-grape-600 rounded border border-ash-grey-200">
-                    <i class="fas fa-edit text-xs"></i>
-                </button>
-                <button onclick="handleDeleteClick(${item.id}, '${item.title}')" class="p-1.5 bg-white text-silver-500 hover:text-red-500 rounded border border-ash-grey-200">
-                    <i class="fas fa-trash text-xs"></i>
-                </button>
-            </div>
-        </div>
-    `).join('');
-
-    grid.innerHTML = cardsHtml + `
-        <button id="addCommandCard" class="flex flex-col items-center justify-center p-6 border-2 border-dashed border-ash-grey-200 rounded-xl text-ash-grey-400 hover:border-vintage-grape-300 hover:text-vintage-grape-400 transition-all min-h-[130px] group">
-            <i class="fas fa-plus-circle text-2xl mb-2 group-hover:scale-110 transition-transform"></i>
-            <span class="text-xs font-bold uppercase tracking-wider">Přidat novou zkratku</span>
-        </button>
-    `;
-
-    // Znovu-napojení "Add" tlačítka po překreslení
-    const addBtn = document.getElementById('addCommandCard');
-    if (addBtn && window.addCommandModal) {
-        addBtn.addEventListener('click', () => window.addCommandModal.open());
+        `;
+        return;
     }
+
+    const cardsHtml = favoriteCommands.map(item => {
+        const safeName = escapeQuotes(item.name);
+        const iconClass = item.type === 'wol' ? 'fa-power-off' : 'fa-terminal';
+        // Název serveru s fallbackem
+        const serverNameText = item.server_name || "Neznámý server";
+        
+        return `
+            <div class="fav-card relative bg-white border border-vintage-grape-200 rounded-[14px] p-4 shadow-sm flex flex-col justify-between min-h-[120px]" data-cmd-id="${item.id}">
+                <div class="flex items-center justify-between mb-4 pr-1"> 
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-[#e6e6e6] rounded-[10px] flex items-center justify-center shrink-0">
+                            <i class="fas ${iconClass} text-gray-700 text-sm"></i>
+                        </div>
+                        
+                        <div class="flex flex-col">
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-gray-900 text-base truncate max-w-[120px] md:max-w-[150px]">${item.name}</span>
+                                <button onclick="window.toggleFavOnDashboard(event, ${item.id})" class="focus:outline-none transition-transform hover:scale-110" title="Odebrat z oblíbených">
+                                    <i class="fas fa-star text-yellow-400 text-sm"></i>
+                                </button>
+                            </div>
+                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">${serverNameText}</span>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-1.5 shrink-0">
+                        <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 hover:text-green-600 rounded-md transition-colors" title="Spustit" onclick="window.runCommand(${item.id})">
+                            <i class="fas fa-play text-[10px] ml-0.5"></i>
+                        </button>
+                        <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 rounded-md transition-colors" title="Upravit" onclick="window.handleEditClick(${item.id})">
+                            <i class="fas fa-edit text-xs"></i>
+                        </button>
+                        <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 hover:text-red-500 rounded-md transition-colors" title="Smazat" onclick="window.handleDeleteClick(${item.id}, '${safeName}')">
+                            <i class="fas fa-trash text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mt-auto">
+                    <p class="text-[12px] font-mono text-gray-500 truncate bg-[#e2e2e2] px-3 py-2 rounded-md border border-[#c4c4c4]">
+                        ${item.command}
+                    </p>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    grid.innerHTML = cardsHtml;
 }
 
-// --- 3. INICIALIZACE A SOCKETS ---
+// --- 5. INICIALIZACE A SOCKETS ---
 
 document.addEventListener('DOMContentLoaded', () => {
-    // A) Registrace modalů do window scope
+    // Registrace modalů
     window.addCommandModal = Modal.register('addCommand');
     window.addServerModal = Modal.register('addServer');
     window.editModal = Modal.register('editCommand');
     window.deleteModal = Modal.register('delete');
 
-    // B) Vykreslení úvodních dat
-    renderCommands();
+    // Spuštění načítání dat z backendu
+    loadDashboardData();
 
-    // C) Event Listeners pro formuláře
-    
-    // Přepínání typů v editaci
+    // Event Listeners pro editaci
     const editTypeSelect = document.getElementById('editCommandType');
     if (editTypeSelect) {
         editTypeSelect.addEventListener('change', (e) => {
@@ -148,18 +201,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Odeslání editace
     if (window.editModal && window.editModal.form) {
         window.editModal.form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(window.editModal.form);
-            console.log("[API] Ukládám změny:", Object.fromEntries(formData));
-            // Zde by byl fetch...
+            const data = Object.fromEntries(formData);
+            
+            // ZDE DOPLŇ reálný fetch pro uložení editace...
+            console.log("[API] Ukládám změny:", data);
+            // await fetch(`/command/edit/${data.id}`, { ... })
+            
             window.editModal.close();
+            loadDashboardData(); // Přenačíst data po editaci
         });
     }
 
-    // D) WebSocket Spojení
+    // WebSocket Spojení pro statistiky (zůstává beze změny)
     const socket = io();
     let currentStats = { activeMcus: 0, totalSensors: 0, dataPointsToday: 0, alertsToday: 0 };
 
