@@ -1,12 +1,11 @@
+const db = require('../config/database.js'); // Přidáno pro rychlé dohledání vazeb
 const SensorRepository = require('../repositories/SensorRepository');
-// Volitelně můžeš natáhnout i MCURepository, abys ověřil, zda zařízení existuje
-// const MCURepository = require('./MCURepository'); 
+const EventService = require('../services/EventService');
 
 class SensorService {
 
     /**
      * Vytvoří nový fyzický senzor i s jeho kanály.
-     * Očekává objekt data: { deviceId, model, channels: [{type, unit}, ...] }
      */
     static createSensor(data) {
         if (!data.deviceId) {
@@ -33,40 +32,31 @@ class SensorService {
             });
         }
 
-
         try {
             const newSensorId = SensorRepository.create(data.deviceId, data.model, cleanChannels);
+            
+            // LOGOVÁNÍ: Vytvoření senzoru
+            EventService.logEvent(
+                data.deviceId, 
+                'info', 
+                `K zařízení byl přidán nový senzor: ${data.model}`
+            );
+
             return this.getSensorById(newSensorId);
         } catch (error) {
             throw new Error(`Chyba při ukládání senzoru: ${error.message}`);
         }
     }
 
-    /**
-     * Najde senzor podle ID.
-     */
     static getSensorById(id) {
-        if (!id) {
-            throw new Error('Chybí ID senzoru.');
-        }
-
+        if (!id) throw new Error('Chybí ID senzoru.');
         const sensor = SensorRepository.findById(id);
-        
-        if (!sensor) {
-            throw new Error(`Senzor s ID ${id} nebyl nalezen.`);
-        }
-
+        if (!sensor) throw new Error(`Senzor s ID ${id} nebyl nalezen.`);
         return sensor;
     }
 
-    /**
-     * Najde všechny senzory pro dané MCU (Device).
-     */
     static getSensorsByDevice(deviceId) {
-        if (!deviceId) {
-            throw new Error('Chybí ID zařízení.');
-        }
-                
+        if (!deviceId) throw new Error('Chybí ID zařízení.');
         return SensorRepository.findAllByDeviceId(deviceId);
     }
 
@@ -90,6 +80,13 @@ class SensorService {
             channelData.unit.trim()
         );
 
+        // LOGOVÁNÍ: Přidání kanálu (z repository víme device_id ze sensoru)
+        EventService.logEvent(
+            sensor.device_id, 
+            'info', 
+            `K senzoru ${sensor.model} bylo přidáno měření: ${channelData.type.trim()}`
+        );
+
         return newChannelId;
     }
 
@@ -98,19 +95,55 @@ class SensorService {
      */
     static deleteSensor(id) {
         if (!id) throw new Error('Chybí ID senzoru.');   
-        return SensorRepository.delete(id);
-    }
+        
+        // Získáme si info o senzoru PŘED smazáním
+        const sensor = SensorRepository.findById(id);
+        
+        const success = SensorRepository.delete(id);
 
+        // LOGOVÁNÍ: Smazání senzoru
+        if (success && sensor) {
+            EventService.logEvent(
+                sensor.device_id, 
+                'warning', 
+                `Senzor typu ${sensor.model} byl kompletně odebrán.`
+            );
+        }
+
+        return success;
+    }
 
     /**
      * Smaže kanál.
-     */    static deleteChannel(id) {
+     */    
+    static deleteChannel(id) {
         if (!id) throw new Error('Chybí ID kanálu.');
-        return SensorRepository.deleteChannel(id);
+        
+        // Musíme najít, komu kanál patřil, abychom to mohli zalogovat ke správnému MCU
+        const channelInfo = db.prepare(`
+            SELECT sc.type, ps.device_id, ps.model 
+            FROM sensor_channels sc 
+            JOIN physical_sensors ps ON sc.physical_sensor_id = ps.id 
+            WHERE sc.id = ?
+        `).get(id);
+
+        const success = SensorRepository.deleteChannel(id);
+
+        // LOGOVÁNÍ: Smazání kanálu
+        if (success && channelInfo) {
+            EventService.logEvent(
+                channelInfo.device_id, 
+                'warning', 
+                `Měření "${channelInfo.type}" bylo odebráno ze senzoru ${channelInfo.model}.`
+            );
+        }
+
+        return success;
     }
 
-
-    // Přidej do třídy SensorService
+    /**
+     * Nastaví limity (thresholdy) pro konkrétní kanál.
+     */
     static setThreshold(data) {
         const { channelId, min_value, max_value } = data;
         
@@ -118,12 +151,33 @@ class SensorService {
             throw new Error('Chybí ID kanálu pro uložení limitů.');
         }
 
-        // Pokud frontend pošle null (prázdné políčko), uložíme do DB null
-        return SensorRepository.setThreshold(channelId, min_value, max_value);
+        // Zjistíme vazbu na MCU pro zápis do logu
+        const channelInfo = db.prepare(`
+            SELECT sc.type, sc.unit, ps.device_id 
+            FROM sensor_channels sc 
+            JOIN physical_sensors ps ON sc.physical_sensor_id = ps.id 
+            WHERE sc.id = ?
+        `).get(channelId);
+
+        const result = SensorRepository.setThreshold(channelId, min_value, max_value);
+
+        // LOGOVÁNÍ: Úprava limitů
+        if (channelInfo) {
+            const minStr = min_value !== null ? min_value : 'vypnuto';
+            const maxStr = max_value !== null ? max_value : 'vypnuto';
+            
+            EventService.logEvent(
+                channelInfo.device_id, 
+                'info', 
+                `Byly upraveny varovné limity pro ${channelInfo.type} (Min: ${minStr}, Max: ${maxStr}).`
+            );
+        }
+
+        return result;
     }
 
     static getTotalCount() {
-    return SensorRepository.countAll();
+        return SensorRepository.countAll();
     }
 }
 

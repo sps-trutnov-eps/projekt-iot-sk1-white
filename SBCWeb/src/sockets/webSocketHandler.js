@@ -10,18 +10,15 @@ class WebSocketHandler {
 
         // 2. Tady chytáme všechno, co nám klienti (prohlížeče) posílají
         io.on('connection', (socket) => {
-            console.log(`[SOCKET ROUTER] Klient připojen: ${socket.id}`);
 
             // === ROUTA 1: Správa místností (Rooms) ===
             socket.on('subscribe_mcu', (mcuId) => {
                 const roomName = `mcu_${mcuId}`;
                 socket.join(roomName);
-                console.log(`[SOCKET] Klient ${socket.id} vstoupil do: ${roomName}`);
             });
 
             socket.on('subscribe_all', () => {
                 socket.join('all_data');
-                console.log(`[SOCKET] Klient ${socket.id} odebírá všechna data.`);
             });
             
             socket.on('unsubscribe_mcu', (mcuId) => {
@@ -46,7 +43,6 @@ class WebSocketHandler {
 
             // === Odpojení klienta ===
             socket.on('disconnect', () => {
-                console.log(`[SOCKET ROUTER] Klient odpojen: ${socket.id}`);
             });
         });
     }

@@ -57,6 +57,29 @@ class CommandService {
 
         return CommandRepository.update(id, data);
     }
+
+    static toggleFavorite(id) {
+        // 1. Zkontrolujeme, zda příkaz existuje
+        const existing = CommandRepository.getById(id);
+        if (!existing) {
+            throw new Error(`Příkaz s ID ${id} nebyl nalezen.`);
+        }
+
+        // 2. Obrátíme aktuální stav (pokud byl 0, bude 1; pokud 1, bude 0)
+        const newStatus = existing.isFavorite ? 0 : 1;
+
+        // 3. Uložíme do DB
+        CommandRepository.toggleFavorite(id, newStatus);
+
+        // 4. Vrátíme nový stav, aby UI vědělo, jakou ikonu ukázat
+        return newStatus === 1; 
+    }
+    // services/CommandService.js (přidej dovnitř třídy CommandService)
+
+    static getFavoriteCommands() {
+        return CommandRepository.getFavorites();
+    }
+
 }
 
 module.exports = CommandService;

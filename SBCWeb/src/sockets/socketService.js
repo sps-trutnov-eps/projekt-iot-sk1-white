@@ -1,3 +1,4 @@
+// sockets/socketService.js
 class SocketService {
     constructor() {
         this.io = null; 
@@ -10,6 +11,9 @@ class SocketService {
         console.log('[SocketService] Vysílač je připraven.');
     }
 
+    // ==========================================
+    // MĚŘENÍ A STAVY
+    // ==========================================
     broadcastReading(mcuId, channelId, value) {
         if (!this.io) {
             console.error('[SOCKET ERROR] Socket nebyl inicializován. Chybí this.io!');
@@ -34,13 +38,15 @@ class SocketService {
         }
 
         const payload = { mcuId, status, lastSeen: lastSeenDate };
-        console.log(`[SOCKET] Odesílám mcu_status pro ID ${mcuId} -> Status: ${status}`);
-
         this.io.to(`mcu_${mcuId}`).emit('mcu_status', payload);
         this.io.to('all_data').emit('mcu_status', payload); 
     }
 
-    // Přejmenováno pro konzistenci s EventService
+    // ==========================================
+    // UDÁLOSTI A LOGY (EVENTY)
+    // ==========================================
+    
+    // Pro události konkrétního MCU (přidání, smazání, offline, alert)
     broadcastAlert(mcuId, type, message) {
         if (!this.io) return;
         
@@ -51,15 +57,40 @@ class SocketService {
             timestamp: new Date().toISOString()
         };
 
-        // Pošleme to do detailu konkrétního MCU
-        if (mcuId) {
-            this.io.to(`mcu_${mcuId}`).emit('new_event', payload);
-        }
+        // 1. Pošleme to do detailu konkrétního MCU (eventManager.js poslouchá na 'new_event')
+        this.io.to(`mcu_${mcuId}`).emit('new_event', payload);
 
-        // Pokud je to varování nebo alert, pošleme to všem (i na hlavní dashboard)
-        if (type === 'alert' || type === 'warn') {
+        // 2. Zároveň to pošleme jako globální notifikaci (notifikační zvoneček nahoře)
+        if (type === 'alert' || type === 'warning' || type === 'warn' || type === 'info') {
             this.io.emit('global_alert', payload);
         }
+    }
+
+    // Pro události serverů
+    broadcastServerAlert(serverId, type, message) {
+        if (!this.io) return;
+        
+        const payload = {
+            serverId: serverId,
+            type: type,
+            message: message,
+            timestamp: new Date().toISOString()
+        };
+
+        this.io.emit('global_alert', payload);
+    }
+
+    // Pro události celého systému
+    broadcastSystemAlert(type, message) {
+        if (!this.io) return;
+        
+        const payload = {
+            type: type,
+            message: message,
+            timestamp: new Date().toISOString()
+        };
+
+        this.io.emit('global_alert', payload);
     }
 }
 
