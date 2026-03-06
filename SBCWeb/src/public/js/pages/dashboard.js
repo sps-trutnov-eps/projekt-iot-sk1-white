@@ -53,13 +53,21 @@ window.handleEditClick = (id) => {
     const item = favoriteCommands.find(c => c.id == id);
     if (!item) return;
 
+    // 1. NEJDŘÍVE modal vyčistíme (promaže stará data a schová errory)
+    if (window.editModal) {
+        window.editModal.clear();
+    }
+
+    // 2. Naplníme select se servery
     populateServerSelect();
 
+    // 3. Dosadíme data z databáze
     document.getElementById('editCommandId').value = item.id;
     document.getElementById('editCommandName').value = item.name;
-    document.getElementById('editCommandServer').value = item.serverId || item.server_id || "";
+    document.getElementById('editCommandServer').value = item.server_id || item.serverId || "";
     document.getElementById('editCommandType').value = item.type || 'shell';
     
+    // Logika zobrazení pro Shell vs WoL
     const isWol = item.type === 'wol';
     const shellWrapper = document.getElementById('editShellInputWrapper');
     const wolWrapper = document.getElementById('editWolInputWrapper');
@@ -74,8 +82,8 @@ window.handleEditClick = (id) => {
         document.getElementById('editCommandValue').value = item.command;
     }
 
+    // 4. NAKONEC modal otevřeme (už s vyplněnými daty)
     if (window.editModal) {
-        window.editModal.clear();
         window.editModal.open();
     }
 };
