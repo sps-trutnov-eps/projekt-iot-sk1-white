@@ -1,7 +1,6 @@
 import { getMcuId } from './utils.js';
 import { updateMcuStatusUI } from './mcuManager.js';
 import { initEventManager } from './eventManager.js';
-// liveData.js
 
 export async function initLiveData() {
     const socket = io(); 
@@ -9,7 +8,6 @@ export async function initLiveData() {
     initEventManager(socket);
 
     socket.on('connect', () => {
-        
         // 1. Získáme ID konkrétního MCU
         const currentMcuId = getMcuId();
         
@@ -18,7 +16,6 @@ export async function initLiveData() {
     });
 
     // 3. Nasloucháme na nová naměřená data
-    // Uvnitř funkce initLiveData()
     socket.on('live_reading', (payload) => {
         // 1. Najdeme prvek na kartičce podle jeho ID
         const valueElement = document.getElementById(`card-value-${payload.channelId}`);
@@ -29,17 +26,13 @@ export async function initLiveData() {
         }
     });
 
-    // Nasloucháme na událost z backendu
-        socket.on('mcu_status', (payload) => {
-            
-            // OPRAVA TADY: Získáme aktuální ID bezpečně přímo z URL při každé zprávě
-            const currentMcuId = getMcuId(); 
-            
-            if (payload.mcuId == currentMcuId) {
-                // Posíláme do UI i ten vynucený status ze socketu
-                const isOnlineForce = (payload.status === 1 || payload.status === true);
-                updateMcuStatusUI(payload.lastSeen, isOnlineForce);
-            }
-        });
-
+    // 4. Nasloucháme na událost z backendu o změně stavu
+    socket.on('mcu_status', (payload) => {
+        const currentMcuId = getMcuId(); 
+        
+        if (payload.mcuId == currentMcuId) {
+            // OPRAVA: Už nepřevádíme na boolean. Posíláme rovnou číslo 0, 1 nebo 2!
+            updateMcuStatusUI(payload.lastSeen, payload.status);
+        }
+    });
 }
