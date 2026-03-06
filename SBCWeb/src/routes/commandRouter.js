@@ -8,5 +8,5 @@ router.put('/edit/:id', CommandController.update); // TUTO ŘÁDKU MUSÍŠ PŘID
 router.delete('/:id', CommandController.delete);
 router.patch('/:id/favorite', CommandController.toggleFavorite);
 router.get('/favorites', CommandController.getFavorites);
-
+router.post('/run/:id', CommandController.run);
 module.exports = router;
