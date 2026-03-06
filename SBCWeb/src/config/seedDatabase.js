@@ -1,9 +1,10 @@
 const db = require('./database');
 
 /**
- * Inicializace a seedování databáze pro typy MCU
+ * Inicializace a seedování databáze pro typy MCU a výchozí Nastavení
  */
 const seedDB = () => {
+  // 1. Vytvoření tabulek
   db.exec(`
     CREATE TABLE IF NOT EXISTS types(
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -11,6 +12,16 @@ const seedDB = () => {
     )
   `);
 
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS settings (
+      setting_key TEXT PRIMARY KEY,
+      setting_value TEXT NOT NULL,
+      description TEXT,
+      updated_at TEXT DEFAULT (datetime('now'))
+    )
+  `);
+
+  // 2. Definice výchozích dat
   const mcuTypes = [
     'Raspberry Pi Pico W',
     'Raspberry Pi Pico 2W',
@@ -18,17 +29,34 @@ const seedDB = () => {
     'Arduino Nano'
   ];
 
-  const insertStmt = db.prepare(`INSERT OR IGNORE INTO types (type) VALUES (?)`);
+  const defaultSettings = [
+    { key: 'mqtt_broker_ip', value: '127.0.0.1', desc: 'IP adresa MQTT brokeru' },
+    { key: 'mcu_ping_interval', value: '30000', desc: 'Interval pingu pro MCU (v ms)' },
+    { key: 'server_ping_interval', value: '60000', desc: 'Interval pingu pro servery (v ms)' }
+  ];
 
-  const insertMany = db.transaction((types) => {
+  // 3. Příprava SQL dotazů
+  const insertTypeStmt = db.prepare(`INSERT OR IGNORE INTO types (type) VALUES (?)`);
+  const insertSettingStmt = db.prepare(`INSERT OR IGNORE INTO settings (setting_key, setting_value, description) VALUES (?, ?, ?)`);
+
+  // 4. Transakce pro bezpečný a rychlý zápis
+  const insertManyTypes = db.transaction((types) => {
     for (const type of types) {
-      insertStmt.run(type);
+      insertTypeStmt.run(type);
     }
   });
 
+  const insertManySettings = db.transaction((settings) => {
+    for (const setting of settings) {
+      insertSettingStmt.run(setting.key, setting.value, setting.desc);
+    }
+  });
+
+  // 5. Spuštění seedování
   try {
-    insertMany(mcuTypes);
-    console.log('Databáze byla úspěšně seednuta typy MCU.');
+    insertManyTypes(mcuTypes);
+    insertManySettings(defaultSettings);
+    console.log('Databáze byla úspěšně seednuta (typy MCU a výchozí nastavení).');
   } catch (error) {
     console.error('Chyba při seedování databáze:', error.message);
   }

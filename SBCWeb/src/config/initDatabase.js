@@ -63,11 +63,13 @@ function initDB() {
   db.exec(`
     CREATE TABLE IF NOT EXISTS event_logs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      mcu_id INTEGER,
+      mcu_id INTEGER, -- NULL pokud jde o server
+      server_id INTEGER, -- NULL pokud jde o MCU
       type TEXT NOT NULL,
       message TEXT NOT NULL,
       timestamp TEXT DEFAULT (datetime('now')),
-      FOREIGN KEY (mcu_id) REFERENCES mcus(device_id) ON DELETE SET NULL
+      FOREIGN KEY (mcu_id) REFERENCES mcus(device_id) ON DELETE SET NULL,
+      FOREIGN KEY (server_id) REFERENCES servers(id) ON DELETE SET NULL
     )
   `);
 
@@ -94,17 +96,18 @@ function initDB() {
     )
   `);
 
-  db.exec(`
+db.exec(`
     CREATE TABLE IF NOT EXISTS commands (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       server_id INTEGER NOT NULL,
       name TEXT NOT NULL,
-      type TEXT NOT NULL DEFAULT 'shell', -- PŘIDÁNO: 'shell' nebo 'wol'
-      command TEXT NOT NULL, -- Zde bude buď bash skript, nebo MAC adresa
+      type TEXT NOT NULL DEFAULT 'shell',
+      command TEXT NOT NULL,
+      is_favorite INTEGER DEFAULT 0,
       created_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (server_id) REFERENCES servers(id) ON DELETE CASCADE
     )
-  `);
+`);
 
     db.exec(`
     CREATE TABLE IF NOT EXISTS command_history (
@@ -115,6 +118,15 @@ function initDB() {
       error_output TEXT,
       executed_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (command_id) REFERENCES commands(id) ON DELETE CASCADE
+    )
+  `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS settings (
+      setting_key TEXT PRIMARY KEY,
+      setting_value TEXT NOT NULL,
+      description TEXT,
+      updated_at TEXT DEFAULT (datetime('now'))
     )
   `);
 

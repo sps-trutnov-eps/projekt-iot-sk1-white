@@ -7,7 +7,7 @@ export async function fetchMcuInfo() {
     const mcuId = getMcuId();
     if (!mcuId) return;
 
-    // 1. JEDNORÁZOVÉ NAČTENÍ STATICKÝCH DAT (Jméno, IP, MAC, API klíč)
+    // 1. JEDNORÁZOVÉ NAČTENÍ STATICKÝCH DAT
     try {
         const res = await fetch('/mcu/get', {
             method: 'POST',
@@ -29,15 +29,11 @@ export async function fetchMcuInfo() {
                 apiKeyEl.classList.add('blur-[4px]');
             }
 
-            // Nastavení počátečního času a statusu
-            // Pokud MCU objekt z API obsahuje isOnline (nebo is_online), použijeme ho
+            // OPRAVA: Už nepřevádíme na boolean. Necháme původní číslo.
             let initialStatus = null;
             if (mcu.isOnline !== undefined) initialStatus = mcu.isOnline;
             else if (mcu.is_online !== undefined) initialStatus = mcu.is_online;
             
-            // Pokud z DB přijde 1 nebo 0, převedeme to pro jistotu na boolean
-            if (typeof initialStatus === 'number') initialStatus = initialStatus === 1;
-
             updateMcuStatusUI(mcu.lastSeen, initialStatus);
         }
     } catch (e) { 
@@ -46,19 +42,16 @@ export async function fetchMcuInfo() {
 
     // 2. SOCKET.IO PRO ŽIVÉ AKTUALIZACE STAVU
     if (!socket) {
-        socket = io(); // Založí spojení k tvému serveru
+        socket = io(); 
 
         socket.on('connect', () => {
             socket.emit('subscribe_mcu', mcuId);
         });
 
-        // Nasloucháme na událost z backendu
         socket.on('mcu_status', (payload) => {
             if (payload.mcuId == mcuId) {
-                // Posíláme do UI i ten vynucený status ze socketu
-                // Ujistíme se, že je to boolean (např. 1 => true)
-                const isOnlineForce = (payload.status === 1 || payload.status === true);
-                updateMcuStatusUI(payload.lastSeen, isOnlineForce);
+                // OPRAVA: Předáváme rovnou status z payloadu (0, 1, 2)
+                updateMcuStatusUI(payload.lastSeen, payload.status);
             }
         });
     } else {
@@ -67,7 +60,7 @@ export async function fetchMcuInfo() {
 }
 
 // Vyčleněná funkce, aby se kód neopakoval. Stará se jen o čas a barvu tečky.
-export function updateMcuStatusUI(lastSeenDbTime, isOnlineForce = null) {
+export function updateMcuStatusUI(lastSeenDbTime, statusVal = null) {
     if (!lastSeenDbTime) return;
 
     let dbTime = lastSeenDbTime;
@@ -79,14 +72,17 @@ export function updateMcuStatusUI(lastSeenDbTime, isOnlineForce = null) {
     const lastSeenDate = new Date(dbTime);
     const now = new Date();
     
-    // Logika pro Online/Offline:
-    // POKUD nám backend poslal status, použijeme ho bez remcání.
-    // JINAK použijeme starý odpočet jako pojistku.
-    let isOnline = false;
-    if (isOnlineForce !== null) {
-        isOnline = isOnlineForce;
+    // Zjistíme, jaký je to vlastně stav (0 = Offline, 1 = Online, 2 = Passive)
+    let currentStatus = 0;
+    
+    if (statusVal !== null) {
+        // Pokud to někde projde jako boolean (true/false), převedeme zpět na 1 a 0
+        if (statusVal === true) currentStatus = 1;
+        else if (statusVal === false) currentStatus = 0;
+        else currentStatus = parseInt(statusVal, 10);
     } else {
-        isOnline = Math.floor((now - lastSeenDate) / 1000 / 60) < 70; 
+        // Fallback: Pokud nám server nepošle stav, odhadneme to podle času
+        currentStatus = Math.floor((now - lastSeenDate) / 1000 / 60) < 70 ? 1 : 0; 
     }
 
     const isToday = 
@@ -97,29 +93,39 @@ export function updateMcuStatusUI(lastSeenDbTime, isOnlineForce = null) {
     let formattedTime = "";
     if (isToday) {
         formattedTime = lastSeenDate.toLocaleTimeString('cs-CZ', { 
-            hour: '2-digit', 
-            minute: '2-digit', 
-            second: '2-digit' 
+            hour: '2-digit', minute: '2-digit', second: '2-digit' 
         });
     } else {
         formattedTime = lastSeenDate.toLocaleDateString('cs-CZ', { 
-            day: 'numeric', 
-            month: 'numeric' 
+            day: 'numeric', month: 'numeric' 
         }) + ' ' + lastSeenDate.toLocaleTimeString('cs-CZ', { 
-            hour: '2-digit', 
-            minute: '2-digit', 
-            second: '2-digit' 
+            hour: '2-digit', minute: '2-digit', second: '2-digit' 
         });
+    }
+
+    // --- NASTAVENÍ VZHLEDU (BAREv A TEXTŮ) ---
+    let statusText = 'Offline';
+    let dotColor = 'bg-red-500';
+    let textColor = 'text-red-600';
+
+    if (currentStatus === 1) {
+        statusText = 'Online';
+        dotColor = 'bg-green-500';
+        textColor = 'text-green-600';
+    } else if (currentStatus === 2) {
+        statusText = 'Passive';
+        dotColor = 'bg-yellow-400';
+        textColor = 'text-yellow-600';
     }
 
     // Aktualizace UI
     const dot = document.getElementById('mcu-status-dot');
     const text = document.getElementById('mcu-status-text');
     
-    if (dot) dot.className = `absolute -bottom-1 -right-1 w-4 h-4 border-2 border-white rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500'}`;
+    if (dot) dot.className = `absolute -bottom-1 -right-1 w-4 h-4 border-2 border-white rounded-full ${dotColor}`;
     if (text) {
-        text.textContent = isOnline ? 'Online' : 'Offline';
-        text.className = `font-bold text-xs uppercase ${isOnline ? 'text-green-600' : 'text-red-600'}`;
+        text.textContent = statusText;
+        text.className = `font-bold text-xs uppercase ${textColor}`;
     }
     
     const lastSeenEl = document.getElementById('mcu-lastseen');
@@ -127,7 +133,7 @@ export function updateMcuStatusUI(lastSeenDbTime, isOnlineForce = null) {
 }
 
 export function initApiKeyListeners() {
-    // ... tento kód zůstává naprosto beze změny ...
+    // ... [Zbytek tvého kódu zůstává stejný] ...
     const apiKeyContainer = document.getElementById('api-key-container');
     const apiKeyText = document.getElementById('mcu-api-key');
     const apiKeyEye = document.getElementById('api-key-eye');

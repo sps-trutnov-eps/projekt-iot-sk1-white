@@ -1,5 +1,5 @@
 const getIndex = (req, res) => {
-  res.render('index', { 
+  res.render('dashboard', { 
     title: 'IoT Server Dashboard',
     projectName: 'Projekt IoT SK1 White'
   });

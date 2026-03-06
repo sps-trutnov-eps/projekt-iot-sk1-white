@@ -40,6 +40,12 @@ class ServerRepository {
         const result = db.prepare(query).run(data.name, data.ip, data.api_key, data.type, id);
         return result.changes > 0;
     }
+
+    static updateStatus(id, isOnline) {
+        const query = `UPDATE servers SET is_online = ? WHERE id = ?`;
+        const result = db.prepare(query).run(isOnline, id);
+        return result.changes > 0;
+    }
 }
 
 module.exports = ServerRepository;

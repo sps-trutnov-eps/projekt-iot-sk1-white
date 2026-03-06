@@ -7,6 +7,75 @@ export function initModals() {
     initDeleteTypeModal();
     initAddTypeModal();
     initEditMcuModal();
+    initAddMcuModal(); // <-- Zde voláme novou funkci
+}
+
+function initAddMcuModal() {
+    const mcuModal = window.Modal?.register('MCU');
+    if (!mcuModal) return;
+    
+    // Akce pro otevírání
+    if (mcuModal.openModal) {
+        mcuModal.openModal.addEventListener('click', () => {
+            mcuModal.open();
+            mcuModal.hideError();
+        });
+    }
+
+    if (mcuModal.submitBtn) {
+        mcuModal.submitBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                name: document.getElementById('mcuName').value,
+                type: parseInt(document.getElementById('TypeSelectorMCUForm').value), // přidán parseInt pro jistotu
+                ipAddress: document.getElementById('mcuIP').value,
+                macAddress: document.getElementById('mcuMAC').value,
+                location: document.getElementById('mcuLocation').value,
+                description: document.getElementById('mcuDescription').value
+            };
+
+            try {
+                mcuModal.submitBtn.disabled = true;
+                mcuModal.submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Přidávám...';
+                
+                const response = await fetch('/mcu/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // 1. Znovu načteme a vykreslíme karty v gridu
+                    await refreshMCUs();
+                    
+                    // 2. Aktualizace statistik
+                    refreshSidebarStats();
+                    refreshTypeStats();
+                    
+                    // 3. Aplikovat filtry
+                    applyFilters();
+
+                    // 4. Vyčistit, zavřít a oznámit
+                    mcuModal.clear();
+                    mcuModal.close(); 
+                    window.openToast?.("Zařízení bylo úspěšně přidáno!", true);
+                } else {
+                    mcuModal.showError(data.message || "Neznámá chyba při ukládání.");
+                }
+                
+            } catch (error) {
+                console.error("Chyba při přidávání MCU:", error);
+                mcuModal.showError("Nelze navázat spojení se serverem.");
+            } finally {
+                // Vrácení tlačítka do původního stavu
+                mcuModal.submitBtn.disabled = false;
+                mcuModal.submitBtn.innerHTML = '<i class="fas fa-plus"></i> Add MCU';
+            }
+        });
+    }
 }
 
 function initDeleteMcuModal() {
@@ -21,7 +90,7 @@ function initDeleteMcuModal() {
 
         mcuIdToDelete = btn.dataset.id;
         if (!mcuIdToDelete) {
-            window.openToast && window.openToast('Chybí ID MCU.', false);
+            window.openToast?.('Chybí ID MCU.', false);
             return;
         }
 
@@ -77,7 +146,7 @@ function initDeleteTypeModal() {
 
         typeIdToDelete = btn.dataset.id;
         if (!typeIdToDelete) {
-            window.openToast && window.openToast('Chybí ID Typu.', false);
+            window.openToast?.('Chybí ID Typu.', false);
             return;
         }
 
@@ -238,6 +307,12 @@ function initEditMcuModal() {
                 if (result.success) {
                     window.openToast?.(result.message, true);
                     await refreshMCUs();
+                    // Zde by asi měly být také refreshe statistik a filtrů, 
+                    // pokud úprava MCU ovlivní filtry (např. změna typu)
+                    refreshSidebarStats();
+                    refreshTypeStats();
+                    applyFilters();
+
                     editModal.close();
                 } else {
                     editModal.showError(result.message || 'Chyba při ukládání.');

@@ -9,7 +9,23 @@ function escapeQuotes(str) {
     return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 }
 
-// Skeleton loader - zobrazí se při načítání dat
+// Pomocná funkce pro přepočet čísel v sidebaru
+function updateStatistics(servers) {
+    const total = servers.length;
+    // Počítáme online servery (zohledňujeme různé formáty dat - isOnline, is_online nebo status)
+    const online = servers.filter(s => s.status === 'online' || s.isOnline === 1 || s.is_online === 1).length;
+    const offline = total - online;
+
+    const statOnline = document.getElementById('stat-online');
+    const statOffline = document.getElementById('stat-offline');
+    const statTotal = document.getElementById('stat-total');
+
+    if (statOnline) statOnline.innerText = online;
+    if (statOffline) statOffline.innerText = offline;
+    if (statTotal) statTotal.innerText = total;
+}
+
+// Skeleton loader - zobrazí se při načítání dat v hlavní části
 function showLoadingState() {
     const container = document.getElementById('servers-container');
     if (container) {
@@ -75,6 +91,7 @@ function showErrorOrEmptyState(message, subMessage) {
 }
 
 // Hlavní funkce pro načtení a vykreslení serverů
+// Hlavní funkce pro načtení a vykreslení serverů
 export async function loadServers(isBackground = false) {
     const container = document.getElementById('servers-container');
     if (!container) return;
@@ -84,7 +101,17 @@ export async function loadServers(isBackground = false) {
     }
 
     try {
-        const response = await fetch('/server/all'); 
+        // 1. Nastavíme minimální čas zpoždění (např. 500 ms) - ale jen pokud nejsme na pozadí
+        const minimumDelay = isBackground 
+            ? Promise.resolve() 
+            : new Promise(resolve => setTimeout(resolve, 250));
+
+        // 2. Spustíme fetch a odpočet času SOUČASNĚ. 
+        // Kód bude pokračovat až tehdy, kdy se dokončí OBOJÍ.
+        const [response] = await Promise.all([
+            fetch('/server/all'),
+            minimumDelay
+        ]);
         
         if (!response.ok) throw new Error("API server neodpověděl správně.");
 
@@ -92,38 +119,61 @@ export async function loadServers(isBackground = false) {
         
         if (result.success && result.data && result.data.length > 0) {
             currentServersData = result.data; // Uložení do globální paměti pro modály
+            
+            // ---> PŘEPOČET STATISTIK V SIDEBARU <---
+            updateStatistics(currentServersData);
+            
             container.innerHTML = ''; 
             
             result.data.forEach(server => {
-                const isOnline = (server.status === 'online' || server.status === 1);
+                // ... (zbytek tvého původního kódu pro generování HTML zůstává beze změny)
+                const isOnline = (server.status === 'online' || server.status === 1 || server.isOnline === 1 || server.is_online === 1);
                 const isDatabase = (server.type === 'database');
                 
+                // --- Generování příkazů ---
                 // --- Generování příkazů ---
                 let commandsHtml = '';
                 if (server.commands && server.commands.length > 0) {
                     server.commands.forEach(cmd => {
                         const safeCmdName = escapeQuotes(cmd.name);
+                        
+                        // Zjištění, zda je příkaz oblíbený
+                        const isFav = cmd.isFavorite === 1 || cmd.isFavorite === true;
+                        
                         commandsHtml += `
-                            <div class="group relative bg-white border border-ash-grey-200 rounded-xl p-5 hover:border-vintage-grape-400 transition-all shadow-sm hover:shadow-md cursor-pointer flex flex-col justify-between min-h-[130px]" data-cmd-id="${cmd.id}">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-10 h-10 bg-silver-50 border border-ash-grey-100 rounded-lg flex items-center justify-center shrink-0">
-                                        <i class="fas ${cmd.icon || 'fa-terminal text-silver-600'} text-sm"></i>
+                            <div class="relative bg-white border border-vintage-grape-200 rounded-[14px] p-4 shadow-sm flex flex-col justify-between min-h-[120px]" data-cmd-id="${cmd.id}">
+                                
+                                <div class="flex items-center justify-between mb-4 pr-2"> 
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-[#e6e6e6] rounded-[10px] flex items-center justify-center shrink-0">
+                                            <i class="fas ${cmd.icon || 'fa-terminal'} text-gray-700 text-sm"></i>
+                                        </div>
+                                        
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-bold text-gray-900 text-base truncate max-w-[120px] md:max-w-[150px]">${cmd.name}</span>
+                                            <button onclick="window.toggleFavoriteCommand(event, ${cmd.id})" class="focus:outline-none transition-transform hover:scale-110" title="Oblíbené">
+                                                <i class="${isFav ? 'fas fa-star text-yellow-400' : 'far fa-star text-gray-400 hover:text-yellow-400'} text-sm"></i>
+                                            </button>
+                                        </div>
                                     </div>
-                                    <span class="font-bold text-midnight-violet-900 text-base truncate">${cmd.name}</span>
+
+                                    <div class="flex gap-1.5">
+                                        <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 rounded-md transition-colors" title="Spustit" onclick="window.runCommand(${cmd.id})">
+                                            <i class="fas fa-play text-[10px] ml-0.5"></i>
+                                        </button>
+                                        <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 rounded-md transition-colors" title="Upravit" onclick="window.openEditCommandModal(${server.id}, ${cmd.id})">
+                                            <i class="fas fa-edit text-xs"></i>
+                                        </button>
+                                        <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 rounded-md transition-colors" title="Smazat" onclick="window.openDeleteModal(${cmd.id}, 'command', '${safeCmdName}')">
+                                            <i class="fas fa-trash text-xs"></i>
+                                        </button>
+                                    </div>
                                 </div>
-                                <p class="mt-4 text-[11px] font-mono text-ash-grey-500 truncate bg-ash-grey-50 px-3 py-2 rounded border border-ash-grey-100">
-                                    ${cmd.value}
-                                </p>
-                                <div class="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button class="p-1.5 bg-white text-silver-500 hover:text-vintage-grape-600 rounded border border-ash-grey-200 shadow-sm" title="Spustit" onclick="window.runCommand(${cmd.id})">
-                                        <i class="fas fa-play text-xs"></i>
-                                    </button>
-                                    <button class="p-1.5 bg-white text-silver-500 hover:text-vintage-grape-600 rounded border border-ash-grey-200" title="Upravit" onclick="window.openEditCommandModal(${server.id}, ${cmd.id})">
-                                        <i class="fas fa-edit text-xs"></i>
-                                    </button>
-                                    <button class="p-1.5 bg-white text-silver-500 hover:text-red-500 rounded border border-ash-grey-200" title="Smazat" onclick="window.openDeleteModal(${cmd.id}, 'command', '${safeCmdName}')">
-                                        <i class="fas fa-trash text-xs"></i>
-                                    </button>
+                                
+                                <div class="mt-auto">
+                                    <p class="text-[12px] font-mono text-gray-500 truncate bg-[#e2e2e2] px-3 py-2 rounded-md border border-[#c4c4c4]">
+                                        ${cmd.value || cmd.command}
+                                    </p>
                                 </div>
                             </div>
                         `;
@@ -185,12 +235,107 @@ export async function loadServers(isBackground = false) {
 
         } else if (result.success && (!result.data || result.data.length === 0)) {
             currentServersData = [];
+            updateStatistics([]); // Vynulování statistik
             showErrorOrEmptyState("Zatím tu nic není", "Seznam serverů je prázdný. Přidej svůj první server přes tlačítko v levém menu.");
         } else {
+            updateStatistics([]); // Vynulování statistik
             showErrorOrEmptyState("Data se nepodařilo načíst", result.message || "Server hlásí neznámou chybu.");
         }
     } catch (error) {
         console.error("Chyba loadServers:", error);
+        updateStatistics([]); // Vynulování statistik
         showErrorOrEmptyState("Chyba při komunikaci", "Nepodařilo se připojit k backendu. Zkontrolujte připojení nebo zkuste obnovit stránku.");
+    }
+}
+
+// Funkce pro načítání mini-logů v tmavém sidebaru
+export async function loadRecentLogs() {
+    const container = document.getElementById('mini-log-container');
+    if (!container) return;
+
+    try {
+        //const response = await fetch('/command/history');
+        const result = await response.json();
+
+        if (result.success && result.data.length > 0) {
+            container.innerHTML = result.data.map(log => {
+                const isSuccess = log.status === 'success';
+                // Tmavé barvy pro sidebar design
+                const iconColor = isSuccess ? 'text-green-400' : 'text-red-400';
+                const bgColor = isSuccess ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20';
+                const icon = isSuccess ? 'fa-check' : 'fa-times';
+                
+                const date = new Date(log.executed_at.replace(' ', 'T') + (log.executed_at.includes('Z') ? '' : 'Z'));
+                const timeStr = date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+
+                return `
+                    <div class="flex gap-3 items-start group">
+                        <div class="w-7 h-7 rounded-full ${bgColor} border flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+                            <i class="fas ${icon} text-[10px] ${iconColor}"></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <p class="text-[12px] font-semibold text-ash-grey-50 leading-tight truncate" title="${escapeQuotes(log.command_name)}">${escapeQuotes(log.command_name)}</p>
+                            <p class="text-[10px] text-ash-grey-400 font-medium truncate">${escapeQuotes(log.server_name)} • ${timeStr}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            container.innerHTML = `
+                <div class="text-center py-6 opacity-60">
+                    <i class="fas fa-history text-ash-grey-500 text-2xl mb-2 block"></i>
+                    <span class="text-[11px] text-ash-grey-400 font-medium">Zatím žádná historie</span>
+                </div>
+            `;
+        }
+    } catch (e) {
+        container.innerHTML = `<p class="text-[10px] text-red-400/80 text-center bg-red-900/20 p-2 rounded border border-red-900/50">Chyba načítání historie.</p>`;
+    }
+}
+
+
+// Úplně dole v serverManager.js
+// public/js/pages/servers/serverManager.js
+
+export async function toggleFavoriteCommand(event, commandId) {
+    // Zastavíme probublávání kliknutí
+    if (event) event.stopPropagation();
+
+    // 1. OKAMŽITÁ VIZUÁLNÍ ZMĚNA (Optimistic Update)
+    const button = event.currentTarget;
+    const icon = button.querySelector('i');
+    
+    // Zjistíme aktuální stav podle třídy 'fas' (solidní hvězdička = aktuálně je oblíbený)
+    const isCurrentlyFav = icon.classList.contains('fas');
+
+    if (isCurrentlyFav) {
+        // Změníme na Vypnuto (prázdná šedá hvězdička)
+        icon.classList.remove('fas', 'text-yellow-400');
+        icon.classList.add('far', 'text-gray-400', 'hover:text-yellow-400');
+    } else {
+        // Změníme na Zapnuto (plná žlutá hvězdička)
+        icon.classList.remove('far', 'text-gray-400', 'hover:text-yellow-400');
+        icon.classList.add('fas', 'text-yellow-400');
+    }
+
+    // 2. ODESLÁNÍ NA POZADÍ
+    try {
+        const response = await fetch(`/command/${commandId}/favorite`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const result = await response.json();
+
+        if (!result.success) {
+            console.error("Chyba při ukládání oblíbeného stavu:", result.message);
+            // Pokud server hodí chybu, zavoláme loadServers pro srovnání dat podle databáze
+            loadServers(true); 
+        }
+        // Pokud je to success, nemusíme dělat nic, protože UI už jsme změnili!
+        
+    } catch (error) {
+        console.error("API chyba při změně oblíbeného:", error);
+        loadServers(true); // V případě chyby sítě překreslíme data
     }
 }

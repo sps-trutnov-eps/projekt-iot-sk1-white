@@ -1,5 +1,5 @@
 // controllers/commandController.js
-const CommandService = require('../services/CommandService');
+const CommandService = require('../services/commandService');
 
 class CommandController {
     static async create(req, res) {
@@ -67,6 +67,65 @@ class CommandController {
             });
         }
     }
+
+    static async toggleFavorite(req, res) {
+        try {
+            const id = req.params.id;
+            const isNowFavorite = CommandService.toggleFavorite(id);
+            
+            res.status(200).json({ 
+                success: true, 
+                message: isNowFavorite ? 'Přidáno do oblíbených.' : 'Odebráno z oblíbených.',
+                isFavorite: isNowFavorite
+            });
+        } catch (error) {
+            res.status(400).json({ 
+                success: false, 
+                message: error.message 
+            });
+        }
+    }
+
+    // controllers/CommandController.js (přidej dovnitř třídy CommandController)
+
+    static async getFavorites(req, res) {
+        try {
+            const favorites = CommandService.getFavoriteCommands();
+            res.status(200).json({ 
+                success: true, 
+                data: favorites // Použijeme 'data' aby to bylo konzistentní
+            });
+        } catch (error) {
+            res.status(500).json({ 
+                success: false, 
+                message: 'Chyba serveru při načítání oblíbených příkazů.',
+                error: error.message
+            });
+        }
+    }
+
+    // Přidej do CommandController.js
+    static async run(req, res) {
+        try {
+            const id = req.params.id;
+            // Tady pak bude logika pro spuštění (SSH, Wake on LAN, atd.)
+            console.log(`[EXEC] Spouštím příkaz s ID: ${id}`);
+            
+            // Simulace, že to chvíli trvá
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            res.status(200).json({ 
+                success: true, 
+                message: 'Příkaz úspěšně spuštěn.' 
+            });
+        } catch (error) {
+            res.status(500).json({ 
+                success: false, 
+                message: error.message 
+            });
+        }
+    }
+
 }
 
 module.exports = CommandController;
