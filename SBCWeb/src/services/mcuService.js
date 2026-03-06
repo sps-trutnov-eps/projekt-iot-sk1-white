@@ -16,8 +16,7 @@ class MCUService {
      * Spustí nekonečnou smyčku pro kontrolu stavu MCU (Watchdog) s dynamickým intervalem
      */
     static startStatusMonitor() {
-        console.log('[MONITOR] Startuji hlídače stavu MCU (Ping/Timeout)...');
-        
+
         // Rekurzivní funkce, která nahrazuje setInterval
         const runMonitor = async () => {
             // 1. Zjistíme aktuální interval z DB (výchozí 30000 ms = 30s)

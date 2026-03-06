@@ -12,7 +12,6 @@ class MeasurementService {
     static mcuStates = {}; 
 
     static startAggregationWorker() {
-        console.log('[MeasurementService] Startuji worker pro minutovou agregaci dat...');
         setInterval(() => {
             this.processMinuteAggregation();
         }, 60000); 
@@ -122,7 +121,6 @@ class MeasurementService {
                 `Kritická hodnota! Senzor "${channel.type}" ${reason}.`
             );
             
-            console.log(`[ALERT] MCU ${mcuId} | ${channel.type} překročil limit!`);
         } 
         // Pokud se to PRÁVĚ TEĎ vrátilo do normálu a předtím to hlásilo chybu
         else if (!isCurrentlyExceeded && state.isExceeded) {
@@ -134,7 +132,6 @@ class MeasurementService {
                 `Hodnota senzoru "${channel.type}" se úspěšně vrátila do normálu (${value} ${channel.unit || ''}).`
             );
             
-            console.log(`[ALERT VYŘEŠEN] MCU ${mcuId} | ${channel.type} je zpět v normě.`);
         }
     }
 

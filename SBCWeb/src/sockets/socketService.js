@@ -34,8 +34,6 @@ class SocketService {
         }
 
         const payload = { mcuId, status, lastSeen: lastSeenDate };
-        console.log(`[SOCKET] Odesílám mcu_status pro ID ${mcuId} -> Status: ${status}`);
-
         this.io.to(`mcu_${mcuId}`).emit('mcu_status', payload);
         this.io.to('all_data').emit('mcu_status', payload); 
     }
