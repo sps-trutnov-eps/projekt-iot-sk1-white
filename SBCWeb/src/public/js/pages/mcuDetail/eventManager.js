@@ -1,6 +1,9 @@
-// pages/mcuDetail/eventManager.js
+// public/js/pages/mcuDetail/eventManager.js
 import { getMcuId } from './utils.js';
 
+/**
+ * Zobrazí načítací animaci (skeleton) než přijdou data ze serveru
+ */
 function showEventLoadingState() {
     const feedContainer = document.getElementById('event-feed');
     if (!feedContainer) return;
@@ -16,27 +19,35 @@ function showEventLoadingState() {
     `).join('');
 }
 
+/**
+ * Hlavní inicializační funkce, kterou voláš z main.js
+ */
 export async function initEventManager(socket) {
     const mcuId = getMcuId();
     if (!mcuId) return;
 
-    // Zobrazit skeleton
+    // 1. Zobrazit skeleton
     showEventLoadingState();
 
-    // 1. Načtení historie z API
+    // 2. Načtení historie z API
     await fetchEventHistory(mcuId);
 
-    // 2. Naslouchání na živé eventy
+    // 3. Naslouchání na živé eventy ze socketů
     if (socket) {
+        // Vypneme předchozí listenery, abychom zamezili duplikacím při přepínání
         socket.off('new_event'); 
         socket.on('new_event', (payload) => {
+            // Ověříme, že event patří k tomuto konkrétnímu MCU
             if (payload.mcuId == mcuId) {
-                renderEventLog(payload, true);
+                renderEventLog(payload, true); // true = je to nový live event, dej ho nahoru
             }
         });
     }
 }
 
+/**
+ * Stáhne historii logů z databáze
+ */
 async function fetchEventHistory(mcuId) {
     const feedContainer = document.getElementById('event-feed');
     if (!feedContainer) return;
@@ -46,12 +57,13 @@ async function fetchEventHistory(mcuId) {
         const data = await response.json();
 
         if (data.success && data.events) {
+            // Smažeme načítací skeleton
             feedContainer.innerHTML = ''; 
 
             if (data.events.length === 0) {
-                // Prázdný stav s INBOX ikonou (malá verze)
+                // Prázdný stav, pokud neexistují žádné logy
                 feedContainer.innerHTML = `
-                    <div class="flex flex-col items-center justify-center py-8 text-center">
+                    <div class="flex flex-col items-center justify-center py-8 text-center" id="empty-events-state">
                         <i class="fas fa-inbox text-2xl text-ash-grey-300 mb-2"></i>
                         <p class="text-[11px] text-silver-500">Zatím se tu nic neudálo.</p>
                     </div>
@@ -59,8 +71,9 @@ async function fetchEventHistory(mcuId) {
                 return;
             }
 
+            // Vykreslení historie (backend by je měl vracet seřazené od nejnovějšího)
             data.events.forEach(event => {
-                renderEventLog(event, false); 
+                renderEventLog(event, false); // false = historie, skládej je pod sebe
             });
         }
     } catch (error) {
@@ -69,21 +82,26 @@ async function fetchEventHistory(mcuId) {
     }
 }
 
+/**
+ * Vykreslí jeden konkrétní log do feedu
+ */
 function renderEventLog(event, isNew = false) {
-    // ... [Zbytek této funkce zůstává stejný - nastavování barev, ikon atd.] ...
     const feedContainer = document.getElementById('event-feed');
     if (!feedContainer) return;
 
-    // Ošetření: Pokud je feed prázdný (ukazuje inbox), smažeme ho před vložením nového logu
-    if (isNew && feedContainer.innerHTML.includes('fa-inbox')) {
-        feedContainer.innerHTML = '';
+    // Pokud přišel první live event a feed ukazoval "Prázdnou schránku", schránku smažeme
+    const emptyState = document.getElementById('empty-events-state');
+    if (isNew && emptyState) {
+        emptyState.remove();
     }
 
+    // Výchozí styly (Info)
     let iconClass = 'fa-info';
     let iconColor = 'text-blue-500';
     let bgColor = 'bg-blue-50';
 
-    if (event.type === 'warn') {
+    // Obarvení podle typu eventu
+    if (event.type === 'warn' || event.type === 'warning') {
         iconClass = 'fa-exclamation-triangle';
         iconColor = 'text-yellow-500';
         bgColor = 'bg-yellow-50';
@@ -92,26 +110,36 @@ function renderEventLog(event, isNew = false) {
         iconColor = 'text-red-500';
         bgColor = 'bg-red-50';
     } else if (event.type === 'info') {
-        iconClass = 'fa-wifi';
-        iconColor = 'text-green-500';
-        bgColor = 'bg-green-50';
+        // Tady si můžeš odlišit i připojení vs. ostatní info logy
+        if (event.message.includes('Online')) {
+            iconClass = 'fa-wifi';
+            iconColor = 'text-green-500';
+            bgColor = 'bg-green-50';
+        } else {
+            iconClass = 'fa-info-circle';
+        }
     }
 
-    const date = new Date(event.timestamp.replace(' ', 'T') + (event.timestamp.includes('Z') ? '' : 'Z'));
-    const timeStr = date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    // Bezpečné parsování času (doplnění Z pokud chybí, aby to prohlížeč bral jako UTC z DB)
+    const timestampStr = event.timestamp.replace(' ', 'T') + (event.timestamp.includes('Z') ? '' : 'Z');
+    const date = new Date(timestampStr);
+    const timeStr = !isNaN(date) ? date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '--:--:--';
 
+    // HTML Šablona pro jeden log
     const logHtml = `
         <div class="flex gap-3 items-start animate-fade-in">
             <div class="w-7 h-7 rounded-full ${bgColor} flex items-center justify-center shrink-0 mt-0.5">
                 <i class="fas ${iconClass} text-[10px] ${iconColor}"></i>
             </div>
             <div>
-                <p class="text-xs font-medium text-gray-800">${event.message}</p>
-                <span class="text-[10px] text-silver-400">${timeStr}</span>
+                <p class="text-xs font-medium text-gray-800 leading-relaxed">${event.message}</p>
+                <span class="text-[10px] text-silver-400 font-medium">${timeStr}</span>
             </div>
         </div>
     `;
 
+    // Pokud je to nový live event, hodíme ho na úplný začátek (nahoru).
+    // Pokud je to načítání historie, skládáme je postupně za sebe (dolů).
     if (isNew) {
         feedContainer.insertAdjacentHTML('afterbegin', logHtml);
     } else {

@@ -1,7 +1,7 @@
 // services/EventService.js
 const Event = require('../models/Event');
 const EventRepository = require('../repositories/EventRepository');
-const SocketService = require('../sockets/socketService'); // Uprav cestu podle sebe
+const SocketService = require('../sockets/socketService');
 
 class EventService {
     
@@ -13,7 +13,7 @@ class EventService {
         const newId = EventRepository.create(event.toDatabase());
         event.id = newId;
 
-        // Odeslání přes WebSocket
+        // Odeslání přes WebSocket - zavolá metodu v SocketService
         if (SocketService.broadcastAlert) {
             SocketService.broadcastAlert(mcuId, type, message);
         }
@@ -33,7 +33,7 @@ class EventService {
         const newId = EventRepository.create(event.toDatabase());
         event.id = newId;
 
-        // Odeslání přes WebSocket (pokud máš metodu připravenou)
+        // Odeslání přes WebSocket 
         if (SocketService.broadcastServerAlert) {
             SocketService.broadcastServerAlert(serverId, type, message);
         }
@@ -52,7 +52,7 @@ class EventService {
         try {
             EventRepository.logSystem(type, message); 
             
-            // Odeslání přes WebSocket všem klientům (např. do horní lišty s notifikacemi)
+            // Odeslání přes WebSocket všem klientům (do horní lišty s notifikacemi)
             if (SocketService.broadcastSystemAlert) {
                  SocketService.broadcastSystemAlert(type, message);
             }
