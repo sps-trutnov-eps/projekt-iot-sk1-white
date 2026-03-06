@@ -131,31 +131,49 @@ export async function loadServers(isBackground = false) {
                 const isDatabase = (server.type === 'database');
                 
                 // --- Generování příkazů ---
+                // --- Generování příkazů ---
                 let commandsHtml = '';
                 if (server.commands && server.commands.length > 0) {
                     server.commands.forEach(cmd => {
                         const safeCmdName = escapeQuotes(cmd.name);
+                        
+                        // Zjištění, zda je příkaz oblíbený
+                        const isFav = cmd.isFavorite === 1 || cmd.isFavorite === true;
+                        
                         commandsHtml += `
-                            <div class="group relative bg-white border border-ash-grey-200 rounded-xl p-5 hover:border-vintage-grape-400 transition-all shadow-sm hover:shadow-md cursor-pointer flex flex-col justify-between min-h-[130px]" data-cmd-id="${cmd.id}">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-10 h-10 bg-silver-50 border border-ash-grey-100 rounded-lg flex items-center justify-center shrink-0">
-                                        <i class="fas ${cmd.icon || 'fa-terminal text-silver-600'} text-sm"></i>
+                            <div class="relative bg-white border border-vintage-grape-200 rounded-[14px] p-4 shadow-sm flex flex-col justify-between min-h-[120px]" data-cmd-id="${cmd.id}">
+                                
+                                <div class="flex items-center justify-between mb-4 pr-2"> 
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-[#e6e6e6] rounded-[10px] flex items-center justify-center shrink-0">
+                                            <i class="fas ${cmd.icon || 'fa-terminal'} text-gray-700 text-sm"></i>
+                                        </div>
+                                        
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-bold text-gray-900 text-base truncate max-w-[120px] md:max-w-[150px]">${cmd.name}</span>
+                                            <button onclick="window.toggleFavoriteCommand(event, ${cmd.id})" class="focus:outline-none transition-transform hover:scale-110" title="Oblíbené">
+                                                <i class="${isFav ? 'fas fa-star text-yellow-400' : 'far fa-star text-gray-400 hover:text-yellow-400'} text-sm"></i>
+                                            </button>
+                                        </div>
                                     </div>
-                                    <span class="font-bold text-midnight-violet-900 text-base truncate">${cmd.name}</span>
+
+                                    <div class="flex gap-1.5">
+                                        <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 rounded-md transition-colors" title="Spustit" onclick="window.runCommand(${cmd.id})">
+                                            <i class="fas fa-play text-[10px] ml-0.5"></i>
+                                        </button>
+                                        <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 rounded-md transition-colors" title="Upravit" onclick="window.openEditCommandModal(${server.id}, ${cmd.id})">
+                                            <i class="fas fa-edit text-xs"></i>
+                                        </button>
+                                        <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 rounded-md transition-colors" title="Smazat" onclick="window.openDeleteModal(${cmd.id}, 'command', '${safeCmdName}')">
+                                            <i class="fas fa-trash text-xs"></i>
+                                        </button>
+                                    </div>
                                 </div>
-                                <p class="mt-4 text-[11px] font-mono text-ash-grey-500 truncate bg-ash-grey-50 px-3 py-2 rounded border border-ash-grey-100">
-                                    ${cmd.value || cmd.command}
-                                </p>
-                                <div class="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button class="p-1.5 bg-white text-silver-500 hover:text-vintage-grape-600 rounded border border-ash-grey-200 shadow-sm" title="Spustit" onclick="window.runCommand(${cmd.id})">
-                                        <i class="fas fa-play text-xs"></i>
-                                    </button>
-                                    <button class="p-1.5 bg-white text-silver-500 hover:text-vintage-grape-600 rounded border border-ash-grey-200" title="Upravit" onclick="window.openEditCommandModal(${server.id}, ${cmd.id})">
-                                        <i class="fas fa-edit text-xs"></i>
-                                    </button>
-                                    <button class="p-1.5 bg-white text-silver-500 hover:text-red-500 rounded border border-ash-grey-200" title="Smazat" onclick="window.openDeleteModal(${cmd.id}, 'command', '${safeCmdName}')">
-                                        <i class="fas fa-trash text-xs"></i>
-                                    </button>
+                                
+                                <div class="mt-auto">
+                                    <p class="text-[12px] font-mono text-gray-500 truncate bg-[#e2e2e2] px-3 py-2 rounded-md border border-[#c4c4c4]">
+                                        ${cmd.value || cmd.command}
+                                    </p>
                                 </div>
                             </div>
                         `;
@@ -236,7 +254,7 @@ export async function loadRecentLogs() {
     if (!container) return;
 
     try {
-        const response = await fetch('/command/history');
+        //const response = await fetch('/command/history');
         const result = await response.json();
 
         if (result.success && result.data.length > 0) {
@@ -272,5 +290,52 @@ export async function loadRecentLogs() {
         }
     } catch (e) {
         container.innerHTML = `<p class="text-[10px] text-red-400/80 text-center bg-red-900/20 p-2 rounded border border-red-900/50">Chyba načítání historie.</p>`;
+    }
+}
+
+
+// Úplně dole v serverManager.js
+// public/js/pages/servers/serverManager.js
+
+export async function toggleFavoriteCommand(event, commandId) {
+    // Zastavíme probublávání kliknutí
+    if (event) event.stopPropagation();
+
+    // 1. OKAMŽITÁ VIZUÁLNÍ ZMĚNA (Optimistic Update)
+    const button = event.currentTarget;
+    const icon = button.querySelector('i');
+    
+    // Zjistíme aktuální stav podle třídy 'fas' (solidní hvězdička = aktuálně je oblíbený)
+    const isCurrentlyFav = icon.classList.contains('fas');
+
+    if (isCurrentlyFav) {
+        // Změníme na Vypnuto (prázdná šedá hvězdička)
+        icon.classList.remove('fas', 'text-yellow-400');
+        icon.classList.add('far', 'text-gray-400', 'hover:text-yellow-400');
+    } else {
+        // Změníme na Zapnuto (plná žlutá hvězdička)
+        icon.classList.remove('far', 'text-gray-400', 'hover:text-yellow-400');
+        icon.classList.add('fas', 'text-yellow-400');
+    }
+
+    // 2. ODESLÁNÍ NA POZADÍ
+    try {
+        const response = await fetch(`/command/${commandId}/favorite`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const result = await response.json();
+
+        if (!result.success) {
+            console.error("Chyba při ukládání oblíbeného stavu:", result.message);
+            // Pokud server hodí chybu, zavoláme loadServers pro srovnání dat podle databáze
+            loadServers(true); 
+        }
+        // Pokud je to success, nemusíme dělat nic, protože UI už jsme změnili!
+        
+    } catch (error) {
+        console.error("API chyba při změně oblíbeného:", error);
+        loadServers(true); // V případě chyby sítě překreslíme data
     }
 }

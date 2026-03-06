@@ -1,5 +1,5 @@
 // controllers/commandController.js
-const CommandService = require('../services/CommandService');
+const CommandService = require('../services/commandService');
 
 class CommandController {
     static async create(req, res) {
@@ -59,6 +59,24 @@ class CommandController {
             res.status(200).json({ 
                 success: true, 
                 message: 'Příkaz úspěšně upraven.' 
+            });
+        } catch (error) {
+            res.status(400).json({ 
+                success: false, 
+                message: error.message 
+            });
+        }
+    }
+
+    static async toggleFavorite(req, res) {
+        try {
+            const id = req.params.id;
+            const isNowFavorite = CommandService.toggleFavorite(id);
+            
+            res.status(200).json({ 
+                success: true, 
+                message: isNowFavorite ? 'Přidáno do oblíbených.' : 'Odebráno z oblíbených.',
+                isFavorite: isNowFavorite
             });
         } catch (error) {
             res.status(400).json({ 

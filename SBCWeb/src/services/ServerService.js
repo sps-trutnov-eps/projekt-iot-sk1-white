@@ -38,7 +38,8 @@ class ServerService {
                     name: cmd.name,
                     type: cmd.type,
                     value: cmd.command,
-                    icon: cmd.type === 'wol' ? 'fa-power-off text-green-600' : 'fa-terminal text-silver-600'
+                    icon: cmd.type === 'wol' ? 'fa-power-off text-green-600' : 'fa-terminal text-silver-600',
+                    isFavorite: cmd.isFavorite // <--- TADY JE TEN CHYBĚJÍCÍ ŘÁDEK
                 }))
             };
         });
