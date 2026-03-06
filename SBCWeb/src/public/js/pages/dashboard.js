@@ -276,7 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         name: data.name, 
                         type: data.type, 
                         command: finalCommand,
-                        serverId: data.serverId
+                        server_id: data.serverId
                     })
                 });
                 
