@@ -103,6 +103,29 @@ class CommandController {
             });
         }
     }
+
+    // Přidej do CommandController.js
+    static async run(req, res) {
+        try {
+            const id = req.params.id;
+            // Tady pak bude logika pro spuštění (SSH, Wake on LAN, atd.)
+            console.log(`[EXEC] Spouštím příkaz s ID: ${id}`);
+            
+            // Simulace, že to chvíli trvá
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            res.status(200).json({ 
+                success: true, 
+                message: 'Příkaz úspěšně spuštěn.' 
+            });
+        } catch (error) {
+            res.status(500).json({ 
+                success: false, 
+                message: error.message 
+            });
+        }
+    }
+
 }
 
 module.exports = CommandController;

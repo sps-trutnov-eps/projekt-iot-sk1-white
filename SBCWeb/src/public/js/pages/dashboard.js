@@ -3,7 +3,6 @@
  */
 
 // --- 1. GLOBÁLNÍ DATA ---
-// Data už nejsou natvrdo v kódu, budeme je stahovat z API
 let favoriteCommands = [];
 let availableServers = [];
 
@@ -15,13 +14,10 @@ function escapeQuotes(str) {
 
 // --- 2. NAČÍTÁNÍ DAT Z API ---
 
-/**
- * Načte oblíbené příkazy a servery z backendu a překreslí UI
- */
 async function loadDashboardData() {
     try {
         // 1. Načtení oblíbených příkazů
-        const favRes = await fetch('/command/favorites'); // <-- Zkontroluj si, že URL odpovídá tvému routeru
+        const favRes = await fetch('/command/favorites');
         const favData = await favRes.json();
         if (favData.success) {
             favoriteCommands = favData.data;
@@ -40,12 +36,11 @@ async function loadDashboardData() {
     }
 }
 
-// --- 3. POMOCNÉ FUNKCE (GLOBÁLNÍ) ---
+// --- 3. GLOBÁLNÍ FUNKCE PRO HTML (onclick) ---
 
 function populateServerSelect() {
     const select = document.getElementById('editCommandServer');
     if (!select) return;
-    // Tady už používáme dynamicky stažené servery
     select.innerHTML = availableServers.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
 }
 
@@ -53,7 +48,7 @@ window.handleEditClick = (id) => {
     const item = favoriteCommands.find(c => c.id == id);
     if (!item) return;
 
-    // 1. NEJDŘÍVE modal vyčistíme (promaže stará data a schová errory)
+    // 1. NEJDŘÍVE modal vyčistíme
     if (window.editModal) {
         window.editModal.clear();
     }
@@ -62,6 +57,8 @@ window.handleEditClick = (id) => {
     populateServerSelect();
 
     // 3. Dosadíme data z databáze
+    const cmdValue = item.value || item.command;
+    
     document.getElementById('editCommandId').value = item.id;
     document.getElementById('editCommandName').value = item.name;
     document.getElementById('editCommandServer').value = item.server_id || item.serverId || "";
@@ -75,29 +72,38 @@ window.handleEditClick = (id) => {
     if (isWol) {
         shellWrapper.classList.add('hidden');
         wolWrapper.classList.remove('hidden');
-        document.getElementById('editCommandMac').value = item.command;
+        document.getElementById('editCommandMac').value = cmdValue;
     } else {
         wolWrapper.classList.add('hidden');
         shellWrapper.classList.remove('hidden');
-        document.getElementById('editCommandValue').value = item.command;
+        document.getElementById('editCommandValue').value = cmdValue;
     }
 
-    // 4. NAKONEC modal otevřeme (už s vyplněnými daty)
+    // 4. NAKONEC modal otevřeme
     if (window.editModal) {
         window.editModal.open();
     }
 };
 
 window.handleDeleteClick = (id, name) => {
-    document.getElementById('deleteTargetId').value = id;
-    document.getElementById('deleteTargetName').textContent = name;
+    // 1. NEJDŘÍVE vyčistíme modal
     if (window.deleteModal) {
         window.deleteModal.clear();
+    }
+
+    // 2. AŽ TEĎ naplníme skryté inputy
+    document.getElementById('deleteTargetId').value = id;
+    document.getElementById('deleteTargetType').value = 'command'; 
+    
+    // 3. Vypíšeme název do HTML (tučně)
+    document.getElementById('deleteTargetName').textContent = name;
+    
+    // 4. Nakonec otevřeme
+    if (window.deleteModal) {
         window.deleteModal.open();
     }
 };
 
-// Funkce pro odebrání z oblíbených přímo z dashboardu
 window.toggleFavOnDashboard = async (event, commandId) => {
     if (event) event.stopPropagation();
     
@@ -112,7 +118,6 @@ window.toggleFavOnDashboard = async (event, commandId) => {
         });
         const result = await response.json();
         
-        // Načteme nová data pro jistotu
         if (result.success) loadDashboardData();
     } catch (e) {
         console.error("Chyba při odebírání z oblíbených:", e);
@@ -120,7 +125,41 @@ window.toggleFavOnDashboard = async (event, commandId) => {
     }
 };
 
-// --- 4. VYKRESLOVÁNÍ ---
+window.runCommand = async (id, btnElement) => {
+    if (btnElement && btnElement.disabled) return;
+
+    let originalHtml = '';
+    if (btnElement) {
+        originalHtml = btnElement.innerHTML;
+        btnElement.innerHTML = '<i class="fas fa-circle-notch fa-spin text-[10px] ml-0.5"></i>';
+        btnElement.disabled = true;
+    }
+
+    try {
+        const response = await fetch(`/command/run/${id}`, { method: 'POST' });
+        const result = await response.json();
+
+        if (result.success) {
+            if (btnElement) {
+                btnElement.innerHTML = '<i class="fas fa-check text-green-500 text-[10px] ml-0.5"></i>';
+                setTimeout(() => { btnElement.innerHTML = originalHtml; btnElement.disabled = false; }, 2000);
+            }
+        } else {
+            if (btnElement) {
+                btnElement.innerHTML = '<i class="fas fa-times text-red-500 text-[10px] ml-0.5"></i>';
+                setTimeout(() => { btnElement.innerHTML = originalHtml; btnElement.disabled = false; }, 2000);
+            }
+        }
+    } catch (err) {
+        console.error("API chyba při spouštění:", err);
+        if (btnElement) {
+            btnElement.innerHTML = '<i class="fas fa-exclamation-triangle text-red-500 text-[10px] ml-0.5"></i>';
+            setTimeout(() => { btnElement.innerHTML = originalHtml; btnElement.disabled = false; }, 2000);
+        }
+    }
+};
+
+// --- 4. VYKRESLOVÁNÍ KARTIČEK ---
 
 function renderCommands() {
     const grid = document.getElementById('commandsGrid');
@@ -139,9 +178,9 @@ function renderCommands() {
 
     const cardsHtml = favoriteCommands.map(item => {
         const safeName = escapeQuotes(item.name);
-        const iconClass = item.type === 'wol' ? 'fa-power-off' : 'fa-terminal';
-        // Název serveru s fallbackem
+        const iconClass = item.type === 'wol' ? 'fa-power-off' : (item.icon || 'fa-terminal');
         const serverNameText = item.server_name || "Neznámý server";
+        const cmdValue = item.value || item.command;
         
         return `
             <div class="fav-card relative bg-white border border-vintage-grape-200 rounded-[14px] p-4 shadow-sm flex flex-col justify-between min-h-[120px]" data-cmd-id="${item.id}">
@@ -163,7 +202,7 @@ function renderCommands() {
                     </div>
 
                     <div class="flex gap-1.5 shrink-0">
-                        <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 hover:text-green-600 rounded-md transition-colors" title="Spustit" onclick="window.runCommand(${item.id})">
+                        <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 hover:text-green-600 rounded-md transition-colors" title="Spustit" onclick="window.runCommand(${item.id}, this)">
                             <i class="fas fa-play text-[10px] ml-0.5"></i>
                         </button>
                         <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 rounded-md transition-colors" title="Upravit" onclick="window.handleEditClick(${item.id})">
@@ -177,7 +216,7 @@ function renderCommands() {
                 
                 <div class="mt-auto">
                     <p class="text-[12px] font-mono text-gray-500 truncate bg-[#e2e2e2] px-3 py-2 rounded-md border border-[#c4c4c4]">
-                        ${item.command}
+                        ${cmdValue}
                     </p>
                 </div>
             </div>
@@ -187,19 +226,19 @@ function renderCommands() {
     grid.innerHTML = cardsHtml;
 }
 
-// --- 5. INICIALIZACE A SOCKETS ---
+// --- 5. INICIALIZACE A SOCKETS (DOM Content Loaded) ---
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Registrace modalů
+    // 1. Registrace modalů
     window.addCommandModal = Modal.register('addCommand');
     window.addServerModal = Modal.register('addServer');
     window.editModal = Modal.register('editCommand');
     window.deleteModal = Modal.register('delete');
 
-    // Spuštění načítání dat z backendu
+    // 2. Spuštění načítání dat z backendu
     loadDashboardData();
 
-    // Event Listeners pro editaci
+    // 3. Event Listeners pro editaci formuláře
     const editTypeSelect = document.getElementById('editCommandType');
     if (editTypeSelect) {
         editTypeSelect.addEventListener('change', (e) => {
@@ -209,22 +248,94 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- LOGIKA PRO ULOŽENÍ EDITACE ---
     if (window.editModal && window.editModal.form) {
         window.editModal.form.addEventListener('submit', async (e) => {
             e.preventDefault();
+            window.editModal.hideError();
+
             const formData = new FormData(window.editModal.form);
-            const data = Object.fromEntries(formData);
+            const data = Object.fromEntries(formData.entries());
             
-            // ZDE DOPLŇ reálný fetch pro uložení editace...
-            console.log("[API] Ukládám změny:", data);
-            // await fetch(`/command/edit/${data.id}`, { ... })
+            const finalCommand = data.type === 'wol' ? data.macAddress : data.command;
             
-            window.editModal.close();
-            loadDashboardData(); // Přenačíst data po editaci
+            if (!data.name || !finalCommand) {
+                return window.editModal.showError('Vyplňte prosím všechny potřebné údaje.');
+            }
+
+            try {
+                const submitBtn = window.editModal.submitBtn;
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
+                submitBtn.disabled = true;
+
+                const res = await fetch(`/command/edit/${data.id}`, {
+                    method: 'PUT', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ 
+                        name: data.name, 
+                        type: data.type, 
+                        command: finalCommand,
+                        server_id: data.serverId
+                    })
+                });
+                
+                const result = await res.json();
+                
+                if (result.success) { 
+                    window.editModal.close(); 
+                    loadDashboardData(); 
+                } else {
+                    window.editModal.showError(result.message || 'Chyba při úpravě příkazu.');
+                }
+                
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                
+            } catch (err) { 
+                window.editModal.showError('Chyba komunikace s API.'); 
+            }
         });
     }
 
-    // WebSocket Spojení pro statistiky (zůstává beze změny)
+    // --- LOGIKA PRO SMAZÁNÍ ---
+    if (window.deleteModal && window.deleteModal.submitBtn) {
+        window.deleteModal.submitBtn.addEventListener('click', async () => {
+            window.deleteModal.hideError();
+            
+            const id = document.getElementById('deleteTargetId').value;
+            const type = document.getElementById('deleteTargetType').value;
+            if (!id) return;
+
+            const endpoint = type === 'server' ? `/server/${id}` : `/command/${id}`;
+
+            try {
+                const submitBtn = window.deleteModal.submitBtn;
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mažu...';
+                submitBtn.disabled = true;
+
+                const res = await fetch(endpoint, { method: 'DELETE' });
+                const result = await res.json();
+                
+                if (result.success) { 
+                    window.deleteModal.close(); 
+                    loadDashboardData();
+                } else {
+                    window.deleteModal.showError(result.message || 'Nelze smazat.');
+                }
+                
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                
+            } catch (err) { 
+                console.error("Chyba při mazání:", err);
+                window.deleteModal.showError('Smazání selhalo. Zkontrolujte připojení.'); 
+            }
+        });
+    }
+
+    // 4. WebSocket Spojení pro statistiky
     const socket = io();
     let currentStats = { activeMcus: 0, totalSensors: 0, dataPointsToday: 0, alertsToday: 0 };
 

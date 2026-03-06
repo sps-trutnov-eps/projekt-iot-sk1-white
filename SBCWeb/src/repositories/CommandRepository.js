@@ -47,11 +47,16 @@ class CommandRepository {
     }
 
     // Klasický update (nezahrnuje is_favorite, aby se nepřepsal při editaci)
-    static update(id, data) {
-        const query = `UPDATE commands SET name = ?, type = ?, command = ? WHERE id = ?`;
-        const result = db.prepare(query).run(data.name, data.type, data.command, id);
-        return result.changes > 0;
-    }
+    // repositories/CommandRepository.js
+
+static update(id, data) {
+    // Přidán server_id do SET části dotazu
+    const query = `UPDATE commands SET name = ?, type = ?, command = ?, server_id = ? WHERE id = ?`;
+    const result = db.prepare(query).run(data.name, data.type, data.command, data.server_id, id);
+    console.log(data.server_id);
+    console.log(result);
+    return result.changes > 0;
+}
 
     // NOVÉ: Speciální metoda jen pro přepínání oblíbených
     static toggleFavorite(id, isFavoriteStatus) {

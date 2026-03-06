@@ -43,20 +43,24 @@ class CommandService {
         return CommandRepository.delete(id);
     }
 
-    static updateCommand(id, data) {
-        if (!data.name || !data.type || !data.command) {
-            throw new Error('Chybí povinné údaje pro úpravu příkazu.');
-        }
+    // services/CommandService.js
 
-        if (data.type === 'wol') {
-            const macRegex = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
-            if (!macRegex.test(data.command)) {
-                throw new Error('Neplatný formát MAC adresy pro Wake on LAN.');
-            }
-        }
-
-        return CommandRepository.update(id, data);
+static updateCommand(id, data) {
+    // Přidali jsme server_id do kontroly povinných údajů
+    if (!data.name || !data.type || !data.command || !data.server_id) {
+        throw new Error('Chybí povinné údaje pro úpravu příkazu.');
     }
+
+    if (data.type === 'wol') {
+        const macRegex = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
+        if (!macRegex.test(data.command)) {
+            throw new Error('Neplatný formát MAC adresy pro Wake on LAN.');
+        }
+    }
+
+    // Předáme server_id do repozitáře
+    return CommandRepository.update(id, data);
+}
 
     static toggleFavorite(id) {
         // 1. Zkontrolujeme, zda příkaz existuje
