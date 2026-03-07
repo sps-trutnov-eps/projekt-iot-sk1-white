@@ -9,12 +9,14 @@ import json
 from umqtt.simple import MQTTClient
 
 # --- NASTAVENÍ SÍTĚ A MQTT ---
-WIFI_SSID = "Vincent"
-WIFI_PASSWORD = "password"
-MQTT_BROKER_IP = "172.20.10.13"  # Doplň IP adresu svého RPi 4
+WIFI_SSID = "rasppico"
+WIFI_PASSWORD = "embedded"
+MQTT_BROKER_IP = "192.168.1.100"  # Doplň IP adresu svého RPi 4
 MQTT_PORT = 1883
 CLIENT_ID = "mcu_kuba_kancl"
 TOPIC_COMMANDS = "server/commands"
+
+mqtt_client = None
 
 # --- NASTAVENÍ PINŮ ---
 # I2C pro OLED
@@ -105,6 +107,8 @@ def connect_wifi_and_mqtt():
 
 def send_mqtt_command(command_id):
     """Sestaví JSON podle tvého protokolu a odešle ho"""
+    global mqtt_client
+    
     if not mqtt_client:
         return False
         

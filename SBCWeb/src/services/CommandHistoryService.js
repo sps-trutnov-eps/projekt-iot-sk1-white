@@ -13,5 +13,10 @@ class CommandHistoryService {
     static getHistoryForCommand(commandId) {
         return CommandHistoryRepository.getByCommandId(commandId);
     }
+
+    // Přidej do třídy CommandHistoryService
+    static updateExecution(historyId, status, output, errorOutput = null) {
+        return CommandHistoryRepository.update(historyId, status, output, errorOutput);
+    }
 }
 module.exports = CommandHistoryService;

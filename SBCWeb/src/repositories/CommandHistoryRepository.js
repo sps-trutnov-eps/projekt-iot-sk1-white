@@ -19,5 +19,15 @@ class CommandHistoryRepository {
         const query = `SELECT * FROM command_history WHERE command_id = ? ORDER BY executed_at DESC LIMIT ?`;
         return db.prepare(query).all(commandId, limit);
     }
+
+    // Přidej do třídy CommandHistoryRepository
+    static update(id, status, output, errorOutput = null) {
+        const query = `
+            UPDATE command_history 
+            SET status = ?, output = ?, error_output = ?
+            WHERE id = ?
+        `;
+        db.prepare(query).run(status, output, errorOutput, id);
+    }
 }
 module.exports = CommandHistoryRepository;

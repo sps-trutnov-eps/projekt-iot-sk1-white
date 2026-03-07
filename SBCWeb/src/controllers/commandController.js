@@ -1,5 +1,7 @@
 // controllers/commandController.js
 const CommandService = require('../services/commandService');
+const CommandHistoryService = require('../services/CommandHistoryService');
+const MqttHandler = require('../sockets/mqttHandler')
 
 class CommandController {
     static async create(req, res) {
@@ -108,17 +110,37 @@ class CommandController {
     static async run(req, res) {
         try {
             const id = req.params.id;
-            // Tady pak bude logika pro spuštění (SSH, Wake on LAN, atd.)
-            console.log(`[EXEC] Spouštím příkaz s ID: ${id}`);
             
-            // Simulace, že to chvíli trvá
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // 1. Získáme detail příkazu z DB (předpokládám, že máš metodu getById)
+            const command = CommandService.getCommandById(id); 
+            if (!command) {
+                return res.status(404).json({ success: false, message: 'Příkaz nenalezen.' });
+            }
 
-            res.status(200).json({ 
+            console.log(`[EXEC] Odesílám příkaz s ID: ${id} (${command.command})`);
+
+            // 2. Vytvoříme úvodní záznam v DB se statusem 'pending'
+            // logExecution vrací lastInsertRowid
+            const historyId = CommandHistoryService.logExecution(id, 'pending', null, null);
+
+            // 3. Odeslání přes MQTT
+            const payload = {
+                command_id: command.command, // Odesíláme samotný text/identifikátor příkazu
+                sender_id: 'web_admin',
+                history_id: historyId        // Předáme ID, aby ho Linux mohl poslat zpět
+            };
+
+            MqttHandler.publishCommand('server/commands', payload);
+
+            // 4. Odpovíme uživateli, že je zpracováváno
+            res.status(202).json({ 
                 success: true, 
-                message: 'Příkaz úspěšně spuštěn.' 
+                message: 'Příkaz odeslán ke zpracování.',
+                historyId: historyId // Můžeme poslat na frontend, aby si mohl pingat na výsledek
             });
+
         } catch (error) {
+            console.log(error);
             res.status(500).json({ 
                 success: false, 
                 message: error.message 
