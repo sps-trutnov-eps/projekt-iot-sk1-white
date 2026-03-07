@@ -91,7 +91,6 @@ function showErrorOrEmptyState(message, subMessage) {
 }
 
 // Hlavní funkce pro načtení a vykreslení serverů
-// Hlavní funkce pro načtení a vykreslení serverů
 export async function loadServers(isBackground = false) {
     const container = document.getElementById('servers-container');
     if (!container) return;
@@ -126,11 +125,9 @@ export async function loadServers(isBackground = false) {
             container.innerHTML = ''; 
             
             result.data.forEach(server => {
-                // ... (zbytek tvého původního kódu pro generování HTML zůstává beze změny)
                 const isOnline = (server.status === 'online' || server.status === 1 || server.isOnline === 1 || server.is_online === 1);
                 const isDatabase = (server.type === 'database');
                 
-                // --- Generování příkazů ---
                 // --- Generování příkazů ---
                 let commandsHtml = '';
                 if (server.commands && server.commands.length > 0) {
@@ -158,7 +155,7 @@ export async function loadServers(isBackground = false) {
                                     </div>
 
                                     <div class="flex gap-1.5">
-                                        <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 rounded-md transition-colors" title="Spustit" onclick="window.runCommand(${cmd.id})">
+                                        <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 rounded-md transition-colors" title="Spustit" onclick="window.runCommand(${cmd.id}, this)">
                                             <i class="fas fa-play text-[10px] ml-0.5"></i>
                                         </button>
                                         <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 rounded-md transition-colors" title="Upravit" onclick="window.openEditCommandModal(${server.id}, ${cmd.id})">
@@ -254,7 +251,7 @@ export async function loadRecentLogs() {
     if (!container) return;
 
     try {
-        //const response = await fetch('/command/history');
+        const response = await fetch('/command/history');
         const result = await response.json();
 
         if (result.success && result.data.length > 0) {
@@ -293,10 +290,7 @@ export async function loadRecentLogs() {
     }
 }
 
-
-// Úplně dole v serverManager.js
-// public/js/pages/servers/serverManager.js
-
+// Funkce pro hvězdičku (přidání do oblíbených)
 export async function toggleFavoriteCommand(event, commandId) {
     // Zastavíme probublávání kliknutí
     if (event) event.stopPropagation();

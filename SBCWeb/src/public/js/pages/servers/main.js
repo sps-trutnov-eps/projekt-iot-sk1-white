@@ -1,6 +1,5 @@
 // public/js/pages/servers/main.js
 
-// 1. PŘIDÁN IMPORT 'toggleFavoriteCommand'
 import { loadServers, loadRecentLogs, toggleFavoriteCommand } from './serverManager.js'; 
 import { runCommand } from './commandManager.js';
 import { 
@@ -21,10 +20,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// 2. TADY TO MUSÍ BÝT PŘIŘAZENO DO WINDOW
+// TADY TO MUSÍ BÝT PŘIŘAZENO DO WINDOW
 window.loadServers = loadServers;
 window.runCommand = runCommand;
-window.toggleFavoriteCommand = toggleFavoriteCommand; // <--- TENTO ŘÁDEK JE KLÍČOVÝ
+window.toggleFavoriteCommand = toggleFavoriteCommand; 
 
 window.openAddCommandModal = openAddCommandModal;
 window.openEditServerModal = openEditServerModal;

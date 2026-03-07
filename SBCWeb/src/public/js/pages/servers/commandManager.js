@@ -1,64 +1,73 @@
 // public/js/pages/servers/commandManager.js
 
-export function runCommand(cmdId) {
+export async function runCommand(cmdId, btnElement) {
     console.log("[Frontend] Požadavek na spuštění příkazu ID:", cmdId);
 
-    // Najdeme si HTML element karty, abychom mohli případně měnit její stav (např. přidat spinner)
-    const cardElement = document.querySelector(`div[data-cmd-id="${cmdId}"]`);
-    const btnIcon = cardElement ? cardElement.querySelector('.fa-play') : null;
-
-    // 1. Vizuální změna (přidáme spinner)
-    if (btnIcon) {
-        btnIcon.classList.remove('fa-play');
-        btnIcon.classList.add('fa-spinner', 'fa-spin');
+    // Pokud náhodou nepředáš 'this' z HTML, pokusíme se tlačítko najít podle ID karty
+    if (!btnElement) {
+        const cardElement = document.querySelector(`div[data-cmd-id="${cmdId}"]`);
+        if (cardElement) {
+            // Najde tlačítko uvnitř karty, které aktuálně obsahuje ikonu play
+            btnElement = cardElement.querySelector('button i.fa-play')?.parentElement;
+        }
     }
 
-    // 2. Odeslání požadavku na náš backend (CommandController)
-    fetch(`/command/${cmdId}/execute`, { 
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(res => {
-        if (!res.ok) {
-            throw new Error(`HTTP chyba! Status: ${res.status}`);
-        }
-        return res.json();
-    })
-    .then(data => {
+    // Ochrana proti dvojitému kliknutí
+    if (btnElement && btnElement.disabled) return;
+
+    // 1. Vizuální změna (uložíme si původní HTML a dáme tam spinner)
+    let originalHtml = '';
+    if (btnElement) {
+        originalHtml = btnElement.innerHTML;
+        btnElement.innerHTML = '<i class="fas fa-circle-notch fa-spin text-[10px] ml-0.5"></i>';
+        btnElement.disabled = true;
+    }
+
+    try {
+        // 2. Odeslání požadavku na backend
+        const response = await fetch(`/command/run/${cmdId}`, { 
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const data = await response.json();
         console.log("[Frontend] Odpověď serveru:", data);
         
+        // 3. Zpracování odpovědi a zobrazení správné ikony
         if (data.success) {
-            // Úspěšně odesláno do fronty / MQTT
+            if (btnElement) {
+                btnElement.innerHTML = '<i class="fas fa-check text-green-500 text-[10px] ml-0.5"></i>';
+            }
             showNotification('Příkaz odeslán ke zpracování!', 'success');
-            
-            // Volitelné: Můžeš si uložit data.historyId, pokud bys pak chtěl zjišťovat stav
             console.log("ID v historii:", data.historyId);
         } else {
+            if (btnElement) {
+                btnElement.innerHTML = '<i class="fas fa-times text-red-500 text-[10px] ml-0.5"></i>';
+            }
             showNotification(`Chyba: ${data.message}`, 'error');
         }
-    })
-    .catch(error => {
+    } catch (error) {
         console.error("[Frontend] Chyba při odesílání příkazu:", error);
-        showNotification('Došlo k chybě při komunikaci se serverem.', 'error');
-    })
-    .finally(() => {
-        // 3. Vrátíme ikonu zpět do normálu
-        if (btnIcon) {
-            btnIcon.classList.remove('fa-spinner', 'fa-spin');
-            btnIcon.classList.add('fa-play');
+        if (btnElement) {
+            btnElement.innerHTML = '<i class="fas fa-exclamation-triangle text-red-500 text-[10px] ml-0.5"></i>';
         }
-    });
+        showNotification('Došlo k chybě při komunikaci se serverem.', 'error');
+    } finally {
+        // 4. Vrátíme tlačítko zpět do normálu po 2 vteřinách
+        if (btnElement) {
+            setTimeout(() => { 
+                btnElement.innerHTML = originalHtml; 
+                btnElement.disabled = false; 
+            }, 2000);
+        }
+    }
 }
 
-// Jednoduchá pomocná funkce pro notifikace (pokud už nemáš vlastní v projektu)
+// Jednoduchá pomocná funkce pro notifikace
 function showNotification(message, type = 'info') {
-    // Pokud používáš nějakou knihovnu (např. Toastr, SweetAlert), zavolej ji tady.
-    // Zde je jednoduchý fallback přes alert() nebo console, dokud to nepředěláš na UI prvky
     if (type === 'error') {
         alert("❌ " + message);
     } else {
-        console.log("✅ " + message); // Prozatím jen do konzole, abys neklikal pořád na alerty
+        console.log("✅ " + message); 
     }
 }
