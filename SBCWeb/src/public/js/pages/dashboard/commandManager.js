@@ -162,4 +162,40 @@ window.toggleFavOnDashboard = async (event, commandId) => {
     }
 };
 
+// NOVÁ FUNKCE PRO OTEVŘENÍ MODALU "PŘIDAT PŘÍKAZ"
+window.handleAddCommandClick = () => {
+    if (!window.addCommandModal) return;
+    
+    // 1. Vyčistíme staré hodnoty
+    window.addCommandModal.clear();
+    
+    // 2. NAPLNĚNÍ TVÉHO SELECTU (id="serverSelect")
+    const select = document.getElementById('serverSelect');
+    if (select) {
+        // Vytvoříme defaultní prázdnou volbu
+        const defaultOption = '<option value="" disabled selected>Vyberte server...</option>';
+        // Namapujeme data z backendu (která se stáhla při načtení stránky)
+        const serverOptions = window.DashboardManager.availableServers.map(s => 
+            `<option value="${s.id}">${s.name}</option>`
+        ).join('');
+        
+        // Vložíme obojí do selectu
+        select.innerHTML = defaultOption + serverOptions;
+    }
+
+    // 3. Resetování zobrazení na 'shell' (zkontroluj si, že ti sedí tato ID s tvým HTML)
+    const typeSelect = document.getElementById('addCommandType'); 
+    if (typeSelect) typeSelect.value = 'shell';
+    
+    const shellWrapper = document.getElementById('addShellInputWrapper');
+    const wolWrapper = document.getElementById('addWolInputWrapper');
+    if (shellWrapper && wolWrapper) {
+        shellWrapper.classList.remove('hidden');
+        wolWrapper.classList.add('hidden');
+    }
+
+    // 4. Otevřeme modal
+    window.addCommandModal.open();
+};
+
 window.CommandManager = CommandManager;

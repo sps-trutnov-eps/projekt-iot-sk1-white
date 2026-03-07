@@ -4,6 +4,7 @@ const Command = require('../models/Command');
 
 class CommandRepository {
     static create(commandData) {
+        console.log(commandData);
         const query = `
             INSERT INTO commands (server_id, name, type, command, is_favorite, created_at)
             VALUES (?, ?, ?, ?, ?, datetime('now'))

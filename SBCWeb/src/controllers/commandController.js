@@ -6,18 +6,22 @@ const MqttHandler = require('../sockets/mqttHandler')
 class CommandController {
     static async create(req, res) {
         try {
-            // 1. Získáme přesně ty klíče, které posílá FormData z HTML
-            const { serverId, name, type, command, macAddress } = req.body;
+            // 1. Přidali jsme 'server' a 'is_favorite', aby kontroler chytil všechno
+            const { serverId, server_id, server, name, type, command, macAddress, is_favorite } = req.body;
 
-            // 2. Podle typu akce se rozhodneme, co je vlastně náš "příkaz"
-            const actualCommandData = (type === 'wol') ? macAddress : command;
+            // 2. Najdeme ID serveru, ať už se klíč jmenuje jakkoliv
+            const finalServerId = serverId || server_id || server;
 
-            // 3. Zmapování dat pro Service
+            // 3. Ošetření pro WoL (pokud frontend pošle rovnou 'command', použijeme ho, jinak macAddress)
+            const actualCommandData = (type === 'wol') ? (macAddress || command) : command;
+
+            // 4. Zmapování dat pro Service (včetně is_favorite!)
             const commandData = {
-                server_id: serverId, // Dříve tu bylo req.body.server
+                server_id: finalServerId,
                 name: name,
                 type: type,
-                command: actualCommandData // Dříve tu bylo req.body.data
+                command: actualCommandData,
+                is_favorite: is_favorite ? 1 : 0 // Tady to chybělo! Nyní se uloží jako oblíbený.
             };
 
             const createdCommand = CommandService.createCommand(commandData);
@@ -27,6 +31,7 @@ class CommandController {
                 result: createdCommand 
             });
         } catch (error) {
+            console.log("Chyba v controlleru:", error);
             res.status(400).json({ 
                 success: false, 
                 message: error.message 
