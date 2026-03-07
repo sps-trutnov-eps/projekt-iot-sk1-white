@@ -14,7 +14,7 @@ export function runCommand(cmdId) {
     }
 
     // 2. Odeslání požadavku na náš backend (CommandController)
-    fetch(`/api/commands/${cmdId}/execute`, { 
+    fetch(`/command/${cmdId}/execute`, { 
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
