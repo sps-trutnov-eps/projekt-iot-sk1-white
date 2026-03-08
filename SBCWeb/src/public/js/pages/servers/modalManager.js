@@ -68,6 +68,20 @@ export function openEditCommandModal(serverId, commandId) {
         editCommandModal.clear();
         document.getElementById('editCommandId').value = cmd.id;
         document.getElementById('editCommandName').value = cmd.name;
+
+        // ✅ OPRAVA: nastavení server_id do formuláře
+        const serverIdInput = document.getElementById('editCommandServerId');
+        if (serverIdInput) {
+            serverIdInput.value = serverId;
+        } else {
+            // Pokud hidden input neexistuje v HTML, vytvoříme ho dynamicky
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'server_id';
+            hiddenInput.id = 'editCommandServerId';
+            hiddenInput.value = serverId;
+            editCommandModal.form.appendChild(hiddenInput);
+        }
         
         const typeSelect = document.getElementById('editCommandType');
         typeSelect.value = cmd.type;
@@ -221,11 +235,20 @@ if (editCommandModal && editCommandModal.submitBtn) {
         const finalCommand = data.type === 'wol' ? data.macAddress : data.command;
         
         if (!data.name || !finalCommand) return editCommandModal.showError('Vyplňte prosím všechny údaje.');
+        
+        // ✅ OPRAVA: server_id je nyní součástí FormData z hidden inputu
+        if (!data.server_id) return editCommandModal.showError('Chybí ID serveru, zkuste modal zavřít a otevřít znovu.');
 
         try {
             const res = await fetch(`/command/edit/${data.id}`, {
-                method: 'PUT', headers: { 'Content-Type': 'application/json' }, 
-                body: JSON.stringify({ name: data.name, type: data.type, command: finalCommand })
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({
+                    name: data.name,
+                    type: data.type,
+                    command: finalCommand,
+                    server_id: data.server_id  // ✅ správně předáváme server_id
+                })
             });
             const result = await res.json();
             if (result.success) { 
