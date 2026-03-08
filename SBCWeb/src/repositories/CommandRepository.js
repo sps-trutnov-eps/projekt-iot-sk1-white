@@ -84,6 +84,11 @@ static update(id, data) {
             return cmd;
         });
     }
+
+    static getByServerId(serverId) {
+        const query = `SELECT name, command FROM commands WHERE server_id = ?`;
+        return db.prepare(query).all(serverId);
+    }
 }
 
 module.exports = CommandRepository;

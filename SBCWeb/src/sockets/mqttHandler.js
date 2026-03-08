@@ -102,6 +102,16 @@ class MqttHandler {
             this.connect();
         }
     }
+
+    static publishConfig(topic, payload) {
+        if (this.client && this.client.connected) {
+            // retain: true zajistí, že si broker zprávu pamatuje a pošle ji agentovi hned po jeho připojení
+            this.client.publish(topic, JSON.stringify(payload), { retain: true });
+            console.log(`[MQTT] Odeslána konfigurace (Retained) na ${topic}:`, payload);
+        } else {
+            console.error("[MQTT] Nelze odeslat konfiguraci: MQTT klient není připojen.");
+        }
+    }
 }
 
 module.exports = MqttHandler;

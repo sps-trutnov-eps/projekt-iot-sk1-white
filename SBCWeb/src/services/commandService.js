@@ -1,5 +1,6 @@
 const Command = require('../models/Command');
 const CommandRepository = require('../repositories/CommandRepository');
+const MqttHandler = require('../sockets/mqttHandler');
 
 class CommandService {
     static createCommand(data) {
@@ -22,6 +23,8 @@ class CommandService {
         const newId = CommandRepository.create(command.toDatabase());
         command.id = newId;
 
+        this.syncCommandsToServer(data.server_id);
+
         return command;
     }
 
@@ -40,7 +43,14 @@ class CommandService {
             throw new Error(`Příkaz s ID ${id} nebyl nalezen.`);
         }
 
-        return CommandRepository.delete(id);
+        const serverId = existing.server_id;
+        const isDeleted = CommandRepository.delete(id);
+
+        if (isDeleted) {
+            this.syncCommandsToServer(serverId);
+        }
+
+        return isDeleted;
     }
 
     // services/CommandService.js
@@ -58,8 +68,13 @@ static updateCommand(id, data) {
         }
     }
 
-    // Předáme server_id do repozitáře
-    return CommandRepository.update(id, data);
+    const isUpdated = CommandRepository.update(id, data);
+
+    if (isUpdated) {
+            this.syncCommandsToServer(data.server_id);
+        }
+
+        return isUpdated;
 }
 
     static toggleFavorite(id) {
@@ -84,6 +99,25 @@ static updateCommand(id, data) {
         return CommandRepository.getFavorites();
     }
 
+    static syncCommandsToServer(serverId) {
+        try {
+            const rawCommands = CommandRepository.getByServerId(serverId);
+            const commandMap = {};
+
+            rawCommands.forEach(row => {
+                // Rozdělí string z DB ("ping -c 3") na pole (["ping", "-c", "3"])
+                // filter(Boolean) odstraní případné prázdné mezery navíc
+                commandMap[row.name] = row.command.split(' ').filter(Boolean);
+            });
+
+            const payload = { commands: commandMap };
+            const topic = `server/${serverId}/config`;
+
+            MqttHandler.publishConfig(topic, payload);
+        } catch (error) {
+            console.error(`[Service] Chyba při synchronizaci příkazů pro server ${serverId}:`, error);
+        }
+    }
 }
 
 module.exports = CommandService;

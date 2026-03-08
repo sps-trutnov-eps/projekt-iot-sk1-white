@@ -111,41 +111,48 @@ class CommandController {
         }
     }
 
-    // Přidej do CommandController.js
     static async run(req, res) {
         try {
             const id = req.params.id;
-            
-            // 1. Získáme detail příkazu z DB (předpokládám, že máš metodu getById)
+            console.log(id);
+            // 1. Získáme detail příkazu z DB
             const command = CommandService.getCommandById(id); 
+            console.log(command);
             if (!command) {
                 return res.status(404).json({ success: false, message: 'Příkaz nenalezen.' });
             }
 
-            console.log(`[EXEC] Odesílám příkaz s ID: ${id} (${command.command})`);
+            // Můžeme si vypsat i cílový server_id, abychom měli v logu pořádek
+            console.log(`[EXEC] Odesílám příkaz s ID: ${id} (Název: ${command.name}, Cílový Server ID: ${command.serverId})`);
 
             // 2. Vytvoříme úvodní záznam v DB se statusem 'pending'
             // logExecution vrací lastInsertRowid
             const historyId = CommandHistoryService.logExecution(id, 'pending', null, null);
 
-            // 3. Odeslání přes MQTT
+            // 3. Odeslání přes MQTT (ZDE JSOU ZMĚNY)
             const payload = {
-                command_id: command.command, // Odesíláme samotný text/identifikátor příkazu
+                // Posíláme 'name' (např. "giganiga"), protože pod tímto klíčem to Python zná ve svém COMMAND_MAP
+                command_id: command.name, 
                 sender_id: 'web_admin',
                 history_id: historyId        // Předáme ID, aby ho Linux mohl poslat zpět
             };
 
-            MqttHandler.publishCommand('server/commands', payload);
+            // Vytvoříme topic dynamicky podle toho, ke kterému serveru příkaz patří
+            console.log(command.serverId);
+            const executeTopic = `server/${command.serverId}/execute`;
+
+            // Odešleme do nového topicu
+            MqttHandler.publishCommand(executeTopic, payload);
 
             // 4. Odpovíme uživateli, že je zpracováváno
             res.status(202).json({ 
                 success: true, 
                 message: 'Příkaz odeslán ke zpracování.',
-                historyId: historyId // Můžeme poslat na frontend, aby si mohl pingat na výsledek
+                historyId: historyId // Odesíláme na frontend, aby si mohl pingat na výsledek
             });
 
         } catch (error) {
-            console.log(error);
+            console.error('[CommandController]', error);
             res.status(500).json({ 
                 success: false, 
                 message: error.message 
