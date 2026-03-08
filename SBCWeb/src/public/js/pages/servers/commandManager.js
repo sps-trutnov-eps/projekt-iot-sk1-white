@@ -1,37 +1,96 @@
 // public/js/pages/servers/commandManager.js
 
-window.runCommand = async (id, btnElement) => {
+// public/js/pages/servers/commandManager.js
+
+export async function runCommand(cmdId, btnElement) {
+    console.log("[Frontend] Požadavek na spuštění příkazu ID:", cmdId);
+
+    if (!btnElement) {
+        const cardElement = document.querySelector(`div[data-cmd-id="${cmdId}"]`);
+        if (cardElement) {
+            btnElement = cardElement.querySelector('button i.fa-play')?.parentElement;
+        }
+    }
+
     if (btnElement && btnElement.disabled) return;
-    
-    // ✅ Zjistíme typ z data atributu
-    const cmdType = btnElement?.dataset?.cmdType || 'shell';
-    
-    let originalHtml = btnElement ? btnElement.innerHTML : '';
+
+    let originalHtml = '';
     if (btnElement) {
-        btnElement.innerHTML = '<i class="fas fa-circle-notch fa-spin text-[10px] ml-0.5"></i>';
+        originalHtml = btnElement.innerHTML;
+        // Nastavíme žluté točící se kolečko (Pending)
+        btnElement.innerHTML = '<i class="fas fa-circle-notch fa-spin text-yellow-500 text-[10px] ml-0.5"></i>';
         btnElement.disabled = true;
     }
 
     try {
-        // ✅ WOL jde na /wol/wake, ostatní na /command/run
-        const url = cmdType === 'wol' ? '/wol/wake-by-command' : `/command/run/${id}`;
-        const body = cmdType === 'wol' ? JSON.stringify({ commandId: id }) : undefined;
-
-        const response = await fetch(url, { 
+        // 1. Odeslání příkazu na backend
+        const response = await fetch(`/command/run/${cmdId}`, { 
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body
+            headers: { 'Content-Type': 'application/json' }
         });
-        const result = await response.json();
-        const icon = result.success ? 'fa-check text-green-500' : 'fa-times text-red-500';
-        if (btnElement) {
-            btnElement.innerHTML = `<i class="fas ${icon} text-[10px] ml-0.5"></i>`;
-            setTimeout(() => { btnElement.innerHTML = originalHtml; btnElement.disabled = false; }, 2000);
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+            throw new Error(data.message);
         }
-    } catch (err) {
+
+        const historyId = data.historyId;
+        console.log(`[Frontend] Příkaz odeslán. Čekám na výsledek (History ID: ${historyId})...`);
+
+        // Okamžitě aktualizujeme mini-log, aby se tam objevil "pending" stav
+        if (typeof loadMiniLog === 'function') loadMiniLog();
+
+        // 2. POLLING: Čekání na výsledek (max 35 vteřin, abychom pokryli ten 30s backend timeout)
+        let attempts = 0;
+        const maxAttempts = 35;
+        let finalStatus = 'pending';
+
+        while (finalStatus === 'pending' && attempts < maxAttempts) {
+            // Počkáme 1 vteřinu
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            attempts++;
+
+            // Zeptáme se backendu na aktuální stav tohoto konkrétního příkazu
+            const statusResponse = await fetch(`/command/history/${historyId}`);
+            if (statusResponse.ok) {
+                const statusData = await statusResponse.json();
+                finalStatus = statusData.status;
+
+                // Pokud to už není pending, vyskočíme ze smyčky
+                if (finalStatus === 'success' || finalStatus === 'error') {
+                    if (finalStatus === 'success') {
+                        showNotification('Příkaz úspěšně dokončen!', 'success');
+                        if (btnElement) btnElement.innerHTML = '<i class="fas fa-check text-green-500 text-[10px] ml-0.5"></i>';
+                    } else {
+                        showNotification(`Příkaz selhal: ${statusData.error_output || 'Neznámá chyba'}`, 'error');
+                        if (btnElement) btnElement.innerHTML = '<i class="fas fa-times text-red-500 text-[10px] ml-0.5"></i>';
+                    }
+                    
+                    // Znovu aktualizujeme mini-log, aby tam naskočila zelená/červená
+                    if (typeof loadMiniLog === 'function') loadMiniLog();
+                    break; 
+                }
+            }
+        }
+
+        // Pokud to vypršelo i na frontendu (což by díky backend timeoutu nemělo, ale pro jistotu)
+        if (finalStatus === 'pending') {
+            showNotification('Vypršel časový limit pro odpověď od serveru.', 'error');
+            if (btnElement) btnElement.innerHTML = '<i class="fas fa-times text-red-500 text-[10px] ml-0.5"></i>';
+        }
+
+    } catch (error) {
+        console.error("[Frontend] Chyba:", error);
+        if (btnElement) btnElement.innerHTML = '<i class="fas fa-exclamation-triangle text-red-500 text-[10px] ml-0.5"></i>';
+        showNotification(error.message || 'Došlo k chybě při komunikaci se serverem.', 'error');
+    } finally {
+        // 3. Po 3 vteřinách vrátíme tlačítko do výchozího stavu (ikona Play)
         if (btnElement) {
-            btnElement.innerHTML = '<i class="fas fa-exclamation-triangle text-red-500 text-[10px] ml-0.5"></i>';
-            setTimeout(() => { btnElement.innerHTML = originalHtml; btnElement.disabled = false; }, 2000);
+            setTimeout(() => { 
+                btnElement.innerHTML = originalHtml; 
+                btnElement.disabled = false; 
+            }, 3000);
         }
     }
 };

@@ -114,49 +114,58 @@ class CommandController {
     static async run(req, res) {
         try {
             const id = req.params.id;
-            console.log(id);
-            // 1. Získáme detail příkazu z DB
             const command = CommandService.getCommandById(id); 
-            console.log(command);
             if (!command) {
                 return res.status(404).json({ success: false, message: 'Příkaz nenalezen.' });
             }
 
-            // Můžeme si vypsat i cílový server_id, abychom měli v logu pořádek
-            console.log(`[EXEC] Odesílám příkaz s ID: ${id} (Název: ${command.name}, Cílový Server ID: ${command.serverId})`);
-
-            // 2. Vytvoříme úvodní záznam v DB se statusem 'pending'
-            // logExecution vrací lastInsertRowid
+            // 1. Založení záznamu v DB
             const historyId = CommandHistoryService.logExecution(id, 'pending', null, null);
 
-            // 3. Odeslání přes MQTT (ZDE JSOU ZMĚNY)
+            // 2. Odeslání přes MQTT
             const payload = {
-                // Posíláme 'name' (např. "giganiga"), protože pod tímto klíčem to Python zná ve svém COMMAND_MAP
                 command_id: command.name, 
                 sender_id: 'web_admin',
-                history_id: historyId        // Předáme ID, aby ho Linux mohl poslat zpět
+                history_id: historyId
             };
-
-            // Vytvoříme topic dynamicky podle toho, ke kterému serveru příkaz patří
-            console.log(command.serverId);
-            const executeTopic = `server/${command.serverId}/execute`;
-
-            // Odešleme do nového topicu
+            const targetId = command.serverId || command.server_id;
+            const executeTopic = `server/${targetId}/execute`;
             MqttHandler.publishCommand(executeTopic, payload);
 
-            // 4. Odpovíme uživateli, že je zpracováváno
+            // ---------------------------------------------------------
+            // 3. NOVÉ: BEZPEČNOSTNÍ TIMEOUT (např. 30 vteřin)
+            // ---------------------------------------------------------
+            setTimeout(() => {
+                try {
+                    // Podíváme se, jak na tom příkaz je po 30 vteřinách
+                    const checkRecord = CommandHistoryService.getExecutionById(historyId);
+                    
+                    if (checkRecord && checkRecord.status === 'pending') {
+                        // Pokud je stále pending, zařízneme ho
+                        CommandHistoryService.updateExecution(
+                            historyId, 
+                            'error', 
+                            null, 
+                            'Timeout: Server neodpověděl v časovém limitu. Zařízení je možná offline nebo došlo ke ztrátě spojení.'
+                        );
+                        console.log(`[TIMEOUT] Příkaz ID ${historyId} vypršel a byl označen jako error.`);
+                    }
+                } catch (err) {
+                    console.error('[TIMEOUT] Chyba při kontrole timeoutu:', err);
+                }
+            }, 30000); // 30 000 ms = 30 vteřin
+            // ---------------------------------------------------------
+
+            // 4. Odpověď frontendu
             res.status(202).json({ 
                 success: true, 
                 message: 'Příkaz odeslán ke zpracování.',
-                historyId: historyId // Odesíláme na frontend, aby si mohl pingat na výsledek
+                historyId: historyId 
             });
 
         } catch (error) {
-            console.error('[CommandController]', error);
-            res.status(500).json({ 
-                success: false, 
-                message: error.message 
-            });
+            console.error(error);
+            res.status(500).json({ success: false, message: error.message });
         }
     }
 

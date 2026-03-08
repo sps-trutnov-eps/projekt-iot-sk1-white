@@ -43,7 +43,7 @@ export const CommandManager = {
                             </div>
                         </div>
                         <div class="flex gap-1.5 shrink-0">
-                            <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 hover:text-green-600 rounded-md transition-colors" onclick="window.runCommand(${item.id}, this) data-cmd-type="${cmd.type}">
+                            <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 hover:text-green-600 rounded-md transition-colors" onclick="window.runCommand(${item.id}, this)">
                                 <i class="fas fa-play text-[10px] ml-0.5"></i>
                             </button>
                             <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 rounded-md transition-colors" onclick="window.handleEditClick(${item.id})">
