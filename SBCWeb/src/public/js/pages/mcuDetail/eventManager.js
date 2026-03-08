@@ -1,6 +1,41 @@
 // public/js/pages/mcuDetail/eventManager.js
 import { getMcuId } from './utils.js';
 
+// =========================================================
+// GLOBÁLNÍ FUNKCE PRO SMAZÁNÍ LOGU (voláno z HTML onclick)
+// =========================================================
+window.removeMcuEvent = async (e, eventId, btnElement) => {
+    e.stopPropagation();
+
+    // 1. Vizuální smazání z DOMu
+    const logItem = btnElement.closest('.animate-fade-in');
+    if (logItem) {
+        logItem.remove();
+    }
+
+    // 2. Kontrola, zda nezůstal feed prázdný
+    const feedContainer = document.getElementById('event-feed');
+    if (feedContainer && feedContainer.children.length === 0) {
+        feedContainer.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-8 text-center animate-fade-in" id="empty-events-state">
+                <i class="fas fa-inbox text-2xl text-ash-grey-300 mb-2"></i>
+                <p class="text-[11px] text-silver-500">Zatím se tu nic neudálo.</p>
+            </div>
+        `;
+    }
+
+    // 3. Smazání z databáze
+    if (eventId) {
+        try {
+            // Používáme naši novou routu /delete/:id
+            const res = await fetch(`/event/delete/${eventId}`, { method: 'DELETE' });
+            if (!res.ok) console.error("Chyba při mazání MCU logu na backendu.");
+        } catch (error) {
+            console.error('Chyba komunikace při mazání logu:', error);
+        }
+    }
+};
+
 /**
  * Zobrazí načítací animaci (skeleton) než přijdou data ze serveru
  */
@@ -110,7 +145,6 @@ function renderEventLog(event, isNew = false) {
         iconColor = 'text-red-500';
         bgColor = 'bg-red-50';
     } else if (event.type === 'info') {
-        // Tady si můžeš odlišit i připojení vs. ostatní info logy
         if (event.message.includes('Online')) {
             iconClass = 'fa-wifi';
             iconColor = 'text-green-500';
@@ -120,21 +154,28 @@ function renderEventLog(event, isNew = false) {
         }
     }
 
-    // Bezpečné parsování času (doplnění Z pokud chybí, aby to prohlížeč bral jako UTC z DB)
+    // Bezpečné parsování času (s UTC timezone fixem, co tam máš)
     const timestampStr = event.timestamp.replace(' ', 'T') + (event.timestamp.includes('Z') ? '' : 'Z');
     const date = new Date(timestampStr);
     const timeStr = !isNaN(date) ? date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '--:--:--';
 
-    // HTML Šablona pro jeden log
+    // HTML Šablona pro jeden log (PŘIDÁN relative, pr-6 a křížek)
+    // Přidali jsme padding dolů (pb-3) a lehký margin, aby se křížky nepletly do sebe
     const logHtml = `
-        <div class="flex gap-3 items-start animate-fade-in">
+        <div class="flex gap-3 items-start animate-fade-in relative pr-6 pb-2 mb-2 border-b border-ash-grey-100 last:border-0 last:mb-0 last:pb-0 group">
             <div class="w-7 h-7 rounded-full ${bgColor} flex items-center justify-center shrink-0 mt-0.5">
                 <i class="fas ${iconClass} text-[10px] ${iconColor}"></i>
             </div>
-            <div>
+            <div class="flex-1 min-w-0">
                 <p class="text-xs font-medium text-gray-800 leading-relaxed">${event.message}</p>
                 <span class="text-[10px] text-silver-400 font-medium">${timeStr}</span>
             </div>
+            
+            <button onclick="window.removeMcuEvent(event, ${event.id ? event.id : 'null'}, this)" 
+                    class="absolute right-0 top-0 text-silver-300 hover:text-red-500 transition-colors p-1 opacity-0 group-hover:opacity-100 focus:opacity-100" 
+                    title="Smazat log">
+                <i class="fas fa-times text-xs"></i>
+            </button>
         </div>
     `;
 
