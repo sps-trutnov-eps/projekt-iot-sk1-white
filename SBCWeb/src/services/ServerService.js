@@ -9,6 +9,11 @@ class ServerService {
         if (!data.name || !data.ip) {
             throw new Error('Název a IP adresa jsou povinné.');
         }
+        const ipRegex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+
+        if (!ipRegex.test(data.ip)) {
+            throw new Error('Neplatný formát IP adresy. Zadejte platnou IPv4 adresu (např. 192.168.1.100).');
+        }
 
         const server = new Server(data);
         const newId = ServerRepository.create(server.toDatabase());
@@ -60,6 +65,12 @@ class ServerService {
     static updateServer(id, data) {
         if (!data.name || !data.ip) throw new Error('Název a IP jsou povinné.');
         
+        const ipRegex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+
+        if (!ipRegex.test(data.ip)) {
+            throw new Error('Neplatný formát IP adresy. Zadejte platnou IPv4 adresu (např. 192.168.1.100).');
+        }
+
         const result = ServerRepository.update(id, {
             name: data.name, 
             ip: data.ip, 

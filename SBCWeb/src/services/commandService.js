@@ -10,9 +10,14 @@ class CommandService {
         }
 
         if (data.type === 'wol') {
-            const macRegex = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
+            // 1. Očistíme vstup: nahradíme tečky a pomlčky za dvojtečky a sjednotíme na velká písmena
+            // Příklad: "aa.bb.cc.dd.ee.ff" -> "AA:BB:CC:DD:EE:FF"
+            data.command = data.command.replace(/[\.\-]/g, ':').toUpperCase();
+
+            // 2. Teď zkontrolujeme, jestli z toho vylezla validní MAC adresa
+            const macRegex = /^([0-9A-F]{2}:){5}([0-9A-F]{2})$/;
             if (!macRegex.test(data.command)) {
-                throw new Error('Neplatný formát MAC adresy pro Wake on LAN.');
+                throw new Error('Neplatný formát MAC adresy. Použijte např. AA:BB:CC:DD:EE:FF, AA-BB-CC... nebo AA.BB.CC...');
             }
         }
 
@@ -62,9 +67,11 @@ static updateCommand(id, data) {
     }
 
     if (data.type === 'wol') {
-        const macRegex = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
+        data.command = data.command.replace(/[\.\-]/g, ':').toUpperCase();
+
+        const macRegex = /^([0-9A-F]{2}:){5}([0-9A-F]{2})$/;
         if (!macRegex.test(data.command)) {
-            throw new Error('Neplatný formát MAC adresy pro Wake on LAN.');
+            throw new Error('Neplatný formát MAC adresy. Použijte např. AA:BB:CC:DD:EE:FF, AA-BB-CC... nebo AA.BB.CC...');
         }
     }
 
