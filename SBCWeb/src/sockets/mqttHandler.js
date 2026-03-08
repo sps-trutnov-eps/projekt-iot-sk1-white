@@ -33,12 +33,13 @@ class MqttHandler {
             this.client.subscribe('sensor/data');
             
             // Odběr pro výsledky spuštěných příkazů (NOVÉ)
-            this.client.subscribe('server/results'); 
+            this.client.subscribe('server/+/status');
+
         });
 
         // Zpracování všech příchozích zpráv
         this.client.on('message', async (topic, message) => {
-            
+            console.log(`[DEBUG MQTT] Přišla zpráva na topic: ${topic}`);
             // 1. Zpracování dat ze senzorů
             if (topic === 'sensor/data') {
                 try {
@@ -49,23 +50,21 @@ class MqttHandler {
                 }
             }
             
-            // 2. Zpracování výsledků od Linuxového skriptu (NOVÉ)
-            if (topic === 'server/results') {
+            // 2. Zpracování výsledků od Linuxového skriptu (OPRAVENO)
+            if (topic.startsWith('server/') && topic.endsWith('/status')) {
                 try {
                     const payload = JSON.parse(message.toString());
                     
                     // Zajímá nás to jen v případě, že to má history_id (spouštěl to náš web)
                     if (payload.history_id) {
-                        // Requirujeme Service až tady uvnitř, abychom zabránili tzv. "cyclic dependency" 
-                        // (kdy by se soubory načítaly navzájem do nekonečna)
                         const CommandHistoryService = require('../services/CommandHistoryService');
                         
                         // Updatneme záznam v databázi podle ID
                         CommandHistoryService.updateExecution(
                             payload.history_id, 
-                            payload.status,        // 'success' nebo 'error'
-                            payload.output,        // standardní výstup (stdout)
-                            payload.error_output   // chybový výstup (stderr)
+                            payload.status,        // 'success' nebo 'error' nebo 'running'
+                            payload.log,           // ZMĚNA: Python posílá výstup v 'log', ne v 'output'
+                            null                   // error_output můžeme nechat null, Python to spojuje do jednoho logu
                         );
                         
                         console.log(`[MQTT] Zapsán výsledek pro historii ID: ${payload.history_id} (Stav: ${payload.status})`);

@@ -160,6 +160,25 @@ class CommandController {
         }
     }
 
+    // Přidej do CommandController.js
+    static async getHistory(req, res) {
+        try {
+            const historyId = req.params.id;
+            // Potřebuješ metodu v Service, která vytáhne ten jeden řádek z tabulky command_history
+            const historyRecord = CommandHistoryService.getExecutionById(historyId); 
+            
+            if (!historyRecord) {
+                return res.status(404).json({ success: false, message: 'Záznam nenalezen.' });
+            }
+
+            // Vrátíme to na frontend
+            res.json(historyRecord);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ success: false, message: error.message });
+        }
+    }
+
 }
 
 module.exports = CommandController;

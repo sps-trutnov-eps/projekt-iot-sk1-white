@@ -9,4 +9,5 @@ router.delete('/:id', CommandController.delete);
 router.patch('/:id/favorite', CommandController.toggleFavorite);
 router.get('/favorites', CommandController.getFavorites);
 router.post('/run/:id', CommandController.run);
+router.get('/command/history/:id', CommandController.getHistory);
 module.exports = router;
