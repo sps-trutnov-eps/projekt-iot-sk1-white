@@ -13,11 +13,11 @@ function renderMetricsList() {
 
     tempMetrics.forEach((metric, index) => {
         const div = document.createElement('div');
-        div.className = "flex items-center justify-between bg-ash-grey-50 p-2 rounded border border-ash-grey-200 text-sm";
+        div.className = "flex items-center justify-between bg-ash-grey-50 dark:bg-midnight-violet-800 p-2 rounded border border-ash-grey-200 dark:border-midnight-violet-700 text-sm";
         div.innerHTML = `
             <div class="flex items-center gap-2">
-                <span class="font-bold text-midnight-violet-900">${metric.name}</span>
-                <span class="text-xs text-silver-500 bg-white px-1.5 py-0.5 rounded border border-ash-grey-200">${metric.unit}</span>
+                <span class="font-bold text-midnight-violet-900 dark:text-silver-100">${metric.name}</span>
+                <span class="text-xs text-silver-500 bg-white dark:bg-midnight-violet-700 px-1.5 py-0.5 rounded border border-ash-grey-200 dark:border-midnight-violet-600">${metric.unit}</span>
                 <span class="text-[10px] text-silver-400 uppercase tracking-wide ml-2">${translateType(metric.type)}</span>
             </div>
             <button type="button" onclick="removeMetric(${index})" class="text-red-400 hover:text-red-600 transition-colors px-2">

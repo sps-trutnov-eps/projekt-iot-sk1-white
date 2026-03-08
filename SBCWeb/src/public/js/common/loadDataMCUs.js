@@ -65,24 +65,24 @@ export function showMcuLoadingState() {
   if (!grid) return;
   
   grid.innerHTML = Array(3).fill(`
-      <div class="mcu-card bg-white rounded-lg shadow-sm border border-ash-grey-200 mb-4 animate-pulse"> 
+      <div class="mcu-card bg-white dark:bg-midnight-violet-900 rounded-lg shadow-sm border border-ash-grey-200 dark:border-midnight-violet-800 mb-4 animate-pulse"> 
         <div class="flex items-center p-4">
           <div class="flex items-center space-x-4">
-            <div class="w-12 h-12 bg-ash-grey-200 rounded-xl"></div>
+            <div class="w-12 h-12 bg-ash-grey-200 dark:bg-midnight-violet-700 rounded-xl"></div>
             <div class="min-w-[140px] space-y-2">
-              <div class="h-4 bg-ash-grey-200 rounded w-24"></div>
-              <div class="h-3 bg-ash-grey-100 rounded w-16"></div>
+              <div class="h-4 bg-ash-grey-200 dark:bg-midnight-violet-700 rounded w-24"></div>
+              <div class="h-3 bg-ash-grey-100 dark:bg-midnight-violet-800 rounded w-16"></div>
             </div>
           </div>
           <div class="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-1 mx-6">
-            <div class="h-4 bg-ash-grey-100 rounded w-20"></div>
-            <div class="h-4 bg-ash-grey-100 rounded w-32 hidden lg:block"></div>
-            <div class="h-4 bg-ash-grey-100 rounded w-16"></div>
-            <div class="h-4 bg-ash-grey-100 rounded w-20"></div>
+            <div class="h-4 bg-ash-grey-100 dark:bg-midnight-violet-800 rounded w-20"></div>
+            <div class="h-4 bg-ash-grey-100 dark:bg-midnight-violet-800 rounded w-32 hidden lg:block"></div>
+            <div class="h-4 bg-ash-grey-100 dark:bg-midnight-violet-800 rounded w-16"></div>
+            <div class="h-4 bg-ash-grey-100 dark:bg-midnight-violet-800 rounded w-20"></div>
           </div>
           <div class="flex items-center space-x-2">
-            <div class="w-9 h-9 bg-ash-grey-100 rounded-lg"></div>
-            <div class="w-9 h-9 bg-ash-grey-100 rounded-lg"></div>
+            <div class="w-9 h-9 bg-ash-grey-100 dark:bg-midnight-violet-800 rounded-lg"></div>
+            <div class="w-9 h-9 bg-ash-grey-100 dark:bg-midnight-violet-800 rounded-lg"></div>
           </div>
         </div>
       </div>
@@ -96,11 +96,11 @@ export function renderMCUGrid(mcusArray) {
   if (!mcusArray || !mcusArray.length) {
     grid.innerHTML = `
         <div class="flex flex-col items-center justify-center py-20 text-center">
-            <div class="w-24 h-24 bg-ash-grey-100 rounded-full flex items-center justify-center mb-5 text-ash-grey-400 shadow-inner">
+            <div class="w-24 h-24 bg-ash-grey-100 dark:bg-midnight-violet-800 rounded-full flex items-center justify-center mb-5 text-ash-grey-400 dark:text-silver-500 shadow-inner">
                 <i class="fas fa-inbox text-4xl"></i>
             </div>
-            <h2 class="text-xl font-bold text-midnight-violet-900">Zatím tu nic není</h2>
-            <p class="text-ash-grey-500 mt-2 max-w-sm">Nebylo nalezeno žádné MCU zařízení. Přidejte své první zařízení kliknutím na tlačítko v levém menu.</p>
+            <h2 class="text-xl font-bold text-midnight-violet-900 dark:text-silver-100">Zatím tu nic není</h2>
+            <p class="text-ash-grey-500 dark:text-silver-400 mt-2 max-w-sm">Nebylo nalezeno žádné MCU zařízení. Přidejte své první zařízení kliknutím na tlačítko v levém menu.</p>
         </div>
     `;
     return;
@@ -166,7 +166,7 @@ export function renderMCUGrid(mcusArray) {
     let lastSeenDisplay = (statusVal === 1 || statusVal === 2) ? statusDisplay : formattedDateStr;
 
     return `
-      <div class="mcu-card cursor-pointer bg-white rounded-lg shadow-sm border border-ash-grey-200 hover:shadow-md transition-shadow mb-4" 
+      <div class="mcu-card cursor-pointer bg-white dark:bg-midnight-violet-900 rounded-lg shadow-sm border border-ash-grey-200 dark:border-midnight-violet-800 hover:shadow-md transition-shadow mb-4" 
            data-id="${mcu.id}" 
            data-status="${dataStatus}"
            data-type="${escape(mcu.type)}"> 
@@ -176,26 +176,26 @@ export function renderMCUGrid(mcusArray) {
               <div class="w-12 h-12 bg-gradient-to-br from-midnight-violet-700 to-vintage-grape-600 rounded-xl flex items-center justify-center">
                 <i class="fas fa-microchip text-xl text-white"></i>
               </div>
-              <span class="status-dot absolute -bottom-1 -right-1 w-4 h-4 ${statusColor} ${pulseEffect} border-2 border-white rounded-full"></span>
+              <span class="status-dot absolute -bottom-1 -right-1 w-4 h-4 ${statusColor} ${pulseEffect} border-2 border-white dark:border-midnight-violet-900 rounded-full"></span>
             </div>
             <div class="min-w-[140px]">
-              <h3 class="font-semibold text-midnight-violet-900">${escape(mcu.name)}</h3>
-              <span class="text-xs text-silver-500">${escape(typeName)}</span>
+              <h3 class="font-semibold text-midnight-violet-900 dark:text-silver-100">${escape(mcu.name)}</h3>
+              <span class="text-xs text-silver-500 dark:text-silver-400">${escape(typeName)}</span>
             </div>
           </div>
           
           <div class="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-1 mx-6 text-sm">
             <div class="flex items-center space-x-2">
               <span class="text-xs text-silver-500 font-semibold">IP:</span>
-              <span class="text-silver-700 font-mono">${escape(mcu.ipAddress)}</span>
+              <span class="text-silver-700 dark:text-silver-300 font-mono">${escape(mcu.ipAddress)}</span>
             </div>
             <div class="flex items-center space-x-2">
               <span class="text-xs text-silver-500 font-semibold">MAC:</span>
-              <span class="text-silver-700 font-mono text-xs">${escape(mcu.macAddress)}</span>
+              <span class="text-silver-700 dark:text-silver-300 font-mono text-xs">${escape(mcu.macAddress)}</span>
             </div>
             <div class="flex items-center space-x-2">
               <i class="fas fa-map-marker-alt text-silver-400 w-4"></i>
-              <span class="text-silver-700 truncate">${escape(mcu.location)}</span>
+              <span class="text-silver-700 dark:text-silver-300 truncate">${escape(mcu.location)}</span>
             </div>
             <div class="flex items-center space-x-2">
               <i class="fas fa-clock ${dataStatus === 'offline' ? 'text-red-400' : 'text-silver-400'} w-4"></i>
@@ -204,10 +204,10 @@ export function renderMCUGrid(mcusArray) {
           </div>
 
           <div class="flex items-center space-x-2">
-            <button class="edit-mcu-btn w-9 h-9 text-silver-600 hover:bg-ash-grey-100 rounded-lg flex items-center justify-center transition" data-id="${mcu.id}" title="Upravit">
+            <button class="edit-mcu-btn w-9 h-9 text-silver-600 dark:text-silver-400 hover:bg-ash-grey-100 dark:hover:bg-midnight-violet-800 rounded-lg flex items-center justify-center transition" data-id="${mcu.id}" title="Upravit">
               <i class="fas fa-pen text-sm"></i>
             </button>
-            <button class="delete-mcu-btn w-9 h-9 text-red-500 hover:bg-red-50 rounded-lg flex items-center justify-center transition" data-id="${mcu.id}" title="Smazat">
+            <button class="delete-mcu-btn w-9 h-9 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg flex items-center justify-center transition" data-id="${mcu.id}" title="Smazat">
               <i class="fas fa-trash text-sm"></i>
             </button>
           </div>
@@ -243,7 +243,7 @@ export function populateTypeList(typesArray) {
 
   if (!typesArray || !typesArray.length) {
     container.innerHTML = `
-      <div class="p-8 text-center text-silver-500 bg-white/50 rounded-lg border border-dashed border-ash-grey-300">
+      <div class="p-8 text-center text-silver-500 dark:text-silver-400 bg-white/50 dark:bg-midnight-violet-900/30 rounded-lg border border-dashed border-ash-grey-300 dark:border-midnight-violet-700">
         <i class="fas fa-tag mb-2 text-2xl opacity-20"></i>
         <p class="text-sm">Zatím nebyly definovány žádné typy.</p>
       </div>
@@ -256,16 +256,16 @@ export function populateTypeList(typesArray) {
   }[m]));
 
   container.innerHTML = `
-    <div class="divide-y divide-ash-grey-200 border border-ash-grey-200 rounded-lg bg-white overflow-hidden">
+    <div class="divide-y divide-ash-grey-200 dark:divide-midnight-violet-800 border border-ash-grey-200 dark:border-midnight-violet-800 rounded-lg bg-white dark:bg-midnight-violet-900 overflow-hidden">
       ${typesArray.map(typeObj => `
-        <div class="flex items-center justify-between p-4 hover:bg-ash-grey-50 transition-colors group">
+        <div class="flex items-center justify-between p-4 hover:bg-ash-grey-50 dark:hover:bg-midnight-violet-800 transition-colors group">
           <div class="flex items-center gap-3">
             <div class="w-2 h-2 rounded-full bg-vintage-grape-400 opacity-50 group-hover:opacity-100 transition-opacity"></div>
-            <span class="font-medium text-midnight-violet-900">${escape(typeObj.type)}</span>
+            <span class="font-medium text-midnight-violet-900 dark:text-silver-100">${escape(typeObj.type)}</span>
           </div>
           
           <button 
-            class="delete-type-btn w-8 h-8 flex items-center justify-center rounded-lg text-silver-400 hover:text-red-500 hover:bg-red-50 transition-all" 
+            class="delete-type-btn w-8 h-8 flex items-center justify-center rounded-lg text-silver-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all" 
             data-id="${typeObj.id}" 
             title="Smazat typ"
           >

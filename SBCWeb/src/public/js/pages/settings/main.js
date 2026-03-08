@@ -61,6 +61,14 @@ async function saveSettings() {
     localStorage.setItem('ui_theme', theme);
     localStorage.setItem('ui_timezone', timezone);
 
+    // --- NOVÉ: OKAMŽITÁ APLIKACE DARK MODU ---
+    if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+    }
+    // ------------------------------------------
+
     // 2. Příprava dat pro backend
     const payload = {
         mqtt_broker_ip: document.getElementById('setting_mqtt_broker_ip').value,
@@ -97,7 +105,6 @@ async function saveSettings() {
 
 /**
  * Pomocná funkce pro zobrazení Toatsu (notifikace)
- * (Pokud už máš na toto funkci v js/components/toast.js, můžeš tuto smazat a použít tu svou)
  */
 function showToast(type, message) {
     const toastId = type === 'success' ? 'toast-success' : 'toast-error';

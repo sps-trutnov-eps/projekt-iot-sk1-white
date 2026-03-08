@@ -1,11 +1,11 @@
 <div id="addCommandModal" class="fixed inset-0 z-50 flex items-center justify-center bg-midnight-violet-900/40 backdrop-blur-sm hidden transition-opacity">
-  <div class="bg-white rounded-xl shadow-xl w-full max-w-lg border border-ash-grey-200 overflow-hidden">
+  <div class="bg-white dark:bg-midnight-violet-900 rounded-xl shadow-xl w-full max-w-lg border border-ash-grey-200 dark:border-midnight-violet-800 overflow-hidden transition-colors duration-300">
     
-    <div class="flex items-center justify-between px-6 py-4 border-b border-ash-grey-100 bg-silver-50">
-      <h3 class="text-lg font-bold text-midnight-violet-900 flex items-center gap-2">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-ash-grey-100 dark:border-midnight-violet-800 bg-silver-50 dark:bg-midnight-violet-900/50">
+      <h3 class="text-lg font-bold text-midnight-violet-900 dark:text-silver-50 flex items-center gap-2">
         <i class="fas fa-terminal text-vintage-grape-600"></i> Přidat nový příkaz
       </h3>
-      <button type="button" id="addCommandClose" class="text-ash-grey-400 hover:text-red-500 transition-colors">
+      <button type="button" id="addCommandClose" class="text-ash-grey-400 dark:text-silver-500 hover:text-red-500 transition-colors">
         <i class="fas fa-times text-lg"></i>
       </button>
     </div>
@@ -20,32 +20,32 @@
         <input type="hidden" id="commandServerId" name="serverId" value="">
 
         <div>
-          <label class="block text-sm font-semibold text-midnight-violet-900 mb-1">Název akce</label>
-          <input type="text" name="name" placeholder="např. Restart Apache" class="w-full px-4 py-2 bg-silver-50 border border-ash-grey-200 rounded-lg text-sm focus:outline-none focus:border-vintage-grape-400" required>
+          <label class="block text-sm font-semibold text-midnight-violet-900 dark:text-silver-200 mb-1">Název akce</label>
+          <input type="text" name="name" placeholder="např. Restart Apache" class="w-full px-4 py-2 bg-silver-50 dark:bg-midnight-violet-800 border border-ash-grey-200 dark:border-midnight-violet-700 rounded-lg text-sm dark:text-silver-100 focus:outline-none focus:border-vintage-grape-400" required>
         </div>
         
         <div>
-          <label class="block text-sm font-semibold text-midnight-violet-900 mb-1">Typ akce</label>
-          <select id="commandType" name="type" class="w-full px-4 py-2 bg-silver-50 border border-ash-grey-200 rounded-lg text-sm focus:outline-none focus:border-vintage-grape-400">
+          <label class="block text-sm font-semibold text-midnight-violet-900 dark:text-silver-200 mb-1">Typ akce</label>
+          <select id="commandType" name="type" class="w-full px-4 py-2 bg-silver-50 dark:bg-midnight-violet-800 border border-ash-grey-200 dark:border-midnight-violet-700 rounded-lg text-sm dark:text-silver-100 focus:outline-none focus:border-vintage-grape-400">
             <option value="shell" selected>Příkaz (Shell)</option>
             <option value="wol">Wake on LAN</option>
           </select>
         </div>
         
         <div id="shellInputWrapper">
-          <label class="block text-sm font-semibold text-midnight-violet-900 mb-1">Příkaz</label>
-          <textarea name="command" rows="3" placeholder="sudo systemctl restart apache2" class="w-full px-4 py-2 bg-silver-50 border border-ash-grey-200 rounded-lg text-sm font-mono focus:outline-none focus:border-vintage-grape-400 resize-none"></textarea>
+          <label class="block text-sm font-semibold text-midnight-violet-900 dark:text-silver-200 mb-1">Příkaz</label>
+          <textarea name="command" rows="3" placeholder="sudo systemctl restart apache2" class="w-full px-4 py-2 bg-silver-50 dark:bg-midnight-violet-800 border border-ash-grey-200 dark:border-midnight-violet-700 rounded-lg text-sm font-mono dark:text-silver-300 focus:outline-none focus:border-vintage-grape-400 resize-none"></textarea>
         </div>
         
         <div id="wolInputWrapper" class="hidden">
-          <label class="block text-sm font-semibold text-midnight-violet-900 mb-1">MAC adresa</label>
-          <input type="text" name="macAddress" placeholder="00:1A:2B:3C:4D:5E" class="w-full px-4 py-2 bg-silver-50 border border-ash-grey-200 rounded-lg text-sm font-mono focus:outline-none focus:border-vintage-grape-400">
+          <label class="block text-sm font-semibold text-midnight-violet-900 dark:text-silver-200 mb-1">MAC adresa</label>
+          <input type="text" name="macAddress" placeholder="00:1A:2B:3C:4D:5E" class="w-full px-4 py-2 bg-silver-50 dark:bg-midnight-violet-800 border border-ash-grey-200 dark:border-midnight-violet-700 rounded-lg text-sm font-mono dark:text-silver-300 focus:outline-none focus:border-vintage-grape-400">
         </div>
       </form>
     </div>
 
-    <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-ash-grey-100 bg-silver-50">
-      <button type="button" id="addCommandCancel" class="px-4 py-2 text-sm font-semibold text-ash-grey-600 hover:text-midnight-violet-900 hover:bg-ash-grey-100 rounded-lg transition-colors">
+    <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-ash-grey-100 dark:border-midnight-violet-800 bg-silver-50 dark:bg-midnight-violet-900/50">
+      <button type="button" id="addCommandCancel" class="px-4 py-2 text-sm font-semibold text-ash-grey-600 dark:text-silver-400 hover:text-midnight-violet-900 dark:hover:text-silver-100 hover:bg-ash-grey-100 dark:hover:bg-midnight-violet-800 rounded-lg transition-colors">
         Zrušit
       </button>
       <button type="submit" id="addCommandSubmit" form="addCommandForm" class="px-5 py-2 text-sm font-semibold text-white bg-vintage-grape-600 hover:bg-vintage-grape-700 rounded-lg shadow-sm transition-colors">

@@ -1,33 +1,33 @@
 <div id="TypeModal" class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-midnight-violet-950/40 backdrop-blur-sm hidden">
-    <div class="relative w-full max-w-lg flex flex-col bg-silver-50 rounded-xl shadow-2xl overflow-hidden max-h-[90vh]">
+    <div class="relative w-full max-w-lg flex flex-col bg-silver-50 dark:bg-[#150f18] rounded-xl shadow-2xl overflow-hidden max-h-[90vh] transition-colors duration-300">
         
-        <div class="flex items-center justify-between p-6 border-b border-ash-grey-200 bg-white shrink-0">
+        <div class="flex items-center justify-between p-6 border-b border-ash-grey-200 dark:border-midnight-violet-800 bg-white dark:bg-midnight-violet-900 shrink-0">
             <div class="flex flex-col gap-1">
                 <div class="flex items-center gap-2">
-                    <h2 class="text-2xl font-bold tracking-tight text-midnight-violet-900">Správa typů</h2>
+                    <h2 class="text-2xl font-bold tracking-tight text-midnight-violet-900 dark:text-silver-50">Správa typů</h2>
                 </div>
-                <p class="text-sm text-gray-500">Seznam a správa kategorií pro vaše MCU.</p>
+                <p class="text-sm text-gray-500 dark:text-silver-400">Seznam a správa kategorií pro vaše MCU.</p>
             </div>
-            <button type="button" id="TypeClose" class="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-lg hover:bg-ash-grey-100">
+            <button type="button" id="TypeClose" class="text-gray-400 dark:text-silver-400 hover:text-gray-600 dark:hover:text-silver-100 transition-colors p-2 rounded-lg hover:bg-ash-grey-100 dark:hover:bg-midnight-violet-800">
                 <i class="fas fa-times text-xl"></i>
             </button>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-6 space-y-4 bg-white/50">
-            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Aktuální typy</h3>
-            <div id="typeListContainer" class="divide-y divide-ash-grey-200 border rounded-lg bg-white overflow-hidden">
+        <div class="flex-1 overflow-y-auto p-6 space-y-4 bg-white/50 dark:bg-midnight-violet-950/30">
+            <h3 class="text-xs font-bold text-gray-400 dark:text-silver-500 uppercase tracking-widest px-1">Aktuální typy</h3>
+            <div id="typeListContainer" class="divide-y divide-ash-grey-200 dark:divide-midnight-violet-800 border dark:border-midnight-violet-800 rounded-lg bg-white dark:bg-midnight-violet-900 overflow-hidden">
                 <div class="p-8 text-center text-gray-400"><i class="fas fa-circle-notch fa-spin"></i> Načítám...</div>
             </div>
         </div>
 
-        <div class="p-6 border-t border-ash-grey-200 bg-silver-50 shrink-0">
-            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Přidat nový typ</h3>
+        <div class="p-6 border-t border-ash-grey-200 dark:border-midnight-violet-800 bg-silver-50 dark:bg-midnight-violet-900/50 shrink-0">
+            <h3 class="text-xs font-bold text-gray-400 dark:text-silver-500 uppercase tracking-widest mb-3">Přidat nový typ</h3>
             <div id="TypeError" class="hidden mb-3 bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-sm">
                 <p></p>
             </div>
             <div class="flex gap-2">
                 <input id="typeName" type="text" 
-                    class="flex-1 px-4 py-2 bg-white border border-ash-grey-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:border-vintage-grape-500 transition-all" 
+                    class="flex-1 px-4 py-2 bg-white dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-900 dark:text-silver-100 placeholder-gray-400 dark:placeholder-silver-500 focus:outline-none focus:border-vintage-grape-500 transition-all" 
                     placeholder="Např. ESP32, Arduino..."/>
                 <button id="TypeSubmit" 
                     class="px-4 py-2 rounded-lg bg-vintage-grape-600 text-white font-medium hover:bg-vintage-grape-700 transition-colors flex items-center gap-2 whitespace-nowrap">

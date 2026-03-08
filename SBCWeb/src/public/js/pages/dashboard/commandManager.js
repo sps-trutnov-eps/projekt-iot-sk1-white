@@ -10,10 +10,10 @@ export const CommandManager = {
         
         if (commands.length === 0) {
             grid.innerHTML = `
-                <div class="col-span-full flex flex-col items-center justify-center p-8 border-2 border-dashed border-ash-grey-200 rounded-xl text-ash-grey-400 min-h-[150px]">
-                    <i class="far fa-star text-3xl mb-3 text-ash-grey-300"></i>
+                <div class="col-span-full flex flex-col items-center justify-center p-8 border-2 border-dashed border-ash-grey-200 dark:border-midnight-violet-800 rounded-xl text-ash-grey-400 dark:text-silver-500 min-h-[150px]">
+                    <i class="far fa-star text-3xl mb-3 text-ash-grey-300 dark:text-silver-600"></i>
                     <span class="text-sm font-medium">Zatím nemáš žádné oblíbené zkratky.</span>
-                    <span class="text-xs mt-1 text-ash-grey-400">Přidej si je pomocí hvězdičky v sekci Serverů.</span>
+                    <span class="text-xs mt-1 text-ash-grey-400 dark:text-silver-500">Přidej si je pomocí hvězdičky v sekci Serverů.</span>
                 </div>
             `;
             return;
@@ -26,36 +26,36 @@ export const CommandManager = {
             const cmdValue = item.value || item.command;
             
             return `
-                <div class="fav-card relative bg-white border border-vintage-grape-200 rounded-[14px] p-4 shadow-sm flex flex-col justify-between min-h-[120px]" data-cmd-id="${item.id}">
+                <div class="fav-card relative bg-white dark:bg-midnight-violet-900 border border-vintage-grape-200 dark:border-midnight-violet-700 rounded-[14px] p-4 shadow-sm flex flex-col justify-between min-h-[120px]" data-cmd-id="${item.id}">
                     <div class="flex items-center justify-between mb-4 pr-1"> 
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-[#e6e6e6] rounded-[10px] flex items-center justify-center shrink-0">
-                                <i class="fas ${iconClass} text-gray-700 text-sm"></i>
+                            <div class="w-10 h-10 bg-[#e6e6e6] dark:bg-midnight-violet-700 rounded-[10px] flex items-center justify-center shrink-0">
+                                <i class="fas ${iconClass} text-gray-700 dark:text-silver-300 text-sm"></i>
                             </div>
                             <div class="flex flex-col">
                                 <div class="flex items-center gap-2">
-                                    <span class="font-bold text-gray-900 text-base truncate max-w-[120px] md:max-w-[150px]">${item.name}</span>
+                                    <span class="font-bold text-gray-900 dark:text-silver-100 text-base truncate max-w-[120px] md:max-w-[150px]">${item.name}</span>
                                     <button onclick="window.toggleFavOnDashboard(event, ${item.id})" class="focus:outline-none transition-transform hover:scale-110" title="Odebrat z oblíbených">
                                         <i class="fas fa-star text-yellow-400 text-sm"></i>
                                     </button>
                                 </div>
-                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">${serverNameText}</span>
+                                <span class="text-[10px] font-bold text-gray-400 dark:text-silver-500 uppercase tracking-wider mt-0.5">${serverNameText}</span>
                             </div>
                         </div>
                         <div class="flex gap-1.5 shrink-0">
-                            <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 hover:text-green-600 rounded-md transition-colors" onclick="window.runCommand(${item.id}, this)">
+                            <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] dark:bg-midnight-violet-800 border border-[#d1d1d1] dark:border-midnight-violet-700 text-gray-600 dark:text-silver-300 hover:bg-gray-200 dark:hover:bg-midnight-violet-700 hover:text-green-600 rounded-md transition-colors" onclick="window.runCommand(${item.id}, this)">
                                 <i class="fas fa-play text-[10px] ml-0.5"></i>
                             </button>
-                            <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 rounded-md transition-colors" onclick="window.handleEditClick(${item.id})">
+                            <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] dark:bg-midnight-violet-800 border border-[#d1d1d1] dark:border-midnight-violet-700 text-gray-600 dark:text-silver-300 hover:bg-gray-200 dark:hover:bg-midnight-violet-700 rounded-md transition-colors" onclick="window.handleEditClick(${item.id})">
                                 <i class="fas fa-edit text-xs"></i>
                             </button>
-                            <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 hover:text-red-500 rounded-md transition-colors" onclick="window.handleDeleteClick(${item.id}, '${safeName}')">
+                            <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] dark:bg-midnight-violet-800 border border-[#d1d1d1] dark:border-midnight-violet-700 text-gray-600 dark:text-silver-300 hover:bg-gray-200 dark:hover:bg-midnight-violet-700 hover:text-red-500 rounded-md transition-colors" onclick="window.handleDeleteClick(${item.id}, '${safeName}')">
                                 <i class="fas fa-trash text-xs"></i>
                             </button>
                         </div>
                     </div>
                     <div class="mt-auto">
-                        <p class="text-[12px] font-mono text-gray-500 truncate bg-[#e2e2e2] px-3 py-2 rounded-md border border-[#c4c4c4]">
+                        <p class="text-[12px] font-mono text-gray-500 dark:text-silver-400 truncate bg-[#e2e2e2] dark:bg-midnight-violet-800 px-3 py-2 rounded-md border border-[#c4c4c4] dark:border-midnight-violet-700">
                             ${cmdValue}
                         </p>
                     </div>

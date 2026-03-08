@@ -10,7 +10,7 @@ export function getSensorStyle(type) {
     if (t.includes('co2') || t.includes('air')) return { icon: 'fa-wind', color: 'text-gray-600' };
     if (t.includes('light') || t.includes('světlo') || t.includes('lux')) return { icon: 'fa-sun', color: 'text-amber-500' };
     if (t.includes('volt') || t.includes('napětí') || t.includes('batt')) return { icon: 'fa-bolt', color: 'text-yellow-600' };
-    if (t.includes('rssi') || t.includes('signal') || t.includes('wifi')) return { icon: 'fa-wifi', color: 'text-midnight-violet-900' };
+    if (t.includes('rssi') || t.includes('signal') || t.includes('wifi')) return { icon: 'fa-wifi', color: 'text-midnight-violet-500' };
     return { icon: 'fa-chart-line', color: 'text-gray-400' };
 }
 

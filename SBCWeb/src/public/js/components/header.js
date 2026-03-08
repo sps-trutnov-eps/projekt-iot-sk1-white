@@ -141,10 +141,10 @@ function initNotifications() {
             <div class="flex gap-3 items-start">
                 <i class="fas ${iconClass} ${colorClass} mt-0.5 text-sm shrink-0"></i>
                 <div class="flex-1 min-w-0">
-                    <p class="text-xs text-midnight-violet-900 font-medium leading-relaxed">${payload.message}</p>
+                    <p class="text-xs text-midnight-violet-900 dark:text-silver-100 font-medium leading-relaxed">${payload.message}</p>
                     <div class="flex justify-between items-center mt-1.5">
                         <span class="text-[10px] text-silver-400 font-medium">${time}</span>
-                        ${payload.mcuId ? `<span class="text-[9px] uppercase tracking-wider bg-white px-1.5 py-0.5 rounded text-silver-500 border border-silver-200 shadow-sm">ID: ${payload.mcuId}</span>` : ''}
+                        ${payload.mcuId ? `<span class="text-[9px] uppercase tracking-wider bg-white dark:bg-midnight-violet-800 px-1.5 py-0.5 rounded text-silver-500 border border-silver-200 dark:border-midnight-violet-700 shadow-sm">ID: ${payload.mcuId}</span>` : ''}
                     </div>
                 </div>
             </div>

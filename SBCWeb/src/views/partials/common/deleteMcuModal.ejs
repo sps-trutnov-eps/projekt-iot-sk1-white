@@ -1,23 +1,23 @@
 <div id="deletemcuModal" class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-midnight-violet-950/40 backdrop-blur-sm hidden">
-    <div class="relative w-full max-w-md flex flex-col bg-silver-50 rounded-xl shadow-2xl overflow-hidden">
-        <div class="flex items-center justify-between p-6 border-b border-ash-grey-200 bg-white shrink-0">
+    <div class="relative w-full max-w-md flex flex-col bg-silver-50 dark:bg-midnight-violet-950 rounded-xl shadow-2xl overflow-hidden">
+        <div class="flex items-center justify-between p-6 border-b border-ash-grey-200 dark:border-midnight-violet-800 bg-white dark:bg-midnight-violet-900 shrink-0">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-trash-alt text-red-600 text-lg"></i>
+                <div class="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-trash-alt text-red-600 dark:text-red-400 text-lg"></i>
                 </div>
-                <h2 class="text-xl font-bold tracking-tight text-midnight-violet-900">Smazat MCU?</h2>
+                <h2 class="text-xl font-bold tracking-tight text-midnight-violet-900 dark:text-silver-50">Smazat MCU?</h2>
             </div>
-            <button type="button" id="deletemcuClose" class="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-lg hover:bg-ash-grey-100">
+            <button type="button" id="deletemcuClose" class="text-gray-400 dark:text-silver-500 hover:text-gray-600 dark:hover:text-silver-200 transition-colors p-2 rounded-lg hover:bg-ash-grey-100 dark:hover:bg-midnight-violet-800">
                 <i class="fas fa-times text-xl"></i>
             </button>
         </div>
 
-        <div class="p-8 bg-silver-50 text-center md:text-left">
-            <p class="text-gray-600 leading-relaxed">Tato akce je <span class="font-bold text-red-600">nevratná</span>.</p>
+        <div class="p-8 bg-silver-50 dark:bg-[#150f18] text-center md:text-left">
+            <p class="text-gray-600 dark:text-silver-300 leading-relaxed">Tato akce je <span class="font-bold text-red-600">nevratná</span>.</p>
         </div>
 
-        <div class="p-6 border-t border-ash-grey-200 bg-white flex flex-col sm:flex-row justify-end gap-3 shrink-0">
-            <button type="button" id="deletemcuCancel" class="order-2 sm:order-1 px-6 py-2.5 rounded-lg bg-ash-grey-200 text-ash-grey-800 font-medium hover:bg-ash-grey-300 transition-colors">
+        <div class="p-6 border-t border-ash-grey-200 dark:border-midnight-violet-800 bg-white dark:bg-midnight-violet-900 flex flex-col sm:flex-row justify-end gap-3 shrink-0">
+            <button type="button" id="deletemcuCancel" class="order-2 sm:order-1 px-6 py-2.5 rounded-lg bg-ash-grey-200 dark:bg-midnight-violet-800 text-ash-grey-800 dark:text-silver-200 font-medium hover:bg-ash-grey-300 dark:hover:bg-midnight-violet-700 transition-colors">
                 Zrušit
             </button>
             <button type="button" id="deletemcuSubmit" class="order-1 sm:order-2 px-6 py-2.5 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-colors flex items-center justify-center gap-2">

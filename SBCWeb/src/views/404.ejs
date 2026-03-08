@@ -7,6 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           colors: {
@@ -19,19 +20,24 @@
     }
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    if (localStorage.getItem('ui_theme') === 'dark') {
+        document.documentElement.classList.add('dark');
+    }
+  </script>
 </head>
-<body class="bg-ash-grey-50 min-h-screen flex items-center justify-center font-sans antialiased">
+<body class="bg-ash-grey-50 dark:bg-midnight-violet-950 dark:text-silver-100 min-h-screen flex items-center justify-center font-sans antialiased transition-colors duration-300">
   
   <div class="max-w-md mx-auto px-4 w-full">
-    <div class="bg-white rounded-2xl shadow-xl border border-ash-grey-200 p-10 md:p-12 text-center">
+    <div class="bg-white dark:bg-midnight-violet-900 rounded-2xl shadow-xl border border-ash-grey-200 dark:border-midnight-violet-800 p-10 md:p-12 text-center transition-colors duration-300">
       
       <div class="w-20 h-20 bg-gradient-to-br from-midnight-violet-500 to-vintage-grape-600 rounded-2xl flex items-center justify-center text-white text-4xl mx-auto mb-6 shadow-lg">
         <i class="fas fa-ghost"></i>
       </div>
       
-      <h1 class="text-6xl font-black text-midnight-violet-900 mb-4 tracking-tight">404</h1>
-      <h2 class="text-2xl font-bold text-midnight-violet-800 mb-3">Stránka nenalezena</h2>
-      <p class="text-ash-grey-500 font-medium mb-8 leading-relaxed">
+      <h1 class="text-6xl font-black text-midnight-violet-900 dark:text-silver-50 mb-4 tracking-tight">404</h1>
+      <h2 class="text-2xl font-bold text-midnight-violet-800 dark:text-silver-100 mb-3">Stránka nenalezena</h2>
+      <p class="text-ash-grey-500 dark:text-silver-400 font-medium mb-8 leading-relaxed">
         Omlouváme se, ale zřejmě jste zabloudili. Požadovaná stránka neexistuje nebo byla přesunuta.
       </p>
       

@@ -11,6 +11,7 @@
 
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -32,8 +33,13 @@
         /* Styl pro skrytí API klíče */
         .blur-4px { filter: blur(4px); }
     </style>
+    <script>
+        if (localStorage.getItem('ui_theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
 </head>
-<body class="bg-ash-grey-50 min-h-screen font-sans text-gray-800">
+<body class="bg-ash-grey-50 dark:bg-midnight-violet-950 dark:text-silver-100 min-h-screen font-sans text-gray-800 transition-colors duration-300">
 
     <%- include('partials/mcuDetail/sidebar') %>
 

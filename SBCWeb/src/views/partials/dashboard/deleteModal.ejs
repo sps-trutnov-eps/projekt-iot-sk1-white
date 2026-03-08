@@ -1,16 +1,16 @@
 <div id="deleteModal" class="fixed inset-0 z-50 flex items-center justify-center bg-midnight-violet-900/60 backdrop-blur-sm hidden transition-opacity">
-  <div class="bg-white rounded-xl shadow-xl w-full max-w-sm border border-ash-grey-200 overflow-hidden text-center p-6">
-      <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+  <div class="bg-white dark:bg-midnight-violet-900 rounded-xl shadow-xl w-full max-w-sm border border-ash-grey-200 dark:border-midnight-violet-800 overflow-hidden text-center p-6 transition-colors duration-300">
+      <div class="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4">
           <i class="fas fa-trash-alt text-2xl"></i>
       </div>
-      <h3 class="text-xl font-bold text-midnight-violet-900 mb-2">Opravdu smazat?</h3>
-      <p class="text-sm text-ash-grey-500 mb-6">Položka <strong id="deleteTargetName" class="text-midnight-violet-900"></strong> bude trvale odstranena. Tuto akci nelze vrátit zpět.</p>
+      <h3 class="text-xl font-bold text-midnight-violet-900 dark:text-silver-50 mb-2">Opravdu smazat?</h3>
+      <p class="text-sm text-ash-grey-500 dark:text-silver-400 mb-6">Položka <strong id="deleteTargetName" class="text-midnight-violet-900 dark:text-silver-100"></strong> bude trvale odstranena. Tuto akci nelze vrátit zpět.</p>
       
       <div id="deleteError" class="hidden mb-4 p-3 bg-red-50 text-red-600 border border-red-200 rounded-lg text-sm flex items-center justify-center gap-2"><i class="fas fa-exclamation-circle"></i><p></p></div>
       
       <input type="hidden" id="deleteTargetId">
       <input type="hidden" id="deleteTargetType"> <div class="flex items-center justify-center gap-3">
-          <button type="button" id="deleteCancel" class="px-5 py-2 text-sm font-semibold text-ash-grey-600 hover:bg-ash-grey-100 rounded-lg">Zrušit</button>
+          <button type="button" id="deleteCancel" class="px-5 py-2 text-sm font-semibold text-ash-grey-600 dark:text-silver-400 hover:bg-ash-grey-100 dark:hover:bg-midnight-violet-800 rounded-lg">Zrušit</button>
           <button type="button" id="deleteSubmit" class="px-5 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm">Smazat</button>
       </div>
   </div>

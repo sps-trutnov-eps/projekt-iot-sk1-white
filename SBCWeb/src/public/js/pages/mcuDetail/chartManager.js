@@ -34,11 +34,37 @@ export function stopChartAutoUpdate() {
 }
 
 
+function isDarkMode() {
+    return document.documentElement.classList.contains('dark');
+}
+
+function getChartColors(ctx) {
+    const dark = isDarkMode();
+
+    const gradient = ctx.createLinearGradient(0, 0, 0, 280);
+    if (dark) {
+        gradient.addColorStop(0,   'rgba(196, 181, 253, 0.35)');
+        gradient.addColorStop(0.5, 'rgba(196, 181, 253, 0.12)');
+        gradient.addColorStop(1,   'rgba(196, 181, 253, 0.0)');
+    } else {
+        gradient.addColorStop(0,   'rgba(124, 58, 237, 0.22)');
+        gradient.addColorStop(0.5, 'rgba(124, 58, 237, 0.07)');
+        gradient.addColorStop(1,   'rgba(124, 58, 237, 0.0)');
+    }
+
+    return {
+        gradient,
+        avg:  dark ? '#c4b5fd' : '#7c3aed',
+        min:  dark ? '#6ee7b7' : '#059669',
+        max:  dark ? '#fcd34d' : '#d97706',
+        grid: dark ? 'rgba(80, 55, 90, 0.5)' : 'rgba(196,186,220,0.35)',
+        tick: dark ? '#7d827d' : '#9aa092',
+    };
+}
+
 export function initChart() {
     const ctx = document.getElementById('mainChart').getContext('2d');
-    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-    gradient.addColorStop(0, 'rgba(136, 108, 147, 0.4)');
-    gradient.addColorStop(1, 'rgba(136, 108, 147, 0.0)');
+    const c = getChartColors(ctx);
 
     mainChart = new Chart(ctx, {
         type: 'line',
@@ -49,20 +75,33 @@ export function initChart() {
             maintainAspectRatio: false,
             plugins: { 
                 legend: { display: false },
-                tooltip: { enabled: true } 
+                tooltip: {
+                    enabled: true,
+                    backgroundColor: dark => isDarkMode() ? '#1c141f' : '#ffffff',
+                    titleColor: dark => isDarkMode() ? '#e5e6e5' : '#1c141f',
+                    bodyColor: dark => isDarkMode() ? '#979b97' : '#4b4e4b',
+                    borderColor: dark => isDarkMode() ? '#37283e' : '#e6e7e4',
+                    borderWidth: 1,
+                    padding: 10,
+                    cornerRadius: 8,
+                }
             },
             scales: {
                 x: { 
                     grid: { display: false }, 
                     ticks: { 
-                        color: '#9aa092', 
+                        color: c.tick, 
                         font: { size: 10 }, 
                         maxTicksLimit: 12,
                         maxRotation: 45,
                         minRotation: 0
                     } 
                 },
-                y: { grid: { color: '#f2f3f1' }, ticks: { color: '#9aa092' } }
+                y: {
+                    grid: { color: c.grid, lineWidth: 1 },
+                    ticks: { color: c.tick, font: { size: 10 }, padding: 6 },
+                    border: { dash: [4, 4] }
+                }
             },
             interaction: { intersect: false, mode: 'index' }
         }
@@ -132,24 +171,31 @@ export function renderChartData(data = null) {
 
     // Vytvoření datasetů při prvním načtení grafu
     if (mainChart.data.datasets.length === 0) {
+        const ctx = document.getElementById('mainChart').getContext('2d');
+        const c = getChartColors(ctx);
         mainChart.data.datasets = [
             {
                 label: 'Průměr',
-                borderColor: '#886c93',
-                backgroundColor: 'rgba(136, 108, 147, 0.1)',
-                borderWidth: 2, tension: 0.4, pointRadius: 0, fill: true, spanGaps: true, data: []
+                borderColor: c.avg,
+                backgroundColor: c.gradient,
+                borderWidth: 2.5, tension: 0.4, pointRadius: 0, pointHoverRadius: 4,
+                fill: true, spanGaps: true, data: []
             },
             {
                 label: 'Minimum',
-                borderColor: '#3b82f6',
+                borderColor: c.min,
                 backgroundColor: 'transparent',
-                borderWidth: 2, tension: 0.4, pointRadius: 0, fill: false, spanGaps: true, data: []
+                borderWidth: 1.5, tension: 0.4, pointRadius: 0, pointHoverRadius: 4,
+                borderDash: [5, 3],
+                fill: false, spanGaps: true, data: []
             },
             {
                 label: 'Maximum',
-                borderColor: '#ef4444',
+                borderColor: c.max,
                 backgroundColor: 'transparent',
-                borderWidth: 2, tension: 0.4, pointRadius: 0, fill: false, spanGaps: true, data: []
+                borderWidth: 1.5, tension: 0.4, pointRadius: 0, pointHoverRadius: 4,
+                borderDash: [5, 3],
+                fill: false, spanGaps: true, data: []
             }
         ];
     }

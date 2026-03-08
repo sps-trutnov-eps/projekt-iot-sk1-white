@@ -31,38 +31,38 @@ function showLoadingState() {
     if (container) {
         container.innerHTML = `
             <div class="server-block animate-pulse">
-                <div class="bg-white rounded-t-xl shadow-sm border border-ash-grey-200 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
+                <div class="bg-white dark:bg-midnight-violet-900 rounded-t-xl shadow-sm border border-ash-grey-200 dark:border-midnight-violet-800 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
                     <div class="flex items-center gap-5">
-                        <div class="w-14 h-14 bg-ash-grey-200 rounded-xl"></div>
+                        <div class="w-14 h-14 bg-ash-grey-200 dark:bg-midnight-violet-700 rounded-xl"></div>
                         <div>
-                            <div class="h-6 bg-ash-grey-200 rounded w-48 mb-2"></div>
+                            <div class="h-6 bg-ash-grey-200 dark:bg-midnight-violet-700 rounded w-48 mb-2"></div>
                             <div class="flex items-center gap-4 mt-1">
-                                <div class="h-6 bg-ash-grey-100 rounded w-24"></div>
-                                <div class="h-6 bg-ash-grey-100 rounded w-16"></div>
+                                <div class="h-6 bg-ash-grey-100 dark:bg-midnight-violet-800 rounded w-24"></div>
+                                <div class="h-6 bg-ash-grey-100 dark:bg-midnight-violet-800 rounded w-16"></div>
                             </div>
                         </div>
                     </div>
                     <div class="flex gap-2 w-full md:w-auto">
-                        <div class="h-10 bg-ash-grey-100 rounded-lg w-32"></div>
-                        <div class="h-10 bg-ash-grey-100 rounded-lg w-12"></div>
-                        <div class="h-10 bg-ash-grey-100 rounded-lg w-12"></div>
+                        <div class="h-10 bg-ash-grey-100 dark:bg-midnight-violet-800 rounded-lg w-32"></div>
+                        <div class="h-10 bg-ash-grey-100 dark:bg-midnight-violet-800 rounded-lg w-12"></div>
+                        <div class="h-10 bg-ash-grey-100 dark:bg-midnight-violet-800 rounded-lg w-12"></div>
                     </div>
                 </div>
-                <div class="bg-ash-grey-50 rounded-b-xl shadow-sm border border-ash-grey-200 border-t-0 p-6 w-full">
+                <div class="bg-ash-grey-50 dark:bg-midnight-violet-900/50 rounded-b-xl shadow-sm border border-ash-grey-200 dark:border-midnight-violet-800 border-t-0 p-6 w-full">
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <div class="bg-white border border-ash-grey-100 rounded-xl p-5 min-h-[130px]">
+                        <div class="bg-white dark:bg-midnight-violet-900 border border-ash-grey-100 dark:border-midnight-violet-800 rounded-xl p-5 min-h-[130px]">
                             <div class="flex items-center gap-4 mb-4">
-                                <div class="w-10 h-10 bg-ash-grey-100 rounded-lg"></div>
-                                <div class="h-5 bg-ash-grey-100 rounded w-24"></div>
+                                <div class="w-10 h-10 bg-ash-grey-100 dark:bg-midnight-violet-800 rounded-lg"></div>
+                                <div class="h-5 bg-ash-grey-100 dark:bg-midnight-violet-800 rounded w-24"></div>
                             </div>
-                            <div class="h-8 bg-ash-grey-50 rounded w-full"></div>
+                            <div class="h-8 bg-ash-grey-50 dark:bg-midnight-violet-800/50 rounded w-full"></div>
                         </div>
-                        <div class="bg-white border border-ash-grey-100 rounded-xl p-5 min-h-[130px] hidden md:block">
+                        <div class="bg-white dark:bg-midnight-violet-900 border border-ash-grey-100 dark:border-midnight-violet-800 rounded-xl p-5 min-h-[130px] hidden md:block">
                             <div class="flex items-center gap-4 mb-4">
-                                <div class="w-10 h-10 bg-ash-grey-100 rounded-lg"></div>
-                                <div class="h-5 bg-ash-grey-100 rounded w-32"></div>
+                                <div class="w-10 h-10 bg-ash-grey-100 dark:bg-midnight-violet-800 rounded-lg"></div>
+                                <div class="h-5 bg-ash-grey-100 dark:bg-midnight-violet-800 rounded w-32"></div>
                             </div>
-                            <div class="h-8 bg-ash-grey-50 rounded w-full"></div>
+                            <div class="h-8 bg-ash-grey-50 dark:bg-midnight-violet-800/50 rounded w-full"></div>
                         </div>
                     </div>
                 </div>
@@ -77,12 +77,12 @@ function showErrorOrEmptyState(message, subMessage) {
     if (container) {
         container.innerHTML = `
             <div class="flex flex-col items-center justify-center py-20 text-center">
-                <div class="w-24 h-24 bg-ash-grey-100 rounded-full flex items-center justify-center mb-5 text-ash-grey-400 shadow-inner">
+                <div class="w-24 h-24 bg-ash-grey-100 dark:bg-midnight-violet-800 rounded-full flex items-center justify-center mb-5 text-ash-grey-400 dark:text-silver-500 shadow-inner">
                     <i class="fas fa-inbox text-4xl"></i>
                 </div>
-                <h2 class="text-xl font-bold text-midnight-violet-900">${message}</h2>
-                <p class="text-ash-grey-500 mt-2 max-w-sm">${subMessage}</p>
-                <button onclick="window.loadServers()" class="mt-6 px-5 py-2.5 bg-white border border-ash-grey-200 text-midnight-violet-900 font-semibold rounded-lg hover:bg-ash-grey-50 transition-colors shadow-sm flex items-center gap-2">
+                <h2 class="text-xl font-bold text-midnight-violet-900 dark:text-silver-100">${message}</h2>
+                <p class="text-ash-grey-500 dark:text-silver-400 mt-2 max-w-sm">${subMessage}</p>
+                <button onclick="window.loadServers()" class="mt-6 px-5 py-2.5 bg-white dark:bg-midnight-violet-900 border border-ash-grey-200 dark:border-midnight-violet-700 text-midnight-violet-900 dark:text-silver-100 font-semibold rounded-lg hover:bg-ash-grey-50 dark:hover:bg-midnight-violet-800 transition-colors shadow-sm flex items-center gap-2">
                     <i class="fas fa-sync-alt text-silver-500"></i> Zkusit znovu
                 </button>
             </div>
@@ -138,37 +138,37 @@ export async function loadServers(isBackground = false) {
                         const isFav = cmd.isFavorite === 1 || cmd.isFavorite === true;
                         
                         commandsHtml += `
-                            <div class="relative bg-white border border-vintage-grape-200 rounded-[14px] p-4 shadow-sm flex flex-col justify-between min-h-[120px]" data-cmd-id="${cmd.id}">
+                            <div class="relative bg-white dark:bg-midnight-violet-900 border border-vintage-grape-200 dark:border-midnight-violet-700 rounded-[14px] p-4 shadow-sm flex flex-col justify-between min-h-[120px]" data-cmd-id="${cmd.id}">
                                 
                                 <div class="flex items-center justify-between mb-4 pr-2"> 
                                     <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 bg-[#e6e6e6] rounded-[10px] flex items-center justify-center shrink-0">
-                                            <i class="fas ${cmd.icon || 'fa-terminal'} text-gray-700 text-sm"></i>
+                                        <div class="w-10 h-10 bg-[#e6e6e6] dark:bg-midnight-violet-700 rounded-[10px] flex items-center justify-center shrink-0">
+                                            <i class="fas ${cmd.icon || 'fa-terminal'} text-gray-700 dark:text-silver-300 text-sm"></i>
                                         </div>
                                         
                                         <div class="flex items-center gap-2">
-                                            <span class="font-bold text-gray-900 text-base truncate max-w-[120px] md:max-w-[150px]">${cmd.name}</span>
+                                            <span class="font-bold text-gray-900 dark:text-silver-100 text-base truncate max-w-[120px] md:max-w-[150px]">${cmd.name}</span>
                                             <button onclick="window.toggleFavoriteCommand(event, ${cmd.id})" class="focus:outline-none transition-transform hover:scale-110" title="Oblíbené">
-                                                <i class="${isFav ? 'fas fa-star text-yellow-400' : 'far fa-star text-gray-400 hover:text-yellow-400'} text-sm"></i>
+                                                <i class="${isFav ? 'fas fa-star text-yellow-400' : 'far fa-star text-gray-400 dark:text-silver-500 hover:text-yellow-400'} text-sm"></i>
                                             </button>
                                         </div>
                                     </div>
 
                                     <div class="flex gap-1.5">
-                                        <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 rounded-md transition-colors" title="Spustit" onclick="window.runCommand(${cmd.id}, this)" data-cmd-type="${cmd.type}">
+                                        <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] dark:bg-midnight-violet-800 border border-[#d1d1d1] dark:border-midnight-violet-700 text-gray-600 dark:text-silver-300 hover:bg-gray-200 dark:hover:bg-midnight-violet-700 rounded-md transition-colors" title="Spustit" onclick="window.runCommand(${cmd.id}, this)" data-cmd-type="${cmd.type}">
                                             <i class="fas fa-play text-[10px] ml-0.5"></i>
                                         </button>
-                                        <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 rounded-md transition-colors" title="Upravit" onclick="window.openEditCommandModal(${server.id}, ${cmd.id})">
+                                        <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] dark:bg-midnight-violet-800 border border-[#d1d1d1] dark:border-midnight-violet-700 text-gray-600 dark:text-silver-300 hover:bg-gray-200 dark:hover:bg-midnight-violet-700 rounded-md transition-colors" title="Upravit" onclick="window.openEditCommandModal(${server.id}, ${cmd.id})">
                                             <i class="fas fa-edit text-xs"></i>
                                         </button>
-                                        <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 rounded-md transition-colors" title="Smazat" onclick="window.openDeleteModal(${cmd.id}, 'command', '${safeCmdName}')">
+                                        <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] dark:bg-midnight-violet-800 border border-[#d1d1d1] dark:border-midnight-violet-700 text-gray-600 dark:text-silver-300 hover:bg-gray-200 dark:hover:bg-midnight-violet-700 rounded-md transition-colors" title="Smazat" onclick="window.openDeleteModal(${cmd.id}, 'command', '${safeCmdName}')">
                                             <i class="fas fa-trash text-xs"></i>
                                         </button>
                                     </div>
                                 </div>
                                 
                                 <div class="mt-auto">
-                                    <p class="text-[12px] font-mono text-gray-500 truncate bg-[#e2e2e2] px-3 py-2 rounded-md border border-[#c4c4c4]">
+                                    <p class="text-[12px] font-mono text-gray-500 dark:text-silver-400 truncate bg-[#e2e2e2] dark:bg-midnight-violet-800 px-3 py-2 rounded-md border border-[#c4c4c4] dark:border-midnight-violet-700">
                                         ${cmd.value || cmd.command}
                                     </p>
                                 </div>
@@ -177,7 +177,7 @@ export async function loadServers(isBackground = false) {
                     });
                 } else {
                     commandsHtml = `
-                        <div class="flex items-center justify-center p-6 border-2 border-dashed border-ash-grey-200 rounded-xl text-ash-grey-400 bg-white/50 min-h-[130px] col-span-full">
+                        <div class="flex items-center justify-center p-6 border-2 border-dashed border-ash-grey-200 dark:border-midnight-violet-800 rounded-xl text-ash-grey-400 dark:text-silver-500 bg-white/50 dark:bg-midnight-violet-900/30 min-h-[130px] col-span-full">
                             <span class="text-[11px] font-medium">Tento server nemá další akce</span>
                         </div>
                     `;
@@ -187,15 +187,15 @@ export async function loadServers(isBackground = false) {
                 const safeServerName = escapeQuotes(server.name);
                 const serverHtml = `
                     <div class="server-block" data-id="${server.id}">
-                        <div class="bg-white rounded-t-xl shadow-sm border border-ash-grey-200 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
+                        <div class="bg-white dark:bg-midnight-violet-900 rounded-t-xl shadow-sm border border-ash-grey-200 dark:border-midnight-violet-800 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
                             <div class="flex items-center gap-5">
                                 <div class="w-14 h-14 rounded-xl flex items-center justify-center shadow-md shrink-0 ${isDatabase ? 'bg-gradient-to-br from-ash-grey-500 to-silver-600' : 'bg-gradient-to-br from-midnight-violet-700 to-vintage-grape-600'}">
                                     <i class="fas ${isDatabase ? 'fa-database' : 'fa-server'} text-2xl text-white"></i>
                                 </div>
                                 <div>
-                                    <h2 class="text-2xl font-bold text-midnight-violet-900">${server.name}</h2>
-                                    <div class="flex items-center gap-4 mt-1 text-sm text-silver-600">
-                                        <span class="flex items-center gap-1 font-mono bg-ash-grey-100 px-2 py-0.5 rounded border border-ash-grey-200">
+                                    <h2 class="text-2xl font-bold text-midnight-violet-900 dark:text-silver-100">${server.name}</h2>
+                                    <div class="flex items-center gap-4 mt-1 text-sm text-silver-600 dark:text-silver-400">
+                                        <span class="flex items-center gap-1 font-mono bg-ash-grey-100 dark:bg-midnight-violet-800 px-2 py-0.5 rounded border border-ash-grey-200 dark:border-midnight-violet-700">
                                             <i class="fas fa-network-wired text-xs"></i> ${server.ip}
                                         </span>
                                         ${isOnline 
@@ -210,16 +210,16 @@ export async function loadServers(isBackground = false) {
                                 <button onclick="window.openAddCommandModal(${server.id})" class="flex-1 md:flex-none px-4 py-2 bg-vintage-grape-50 border border-vintage-grape-200 text-vintage-grape-700 font-semibold rounded-lg hover:bg-vintage-grape-100 transition-colors shadow-sm flex items-center justify-center gap-2" title="Nová akce">
                                     <i class="fas fa-plus"></i> Nová akce
                                 </button>
-                                <button onclick="window.openEditServerModal(${server.id})" class="flex-none px-4 py-2 bg-white border border-ash-grey-300 text-midnight-violet-900 font-semibold rounded-lg hover:bg-ash-grey-50 transition-colors shadow-sm" title="Upravit server">
+                                <button onclick="window.openEditServerModal(${server.id})" class="flex-none px-4 py-2 bg-white dark:bg-midnight-violet-900 border border-ash-grey-300 dark:border-midnight-violet-700 text-midnight-violet-900 dark:text-silver-100 font-semibold rounded-lg hover:bg-ash-grey-50 dark:hover:bg-midnight-violet-800 transition-colors shadow-sm" title="Upravit server">
                                     <i class="fas fa-pen text-silver-400"></i>
                                 </button>
-                                <button onclick="window.openDeleteModal(${server.id}, 'server', '${safeServerName}')" class="flex-none px-4 py-2 bg-white border border-red-200 text-red-600 font-semibold rounded-lg hover:bg-red-50 transition-colors shadow-sm" title="Smazat server">
+                                <button onclick="window.openDeleteModal(${server.id}, 'server', '${safeServerName}')" class="flex-none px-4 py-2 bg-white dark:bg-midnight-violet-900 border border-red-200 text-red-600 font-semibold rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors shadow-sm" title="Smazat server">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
                             </div>
                         </div>
 
-                        <div class="bg-ash-grey-100/50 rounded-b-xl shadow-sm border border-ash-grey-200 border-t-0 p-6 w-full">
+                        <div class="bg-ash-grey-100/50 dark:bg-midnight-violet-900/50 rounded-b-xl shadow-sm border border-ash-grey-200 dark:border-midnight-violet-800 border-t-0 p-6 w-full">
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 ${commandsHtml}
                             </div>

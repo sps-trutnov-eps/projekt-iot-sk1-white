@@ -18,7 +18,7 @@ window.removeMcuEvent = async (e, eventId, btnElement) => {
     if (feedContainer && feedContainer.children.length === 0) {
         feedContainer.innerHTML = `
             <div class="flex flex-col items-center justify-center py-8 text-center animate-fade-in" id="empty-events-state">
-                <i class="fas fa-inbox text-2xl text-ash-grey-300 mb-2"></i>
+                <i class="fas fa-inbox text-2xl text-ash-grey-300 dark:text-silver-600 mb-2"></i>
                 <p class="text-[11px] text-silver-500">Zatím se tu nic neudálo.</p>
             </div>
         `;
@@ -45,10 +45,10 @@ function showEventLoadingState() {
 
     feedContainer.innerHTML = Array(4).fill(`
         <div class="flex gap-3 items-start animate-pulse">
-            <div class="w-7 h-7 rounded-full bg-ash-grey-200 shrink-0"></div>
+            <div class="w-7 h-7 rounded-full bg-ash-grey-200 dark:bg-midnight-violet-700 shrink-0"></div>
             <div class="space-y-1.5 w-full mt-1">
-                <div class="h-3 bg-ash-grey-200 rounded w-full"></div>
-                <div class="h-2 bg-ash-grey-100 rounded w-16"></div>
+                <div class="h-3 bg-ash-grey-200 dark:bg-midnight-violet-700 rounded w-full"></div>
+                <div class="h-2 bg-ash-grey-100 dark:bg-midnight-violet-800 rounded w-16"></div>
             </div>
         </div>
     `).join('');
@@ -99,7 +99,7 @@ async function fetchEventHistory(mcuId) {
                 // Prázdný stav, pokud neexistují žádné logy
                 feedContainer.innerHTML = `
                     <div class="flex flex-col items-center justify-center py-8 text-center" id="empty-events-state">
-                        <i class="fas fa-inbox text-2xl text-ash-grey-300 mb-2"></i>
+                        <i class="fas fa-inbox text-2xl text-ash-grey-300 dark:text-silver-600 mb-2"></i>
                         <p class="text-[11px] text-silver-500">Zatím se tu nic neudálo.</p>
                     </div>
                 `;
@@ -133,22 +133,22 @@ function renderEventLog(event, isNew = false) {
     // Výchozí styly (Info)
     let iconClass = 'fa-info';
     let iconColor = 'text-blue-500';
-    let bgColor = 'bg-blue-50';
+    let bgColor = 'bg-blue-50 dark:bg-blue-900/30';
 
     // Obarvení podle typu eventu
     if (event.type === 'warn' || event.type === 'warning') {
         iconClass = 'fa-exclamation-triangle';
         iconColor = 'text-yellow-500';
-        bgColor = 'bg-yellow-50';
+        bgColor = 'bg-yellow-50 dark:bg-yellow-900/30';
     } else if (event.type === 'alert') {
         iconClass = 'fa-plug-circle-xmark';
         iconColor = 'text-red-500';
-        bgColor = 'bg-red-50';
+        bgColor = 'bg-red-50 dark:bg-red-900/30';
     } else if (event.type === 'info') {
         if (event.message.includes('Online')) {
             iconClass = 'fa-wifi';
             iconColor = 'text-green-500';
-            bgColor = 'bg-green-50';
+            bgColor = 'bg-green-50 dark:bg-green-900/30';
         } else {
             iconClass = 'fa-info-circle';
         }
@@ -162,12 +162,12 @@ function renderEventLog(event, isNew = false) {
     // HTML Šablona pro jeden log (PŘIDÁN relative, pr-6 a křížek)
     // Přidali jsme padding dolů (pb-3) a lehký margin, aby se křížky nepletly do sebe
     const logHtml = `
-        <div class="flex gap-3 items-start animate-fade-in relative pr-6 pb-2 mb-2 border-b border-ash-grey-100 last:border-0 last:mb-0 last:pb-0 group">
+        <div class="flex gap-3 items-start animate-fade-in relative pr-6 pb-2 mb-2 border-b border-ash-grey-100 dark:border-midnight-violet-800 last:border-0 last:mb-0 last:pb-0 group">
             <div class="w-7 h-7 rounded-full ${bgColor} flex items-center justify-center shrink-0 mt-0.5">
                 <i class="fas ${iconClass} text-[10px] ${iconColor}"></i>
             </div>
             <div class="flex-1 min-w-0">
-                <p class="text-xs font-medium text-gray-800 leading-relaxed">${event.message}</p>
+                <p class="text-xs font-medium text-gray-800 dark:text-silver-200 leading-relaxed">${event.message}</p>
                 <span class="text-[10px] text-silver-400 font-medium">${timeStr}</span>
             </div>
             
