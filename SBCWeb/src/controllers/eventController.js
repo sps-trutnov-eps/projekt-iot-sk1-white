@@ -78,6 +78,22 @@ class EventController {
             });
         }
     }
+
+    // controllers/EventController.js
+    static async deleteSingle(req, res) {
+        try {
+            const id = req.params.id;
+            if (!id) {
+                return res.status(400).json({ success: false, message: "Chybí ID události." });
+            }
+
+            EventService.deleteEvent(id);
+            res.status(200).json({ success: true, message: "Událost byla smazána." });
+        } catch (error) {
+            console.error('Chyba při mazání události:', error);
+            res.status(500).json({ success: false, message: error.message });
+        }
+    }
 }
 
 module.exports = EventController;

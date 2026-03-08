@@ -10,4 +10,6 @@ router.delete('/clear', EventController.clearAll);
 
 router.get('/recent', EventController.getRecent);
 
+router.delete('/delete/:id', EventController.deleteSingle);
+
 module.exports = router;

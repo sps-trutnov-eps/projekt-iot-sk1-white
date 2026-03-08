@@ -75,6 +75,10 @@ class EventService {
     static getTodayAlertsCount() {
         return EventRepository.countTodayAlerts();
     }
+
+    static deleteEvent(id) {
+        return EventRepository.deleteById(id); 
+    }
 }
 
 module.exports = EventService;

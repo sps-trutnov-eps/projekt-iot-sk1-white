@@ -2,6 +2,41 @@
     8. GLOBÁLNÍ NOTIFIKACE (Zvoneček & Sockety & Historie)
    ============================================================ */
 
+// ------------------------------------------------------------
+// GLOBÁLNÍ FUNKCE PRO SMAZÁNÍ JEDNÉ NOTIFIKACE (voláno z HTML)
+// ------------------------------------------------------------
+window.removeSingleNotification = async (event, eventId, btnElement) => {
+    // Zabráníme probublání kliknutí (aby se dropdown nezavřel nebo nekliklo něco pod tím)
+    event.stopPropagation();
+
+    // 1. Nejprve schováme/odstraníme element vizuálně (působí to okamžitě)
+    const notificationItem = btnElement.closest('.border-b'); 
+    if (notificationItem) {
+        notificationItem.remove();
+    }
+
+    const list = document.getElementById('notificationList');
+    const emptyState = document.getElementById('emptyNotifications');
+    
+    // Zkontrolujeme, zda už není seznam prázdný (pokud zbyl jen emptyState)
+    if (list && list.children.length <= 1) {
+        if (emptyState) emptyState.classList.remove('hidden');
+    }
+
+    // 2. Odeslání požadavku na smazání z databáze (pokud má notifikace ID)
+    if (eventId) {
+        try {
+            const res = await fetch(`/event/delete/${eventId}`, { method: 'DELETE' });
+            if (!res.ok) console.error("Chyba při mazání notifikace na backendu.");
+        } catch (error) {
+            console.error('Chyba při komunikaci se serverem (mazání notifikace):', error);
+        }
+    }
+};
+
+// ------------------------------------------------------------
+// HLAVNÍ INICIALIZACE NOTIFIKACÍ
+// ------------------------------------------------------------
 function initNotifications() {
     let unreadCount = 0;
     
@@ -30,7 +65,7 @@ function initNotifications() {
         }
     });
 
-    // 2. Tlačítko pro vymazání
+    // 2. Tlačítko pro vymazání VŠEHO
     if (clearBtn) {
         clearBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
@@ -50,7 +85,7 @@ function initNotifications() {
                     if (window.openToast) window.openToast("Chyba při mazání logů.", false);
                 }
             } catch (err) {
-                console.error("Chyba při volání DELETE:", err);
+                console.error("Chyba při volání DELETE (clearAll):", err);
             }
         });
     }
@@ -75,35 +110,37 @@ function initNotifications() {
 
         const time = new Date(payload.timestamp).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         
-        // --- NOVÁ LOGIKA PRO BARVY A IKONY ---
+        // --- LOGIKA PRO BARVY A IKONY ---
         let colorClass, bgClass, iconClass;
 
         switch (payload.type) {
             case 'alert':
                 colorClass = 'text-red-500';
                 bgClass = 'bg-red-50';
-                iconClass = 'fa-exclamation-circle'; // Červený křížek / vykřičník
+                iconClass = 'fa-exclamation-circle';
                 break;
             case 'warning':
                 colorClass = 'text-yellow-500';
                 bgClass = 'bg-yellow-50';
-                iconClass = 'fa-exclamation-triangle'; // Žlutý trojúhelník
+                iconClass = 'fa-exclamation-triangle';
                 break;
             case 'info':
             default:
                 colorClass = 'text-blue-500';
                 bgClass = 'bg-blue-50';
-                iconClass = 'fa-info-circle'; // Modré íčko
+                iconClass = 'fa-info-circle';
                 break;
         }
 
         const item = document.createElement('div');
-        item.className = `p-3 border-b border-ash-grey-100 last:border-0 rounded-lg mb-1 transition-colors ${bgClass} hover:brightness-95 cursor-default`;
+        // Přidali jsme 'relative' kvůli pozicování křížku a 'pr-6' aby text nezasahoval do tlačítka
+        item.className = `p-3 border-b border-ash-grey-100 last:border-0 rounded-lg mb-1 transition-colors ${bgClass} hover:brightness-95 cursor-default relative pr-6`;
         
+        // Vložení křížku přímo do HTML notifikace
         item.innerHTML = `
             <div class="flex gap-3 items-start">
-                <i class="fas ${iconClass} ${colorClass} mt-0.5 text-sm"></i>
-                <div class="flex-1">
+                <i class="fas ${iconClass} ${colorClass} mt-0.5 text-sm shrink-0"></i>
+                <div class="flex-1 min-w-0">
                     <p class="text-xs text-midnight-violet-900 font-medium leading-relaxed">${payload.message}</p>
                     <div class="flex justify-between items-center mt-1.5">
                         <span class="text-[10px] text-silver-400 font-medium">${time}</span>
@@ -111,6 +148,11 @@ function initNotifications() {
                     </div>
                 </div>
             </div>
+            <button onclick="window.removeSingleNotification(event, ${payload.id ? payload.id : 'null'}, this)" 
+                    class="absolute right-2 top-2 text-silver-400 hover:text-red-500 transition-colors p-1 flex items-center justify-center" 
+                    title="Smazat">
+                <i class="fas fa-times text-xs"></i>
+            </button>
         `;
         
         // Nové události dáváme nahoru, historii dáváme dolů
@@ -129,7 +171,7 @@ function initNotifications() {
             
             if (!res.ok) {
                 console.error("DŮVOD CHYBY 500:", data.message);
-                return; // Ukončíme funkci
+                return;
             }
 
             if (data.success && data.events && data.events.length > 0) {
@@ -137,6 +179,7 @@ function initNotifications() {
                 
                 data.events.forEach(evt => {
                     const payload = {
+                        id: evt.id, // PŘIDÁNO: ID události z databáze
                         mcuId: evt.mcu_id, 
                         type: evt.type,
                         message: evt.message,
@@ -159,16 +202,15 @@ function initNotifications() {
                 unreadCount++;
                 updateBadge();
             }
-            addNotification(payload, true); // true = je to nové, vlož nahoru
+            addNotification(payload, true);
 
-            // Vylepšený toast podle typu notifikace
             if (window.openToast) {
                 let toastPrefix = "";
-                let isSuccessToast = true; // info bude mít zelený/úspěšný toast
+                let isSuccessToast = true;
                 
                 if (payload.type === 'alert') {
                     toastPrefix = "Kritická chyba: ";
-                    isSuccessToast = false; // alert bude mít červený/chybový toast
+                    isSuccessToast = false;
                 } else if (payload.type === 'warning') {
                     toastPrefix = "Upozornění: ";
                     isSuccessToast = false;
@@ -186,5 +228,4 @@ function initNotifications() {
 // Inicializace po načtení HTML
 document.addEventListener('DOMContentLoaded', () => {
     initNotifications();
-    
 });

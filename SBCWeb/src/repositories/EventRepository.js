@@ -56,5 +56,13 @@ class EventRepository {
     return result.changes; 
     }
 
+
+    static deleteById(id) {
+        const query = `DELETE FROM event_logs WHERE id = ?`;
+        const result = db.prepare(query).run(id);
+        
+        return result.changes > 0;
+    }
+
 }
 module.exports = EventRepository;
