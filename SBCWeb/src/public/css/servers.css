@@ -1,0 +1,14 @@
+/* Tenký a elegantní scrollbar pro mini-log */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #4b5563; /* Decentní šedá (Tailwind gray-600) */
+    border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: #6b7280; /* Světlejší šedá při najetí (Tailwind gray-500) */
+}

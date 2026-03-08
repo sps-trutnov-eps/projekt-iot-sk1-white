@@ -29,5 +29,31 @@ class CommandHistoryRepository {
         `;
         db.prepare(query).run(status, output, errorOutput, id);
     }
+
+    static getRecent(serverId = null, limit = 10) {
+        let query = `
+            SELECT ch.id, ch.status, ch.executed_at, c.name as command_name, s.name as server_name, s.id as server_id
+            FROM command_history ch
+            JOIN commands c ON ch.command_id = c.id
+            JOIN servers s ON c.server_id = s.id
+        `;
+        const params = [];
+        
+        // Pokud chceme filtrovat jen pro jeden server
+        if (serverId) {
+            query += ` WHERE s.id = ?`;
+            params.push(serverId);
+        }
+        
+        query += ` ORDER BY ch.executed_at DESC LIMIT ?`;
+        params.push(limit);
+
+        return db.prepare(query).all(...params);
+    }
+    
+    static getById(id) {
+        const query = `SELECT * FROM command_history WHERE id = ?`;
+        return db.prepare(query).get(id);
+    }
 }
 module.exports = CommandHistoryRepository;

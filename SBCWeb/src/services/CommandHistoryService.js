@@ -18,5 +18,24 @@ class CommandHistoryService {
     static updateExecution(historyId, status, output, errorOutput = null) {
         return CommandHistoryRepository.update(historyId, status, output, errorOutput);
     }
+
+    static getRecent(serverId = null, limit = 10) {
+        // Zde můžeme přidat validaci, aby limit byl vždy číslo
+        const parsedLimit = parseInt(limit, 10) || 10;
+        
+        // Pokud přijde serverId jako string z URL (např. "?serverId=1"), převedeme ho
+        const parsedServerId = serverId ? parseInt(serverId, 10) : null;
+
+        // Předáme to do Repozitáře, který jsme si napsali minule
+        return CommandHistoryRepository.getRecent(parsedServerId, parsedLimit);
+    }
+
+    // Přidej někam do třídy CommandHistoryService
+    static getExecutionById(id) {
+        if (!id) {
+            throw new Error('ID historie je povinné.');
+        }
+        return CommandHistoryRepository.getById(id);
+    }
 }
 module.exports = CommandHistoryService;

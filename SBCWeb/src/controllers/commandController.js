@@ -179,6 +179,19 @@ class CommandController {
         }
     }
 
+    static async getRecentHistory(req, res) {
+            try {
+                // Umožníme filtrovat podle query parametru (?serverId=1)
+                const serverId = req.query.serverId || null;
+                const history = CommandHistoryService.getRecent(serverId); // Nebo CommandHistoryRepository, podle toho, jak to máš provázané
+                
+                res.json({ success: true, data: history });
+            } catch (error) {
+                console.error(error);
+                res.status(500).json({ success: false, message: error.message });
+            }
+    }
+
 }
 
 module.exports = CommandController;

@@ -1,7 +1,7 @@
 // public/js/pages/servers/main.js
 
-import { loadServers, loadRecentLogs, toggleFavoriteCommand } from './serverManager.js'; 
-import { runCommand } from './commandManager.js';
+import { loadServers, toggleFavoriteCommand } from './serverManager.js'; 
+import { runCommand, loadMiniLog } from './commandManager.js';
 import { 
     openAddServerModal,
     openAddCommandModal,
@@ -12,13 +12,19 @@ import {
 
 document.addEventListener('DOMContentLoaded', () => {
     loadServers();
-    loadRecentLogs();
-
+    loadMiniLog();
     const addServerBtn = document.getElementById('addServerOpen');
     if (addServerBtn) {
         addServerBtn.addEventListener('click', openAddServerModal);
     }
 });
+
+setInterval(() => {
+    // Tady můžeš předat ID serveru, pokud uživatel zrovna filtruje konkrétní server
+    // např. loadMiniLog(currentSelectedServerId);
+    loadMiniLog();
+}, 3000);
+
 
 // TADY TO MUSÍ BÝT PŘIŘAZENO DO WINDOW
 window.loadServers = loadServers;
