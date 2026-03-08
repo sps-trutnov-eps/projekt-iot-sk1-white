@@ -43,7 +43,7 @@ export const CommandManager = {
                             </div>
                         </div>
                         <div class="flex gap-1.5 shrink-0">
-                            <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 hover:text-green-600 rounded-md transition-colors" onclick="window.runCommand(${item.id}, this)">
+                            <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 hover:text-green-600 rounded-md transition-colors" onclick="window.runCommand(${item.id}, this) data-cmd-type="${cmd.type}">
                                 <i class="fas fa-play text-[10px] ml-0.5"></i>
                             </button>
                             <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 rounded-md transition-colors" onclick="window.handleEditClick(${item.id})">
@@ -69,13 +69,26 @@ export const CommandManager = {
 
 window.runCommand = async (id, btnElement) => {
     if (btnElement && btnElement.disabled) return;
+    
+    // ✅ Zjistíme typ z data atributu
+    const cmdType = btnElement?.dataset?.cmdType || 'shell';
+    
     let originalHtml = btnElement ? btnElement.innerHTML : '';
     if (btnElement) {
         btnElement.innerHTML = '<i class="fas fa-circle-notch fa-spin text-[10px] ml-0.5"></i>';
         btnElement.disabled = true;
     }
+
     try {
-        const response = await fetch(`/command/run/${id}`, { method: 'POST' });
+        // ✅ WOL jde na /wol/wake, ostatní na /command/run
+        const url = cmdType === 'wol' ? '/wol/wake-by-command' : `/command/run/${id}`;
+        const body = cmdType === 'wol' ? JSON.stringify({ commandId: id }) : undefined;
+
+        const response = await fetch(url, { 
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body
+        });
         const result = await response.json();
         const icon = result.success ? 'fa-check text-green-500' : 'fa-times text-red-500';
         if (btnElement) {

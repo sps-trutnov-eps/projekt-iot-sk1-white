@@ -15,7 +15,6 @@ const MeasurementService = require('./src/services/MeasurementService');
 const MqttHandler = require('./src/sockets/mqttHandler');
 const WebSocketHandler = require('./src/sockets/webSocketHandler');
 const ServerChecker = require('./src/services/ServerChecker');
-
 const server = http.createServer(app);
 const io = socketIo(server, { cors: { origin: "*" } });
 
@@ -37,6 +36,7 @@ const eventRoutes = require('./src/routes/eventRouter');
 const serverRoutes = require('./src/routes/serverRouter');
 const commandRoutes = require('./src/routes/commandRouter');
 const settingRoutes = require('./src/routes/settingsRouter');
+const wolRouter = require('./src/routes/wolRouter');
 
 app.use('/', indexRoutes);
 app.use('/mcu', MCURoutes)
@@ -47,6 +47,7 @@ app.use('/event', eventRoutes);
 app.use('/server', serverRoutes);
 app.use('/command', commandRoutes);
 app.use('/settings', settingRoutes);
+app.use('/wol', wolRouter);
 
 WebSocketHandler.init(io); 
 

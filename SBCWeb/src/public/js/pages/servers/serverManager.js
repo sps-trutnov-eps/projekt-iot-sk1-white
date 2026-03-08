@@ -155,7 +155,7 @@ export async function loadServers(isBackground = false) {
                                     </div>
 
                                     <div class="flex gap-1.5">
-                                        <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 rounded-md transition-colors" title="Spustit" onclick="window.runCommand(${cmd.id}, this)">
+                                        <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 rounded-md transition-colors" title="Spustit" onclick="window.runCommand(${cmd.id}, this)" data-cmd-type="${cmd.type}">
                                             <i class="fas fa-play text-[10px] ml-0.5"></i>
                                         </button>
                                         <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] border border-[#d1d1d1] text-gray-600 hover:bg-gray-200 rounded-md transition-colors" title="Upravit" onclick="window.openEditCommandModal(${server.id}, ${cmd.id})">
