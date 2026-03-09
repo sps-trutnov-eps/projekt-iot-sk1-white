@@ -1,6 +1,15 @@
 // public/js/pages/servers/commandManager.js
 
-// public/js/pages/servers/commandManager.js
+// Pomocná funkce napojená na tvůj existující Toast systém
+function showNotification(message, type = 'info') {
+    if (typeof window.openToast === 'function') {
+        const isSuccess = (type !== 'error');
+        window.openToast(message, isSuccess);
+    } else {
+        // Fallback pro jistotu do konzole
+        console.log((type === 'error' ? "❌ " : "✅ ") + message);
+    }
+}
 
 export async function runCommand(cmdId, btnElement) {
     console.log("[Frontend] Požadavek na spuštění příkazu ID:", cmdId);
@@ -17,7 +26,7 @@ export async function runCommand(cmdId, btnElement) {
     let originalHtml = '';
     if (btnElement) {
         originalHtml = btnElement.innerHTML;
-        // Nastavíme žluté točící se kolečko (Pending)
+        // OPRAVA 1: Použití animate-spin z Tailwindu místo fa-spin
         btnElement.innerHTML = '<i class="fas fa-circle-notch animate-spin text-yellow-500 text-[10px] ml-0.5"></i>';
         btnElement.disabled = true;
     }
@@ -33,6 +42,17 @@ export async function runCommand(cmdId, btnElement) {
         
         if (!data.success) {
             throw new Error(data.message);
+        }
+
+        // OPRAVA 2: Odchycení Wake on LAN a okamžité ukončení bez čekání
+        if (data.type === 'wol') {
+            console.log(`[Frontend] WOL packet odeslán.`);
+            showNotification('WOL paket byl úspěšně odeslán do sítě!', 'success');
+            
+            if (btnElement) btnElement.innerHTML = '<i class="fas fa-paper-plane text-green-500 text-[10px] ml-0.5"></i>';
+            if (typeof loadMiniLog === 'function') loadMiniLog();
+            
+            return; // Ukončí try blok, přeskočí polling a skočí rovnou do finally bloku (kde se za 3s resetne tlačítko)
         }
 
         const historyId = data.historyId;
@@ -74,7 +94,7 @@ export async function runCommand(cmdId, btnElement) {
             }
         }
 
-        // Pokud to vypršelo i na frontendu (což by díky backend timeoutu nemělo, ale pro jistotu)
+        // Pokud to vypršelo i na frontendu
         if (finalStatus === 'pending') {
             showNotification('Vypršel časový limit pro odpověď od serveru.', 'error');
             if (btnElement) btnElement.innerHTML = '<i class="fas fa-times text-red-500 text-[10px] ml-0.5"></i>';
@@ -85,7 +105,7 @@ export async function runCommand(cmdId, btnElement) {
         if (btnElement) btnElement.innerHTML = '<i class="fas fa-exclamation-triangle text-red-500 text-[10px] ml-0.5"></i>';
         showNotification(error.message || 'Došlo k chybě při komunikaci se serverem.', 'error');
     } finally {
-        // 3. Po 3 vteřinách vrátíme tlačítko do výchozího stavu (ikona Play)
+        // 3. Po 3 vteřinách vrátíme tlačítko do výchozího stavu (ikona Play) pro WOL i pro normální příkazy
         if (btnElement) {
             setTimeout(() => { 
                 btnElement.innerHTML = originalHtml; 
@@ -93,24 +113,7 @@ export async function runCommand(cmdId, btnElement) {
             }, 3000);
         }
     }
-};
-
-window.runCommand = runCommand;
-
-
-function showNotification(message, type = 'info') {
-    if (typeof window.openToast === 'function') {
-        // Tvoje funkce bere (message, success)
-        // Takže pokud je type 'error', pošleme false. Jinak true.
-        const isSuccess = (type !== 'error');
-        window.openToast(message, isSuccess);
-    } else {
-        // Fallback, kdyby se náhodou openToast nestihl načíst
-        console.log((type === 'error' ? "❌ " : "✅ ") + message);
-    }
 }
-
-// public/js/pages/servers/commandManager.js
 
 export async function loadMiniLog(serverId = null) {
     const container = document.getElementById('mini-log-container');
@@ -127,45 +130,49 @@ export async function loadMiniLog(serverId = null) {
         }
 
         container.innerHTML = json.data.map(item => {
-    let statusColor = 'text-yellow-500';
-    let rowClass = 'opacity-80';
-    let iconHTML = '';
+            let statusColor = 'text-yellow-500';
+            let rowClass = 'opacity-80';
+            let iconHTML = '';
 
-    if (item.status === 'success') {
-        statusColor = 'text-green-500';
-        rowClass = '';
-        iconHTML = `<i class="fas fa-check-circle text-sm"></i>`;
-    } else if (item.status === 'error') {
-        statusColor = 'text-red-500';
-        rowClass = '';
-        iconHTML = `<i class="fas fa-exclamation-circle text-sm"></i>`;
-    } else {
-        // Spinner pomocí Tailwind animate-spin
-        iconHTML = `
-            <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-            </svg>
-        `;
-    }
+            if (item.status === 'success') {
+                statusColor = 'text-green-500';
+                rowClass = '';
+                iconHTML = `<i class="fas fa-check-circle text-sm"></i>`;
+            } else if (item.status === 'error') {
+                statusColor = 'text-red-500';
+                rowClass = '';
+                iconHTML = `<i class="fas fa-exclamation-circle text-sm"></i>`;
+            } else {
+                // Spinner pomocí Tailwind animate-spin
+                iconHTML = `
+                    <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                `;
+            }
 
-    const timeStr = new Date(item.executed_at).toLocaleTimeString('cs-CZ');
+            const timeStr = new Date(item.executed_at).toLocaleTimeString('cs-CZ');
 
-    return `
-        <div class="flex gap-3 items-start border-b border-midnight-violet-800/30 pb-2 mb-2 last:border-0 last:mb-0 last:pb-0 transition-all duration-300 ${rowClass}">
-            <div class="mt-0.5 ${statusColor} flex items-center justify-center">
-                ${iconHTML}
-            </div>
-            <div class="flex flex-col">
-                <span class="text-sm text-gray-200 font-medium">${item.command_name}</span>
-                <span class="text-[11px] text-ash-grey-400">${item.server_name} • ${timeStr}</span>
-            </div>
-        </div>
-    `;
-}).join('');
+            return `
+                <div class="flex gap-3 items-start border-b border-midnight-violet-800/30 pb-2 mb-2 last:border-0 last:mb-0 last:pb-0 transition-all duration-300 ${rowClass}">
+                    <div class="mt-0.5 ${statusColor} flex items-center justify-center">
+                        ${iconHTML}
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-sm text-gray-200 font-medium">${item.command_name}</span>
+                        <span class="text-[11px] text-ash-grey-400">${item.server_name || 'Neznámý server'} • ${timeStr}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
 
     } catch (err) {
         console.error(err);
         container.innerHTML = `<div class="text-xs text-red-500 bg-red-500/10 p-2 rounded border border-red-500/20">Chyba načítání historie.</div>`;
     }
 }
+
+// OPRAVA 3: Zpřístupnění do globálního scope, aby na funkce dosáhlo HTML
+window.runCommand = runCommand;
+window.loadMiniLog = loadMiniLog;

@@ -119,7 +119,31 @@ class CommandController {
                 return res.status(404).json({ success: false, message: 'Příkaz nenalezen.' });
             }
 
-            // 1. Založení záznamu v DB
+            // ========================================================
+            // VĚTEV 1: WAKE ON LAN (WOL)
+            // ========================================================
+            if (command.type === 'wol') {
+                // U WOL rovnou ukládáme do historie jako 'success', protože nečekáme na odpověď
+                const historyId = CommandHistoryService.logExecution(id, 'success', null, null);
+
+                // ZDE ODEŠLEŠ WOL PAKET
+                // (Poznámka: Pokud WOL posíláš z tohoto Node.js serveru, doporučuji použít 
+                // knihovnu 'wake_on_lan' (npm install wake_on_lan) a zavolat:
+                // const wol = require('wake_on_lan'); wol.wake(command.command); )
+
+                return res.status(202).json({ 
+                    success: true, 
+                    message: 'WOL paket byl odeslán do sítě.',
+                    historyId: historyId,
+                    type: 'wol' // <-- TOHLE ŘEKNE FRONTENDU, ŽE MÁ PŘESKOČIT ČEKÁNÍ
+                });
+            }
+
+            // ========================================================
+            // VĚTEV 2: KLASICKÝ PŘÍKAZ (SHELL)
+            // ========================================================
+            
+            // 1. Založení záznamu v DB jako 'pending'
             const historyId = CommandHistoryService.logExecution(id, 'pending', null, null);
 
             // 2. Odeslání přes MQTT
@@ -132,16 +156,12 @@ class CommandController {
             const executeTopic = `server/${targetId}/execute`;
             MqttHandler.publishCommand(executeTopic, payload);
 
-            // ---------------------------------------------------------
-            // 3. NOVÉ: BEZPEČNOSTNÍ TIMEOUT (např. 30 vteřin)
-            // ---------------------------------------------------------
+            // 3. BEZPEČNOSTNÍ TIMEOUT (30 vteřin)
             setTimeout(() => {
                 try {
-                    // Podíváme se, jak na tom příkaz je po 30 vteřinách
                     const checkRecord = CommandHistoryService.getExecutionById(historyId);
                     
                     if (checkRecord && checkRecord.status === 'pending') {
-                        // Pokud je stále pending, zařízneme ho
                         CommandHistoryService.updateExecution(
                             historyId, 
                             'error', 
@@ -153,19 +173,19 @@ class CommandController {
                 } catch (err) {
                     console.error('[TIMEOUT] Chyba při kontrole timeoutu:', err);
                 }
-            }, 30000); // 30 000 ms = 30 vteřin
-            // ---------------------------------------------------------
+            }, 30000); 
 
             // 4. Odpověď frontendu
-            res.status(202).json({ 
+            return res.status(202).json({ 
                 success: true, 
                 message: 'Příkaz odeslán ke zpracování.',
-                historyId: historyId 
+                historyId: historyId,
+                type: 'shell' // <-- Frontend ví, že má zobrazit kolečko a čekat
             });
 
         } catch (error) {
             console.error(error);
-            res.status(500).json({ success: false, message: error.message });
+            return res.status(500).json({ success: false, message: error.message });
         }
     }
 
