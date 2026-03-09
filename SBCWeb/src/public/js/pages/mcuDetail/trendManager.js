@@ -83,22 +83,39 @@ function renderTrendBadge(channelId, diff, pct, label) {
     const el = document.getElementById(`card-trend-text-${channelId}`);
     if (!el) return;
 
-    const absDiff = Math.abs(diff).toFixed(1);
+    const absDiff   = Math.abs(diff).toFixed(1);
+    const absPct    = Math.abs(pct).toFixed(1);
     const THRESHOLD = 0.3;
 
+    let colorClass, iconStyle, valueText, tooltipText;
+
     if (Math.abs(diff) < THRESHOLD) {
-        el.className = 'absolute bottom-3 right-4 flex items-center gap-1.5 text-silver-400';
-        el.innerHTML = `<i class="fas fa-arrow-right text-lg"></i><span class="text-sm font-bold">±${absDiff}</span>`;
-        el.title = `Přibližně stejné (${label})`;
+        colorClass  = 'text-silver-400';
+        iconStyle   = '';
+        valueText   = `±${absDiff}`;
+        tooltipText = `Přibližně stejné jako ${label}`;
     } else if (diff > 0) {
-        el.className = 'absolute bottom-3 right-4 flex items-center gap-1.5 text-emerald-500';
-        el.innerHTML = `<i class="fas fa-arrow-right text-lg" style="transform: rotate(-45deg); display:inline-block"></i><span class="text-sm font-bold">+${absDiff}</span>`;
-        el.title = `O ${absDiff} vyšší ${label}`;
+        colorClass  = 'text-emerald-500';
+        iconStyle   = 'style="transform:rotate(-45deg);display:inline-block"';
+        valueText   = `+${absDiff}`;
+        tooltipText = `O ${absDiff} vyšší než ${label} (${absPct} %)`;
     } else {
-        el.className = 'absolute bottom-3 right-4 flex items-center gap-1.5 text-red-400';
-        el.innerHTML = `<i class="fas fa-arrow-right text-lg" style="transform: rotate(45deg); display:inline-block"></i><span class="text-sm font-bold">−${absDiff}</span>`;
-        el.title = `O ${absDiff} nižší ${label}`;
+        colorClass  = 'text-red-400';
+        iconStyle   = 'style="transform:rotate(45deg);display:inline-block"';
+        valueText   = `−${absDiff}`;
+        tooltipText = `O ${absDiff} nižší než ${label} (${absPct} %)`;
     }
+
+    el.className = `absolute bottom-3 right-4 flex items-center gap-1.5 ${colorClass} group/trend cursor-default`;
+    el.innerHTML = `
+        <i class="fas fa-arrow-right text-lg" ${iconStyle}></i>
+        <span class="text-sm font-bold">${valueText}</span>
+        <div class="pointer-events-none absolute bottom-full right-0 mb-2 w-max max-w-[180px] rounded-lg px-2.5 py-1.5
+                    bg-midnight-violet-900 dark:bg-midnight-violet-800 text-silver-100 text-[10px] font-medium leading-snug
+                    shadow-lg opacity-0 group-hover/trend:opacity-100 transition-opacity duration-150 z-10 whitespace-normal text-right">
+            ${tooltipText}
+            <div class="absolute top-full right-3 border-4 border-transparent border-t-midnight-violet-900 dark:border-t-midnight-violet-800"></div>
+        </div>`;
 }
 
 /**
@@ -107,7 +124,14 @@ function renderTrendBadge(channelId, diff, pct, label) {
 function renderNoTrendData(channelId) {
     const el = document.getElementById(`card-trend-text-${channelId}`);
     if (!el) return;
-    el.className = 'absolute bottom-3 right-4 flex items-center gap-1.5 text-silver-300';
-    el.innerHTML = `<i class="fas fa-arrow-right text-lg"></i><span class="text-sm font-bold">–</span>`;
-    el.title = 'Nedostatek dat pro výpočet trendu';
+    el.className = 'absolute bottom-3 right-4 flex items-center gap-1.5 text-silver-300 group/trend cursor-default';
+    el.innerHTML = `
+        <i class="fas fa-arrow-right text-lg"></i>
+        <span class="text-sm font-bold">–</span>
+        <div class="pointer-events-none absolute bottom-full right-0 mb-2 w-max rounded-lg px-2.5 py-1.5
+                    bg-midnight-violet-900 dark:bg-midnight-violet-800 text-silver-100 text-[10px] font-medium
+                    shadow-lg opacity-0 group-hover/trend:opacity-100 transition-opacity duration-150 z-10">
+            Nedostatek dat pro výpočet trendu
+            <div class="absolute top-full right-3 border-4 border-transparent border-t-midnight-violet-900 dark:border-t-midnight-violet-800"></div>
+        </div>`;
 }
