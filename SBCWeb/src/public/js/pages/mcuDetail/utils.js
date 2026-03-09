@@ -3,14 +3,17 @@ export function getMcuId() {
 }
 
 export function getSensorStyle(type) {
-    const t = type.toLowerCase();
-    if (t.includes('temp') || t.includes('teplota')) return { icon: 'fa-thermometer-half', color: 'text-vintage-grape-600' };
-    if (t.includes('hum') || t.includes('vlhkost')) return { icon: 'fa-tint', color: 'text-blue-500' };
-    if (t.includes('press') || t.includes('tlak')) return { icon: 'fa-tachometer-alt', color: 'text-emerald-500' };
-    if (t.includes('co2') || t.includes('air')) return { icon: 'fa-wind', color: 'text-gray-600' };
-    if (t.includes('light') || t.includes('světlo') || t.includes('lux')) return { icon: 'fa-sun', color: 'text-amber-500' };
-    if (t.includes('volt') || t.includes('napětí') || t.includes('batt')) return { icon: 'fa-bolt', color: 'text-yellow-600' };
-    if (t.includes('rssi') || t.includes('signal') || t.includes('wifi')) return { icon: 'fa-wifi', color: 'text-midnight-violet-500' };
+    const t = (type || '').toLowerCase();
+    if (t.includes('temp'))                          return { icon: 'fa-thermometer-half', color: 'text-vintage-grape-600' };
+    if (t.includes('hum'))                           return { icon: 'fa-tint',             color: 'text-blue-500'          };
+    if (t.includes('press'))                         return { icon: 'fa-tachometer-alt',   color: 'text-emerald-500'       };
+    if (t.includes('volt'))                          return { icon: 'fa-bolt',             color: 'text-yellow-500'        };
+    if (t.includes('curr') || t.includes('current')) return { icon: 'fa-plug',             color: 'text-orange-500'        };
+    if (t.includes('power'))                         return { icon: 'fa-fire',             color: 'text-red-500'           };
+    if (t.includes('energy'))                        return { icon: 'fa-leaf',             color: 'text-green-500'         };
+    if (t.includes('fan')  || t.includes('rpm'))     return { icon: 'fa-fan',              color: 'text-cyan-500'          };
+    if (t.includes('co2'))                           return { icon: 'fa-wind',             color: 'text-gray-500'          };
+    if (t.includes('signal') || t.includes('rssi'))  return { icon: 'fa-wifi',             color: 'text-midnight-violet-500' };
     return { icon: 'fa-chart-line', color: 'text-gray-400' };
 }
 

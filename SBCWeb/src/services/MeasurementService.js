@@ -35,12 +35,17 @@ class MeasurementService {
             const sensors = await SensorService.getSensorsByDevice(mcu.id);
 
             const keyMap = {
-                'temp': 'temperature',
-                'hum': 'humidity',
-                'press': 'pressure',
-                'volt': 'voltage',
-                'co2': 'generic',
-                'rssi': 'signal'
+                'temp':     'temperature',
+                'hum':      'humidity',
+                'press':    'pressure',
+                'volt':     'voltage',
+                'curr':     'current',      
+                'power':    'power',        
+                'energy':   'energy',       
+                'rpm':      'fan',          
+                'fan':      'fan',          
+                'rssi':     'signal',
+                'co2':      'co2',
             };
 
             for (const [jsonKey, value] of Object.entries(data)) {
