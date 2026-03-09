@@ -1,5 +1,6 @@
 // pages/mcuDetail/sensorManager.js
 import { getMcuId, getSensorStyle, translateType } from './utils.js';
+import { calculateAndRenderTrend } from './trendManager.js';
 
 function showSensorsLoadingState(listContainer, cardsContainer) {
     // Levé menu (seznam senzorů)
@@ -128,8 +129,11 @@ export async function loadSensors(isBackground = false) {
                                     <span id="card-value-${channel.id}" class="text-3xl font-black text-gray-800 dark:text-silver-100 tracking-tight">${displayValue}</span>
                                     <span class="text-sm font-bold text-silver-400">${channel.unit}</span>
                                 </div>
+
+                                <div id="card-trend-text-${channel.id}" class="absolute bottom-3 right-4 flex items-center gap-1.5 text-silver-300"></div>
                             </div>`;
                         cardsContainer.insertAdjacentHTML('beforeend', cardHtml);
+                        calculateAndRenderTrend(channel.id);
                     });
                 }
             });

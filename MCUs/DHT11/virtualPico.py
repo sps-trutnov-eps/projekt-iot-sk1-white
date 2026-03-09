@@ -6,12 +6,12 @@ import paho.mqtt.client as mqtt
 # ==========================================================
 #                  KONFIGURACE SIMULÁTORU
 # ==========================================================
-MQTT_BROKER = "172.20.10.12"  # IP adresa počítače s Mosquitto
+MQTT_BROKER = "loopback"  # IP adresa počítače s Mosquitto
 MQTT_PORT = 1883
 MQTT_TOPIC = "sensor/data"
 MQTT_CLIENT_ID = "PC_Simulator_01"
 
-API_KEY = "api_ejap8uofwpcfmb3fk5xn34"
+API_KEY = "api_qhh53nmaijhuccqtkscene"
 DEVICE_MAC = "DE:AD:BE:EF:FE:ED"
 
 # ==========================================================
