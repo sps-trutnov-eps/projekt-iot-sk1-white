@@ -69,36 +69,68 @@ export const CommandManager = {
 
 window.runCommand = async (id, btnElement) => {
     if (btnElement && btnElement.disabled) return;
-    
-    // ✅ Zjistíme typ z data atributu
-    const cmdType = btnElement?.dataset?.cmdType || 'shell';
-    
+
     let originalHtml = btnElement ? btnElement.innerHTML : '';
     if (btnElement) {
-        btnElement.innerHTML = '<i class="fas fa-circle-notch fa-spin text-[10px] ml-0.5"></i>';
+        btnElement.innerHTML = '<i class="fas fa-circle-notch animate-spin text-yellow-500 text-[10px] ml-0.5"></i>';
         btnElement.disabled = true;
     }
 
     try {
-        // ✅ WOL jde na /wol/wake, ostatní na /command/run
-        const url = cmdType === 'wol' ? '/wol/wake-by-command' : `/command/run/${id}`;
-        const body = cmdType === 'wol' ? JSON.stringify({ commandId: id }) : undefined;
-
-        const response = await fetch(url, { 
+        const response = await fetch(`/command/run/${id}`, { 
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body
+            headers: { 'Content-Type': 'application/json' }
         });
-        const result = await response.json();
-        const icon = result.success ? 'fa-check text-green-500' : 'fa-times text-red-500';
-        if (btnElement) {
-            btnElement.innerHTML = `<i class="fas ${icon} text-[10px] ml-0.5"></i>`;
-            setTimeout(() => { btnElement.innerHTML = originalHtml; btnElement.disabled = false; }, 2000);
+        const data = await response.json();
+        if (!data.success) throw new Error(data.message);
+
+        // WOL — okamžitě ukončit
+        if (data.type === 'wol') {
+            window.openToast?.('WOL paket byl úspěšně odeslán!', true);
+            if (btnElement) btnElement.innerHTML = '<i class="fas fa-paper-plane text-green-500 text-[10px] ml-0.5"></i>';
+            return;
         }
-    } catch (err) {
+
+        // Shell — polling
+        const historyId = data.historyId;
+        let attempts = 0;
+        let finalStatus = 'pending';
+
+        while (finalStatus === 'pending' && attempts < 35) {
+            await new Promise(r => setTimeout(r, 1000));
+            attempts++;
+
+            const statusRes = await fetch(`/command/history/${historyId}`);
+            if (statusRes.ok) {
+                const statusData = await statusRes.json();
+                finalStatus = statusData.status;
+
+                if (finalStatus === 'success') {
+                    window.openToast?.('Příkaz úspěšně dokončen!', true);
+                    if (btnElement) btnElement.innerHTML = '<i class="fas fa-check text-green-500 text-[10px] ml-0.5"></i>';
+                    break;
+                } else if (finalStatus === 'error') {
+                    window.openToast?.(`Příkaz selhal: ${statusData.error_output || 'Neznámá chyba'}`, false);
+                    if (btnElement) btnElement.innerHTML = '<i class="fas fa-times text-red-500 text-[10px] ml-0.5"></i>';
+                    break;
+                }
+            }
+        }
+
+        if (finalStatus === 'pending') {
+            window.openToast?.('Vypršel časový limit.', false);
+            if (btnElement) btnElement.innerHTML = '<i class="fas fa-times text-red-500 text-[10px] ml-0.5"></i>';
+        }
+
+    } catch (error) {
+        window.openToast?.(error.message || 'Chyba komunikace se serverem.', false);
+        if (btnElement) btnElement.innerHTML = '<i class="fas fa-exclamation-triangle text-red-500 text-[10px] ml-0.5"></i>';
+    } finally {
         if (btnElement) {
-            btnElement.innerHTML = '<i class="fas fa-exclamation-triangle text-red-500 text-[10px] ml-0.5"></i>';
-            setTimeout(() => { btnElement.innerHTML = originalHtml; btnElement.disabled = false; }, 2000);
+            setTimeout(() => { 
+                btnElement.innerHTML = originalHtml; 
+                btnElement.disabled = false; 
+            }, 3000);
         }
     }
 };
