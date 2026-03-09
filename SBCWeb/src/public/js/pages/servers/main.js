@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const res = await fetch('/server/all');
         const json = await res.json();
         const servers = json.result || json.data || [];
-        renderMiniLogFilter(servers);
+        window.renderMiniLogFilter = renderMiniLogFilter;
     } catch (err) {
         console.error('Chyba načítání serverů pro filtr:', err);
     }

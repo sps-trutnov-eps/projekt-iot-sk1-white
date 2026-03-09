@@ -12,7 +12,6 @@ function escapeQuotes(str) {
 // Pomocná funkce pro přepočet čísel v sidebaru
 function updateStatistics(servers) {
     const total = servers.length;
-    // Počítáme online servery (zohledňujeme různé formáty dat - isOnline, is_online nebo status)
     const online = servers.filter(s => s.status === 'online' || s.isOnline === 1 || s.is_online === 1).length;
     const offline = total - online;
 
@@ -100,13 +99,10 @@ export async function loadServers(isBackground = false) {
     }
 
     try {
-        // 1. Nastavíme minimální čas zpoždění (např. 500 ms) - ale jen pokud nejsme na pozadí
         const minimumDelay = isBackground 
             ? Promise.resolve() 
             : new Promise(resolve => setTimeout(resolve, 250));
 
-        // 2. Spustíme fetch a odpočet času SOUČASNĚ. 
-        // Kód bude pokračovat až tehdy, kdy se dokončí OBOJÍ.
         const [response] = await Promise.all([
             fetch('/server/all'),
             minimumDelay
@@ -117,10 +113,14 @@ export async function loadServers(isBackground = false) {
         const result = await response.json();
         
         if (result.success && result.data && result.data.length > 0) {
-            currentServersData = result.data; // Uložení do globální paměti pro modály
+            currentServersData = result.data;
             
-            // ---> PŘEPOČET STATISTIK V SIDEBARU <---
             updateStatistics(currentServersData);
+
+            // ✅ Refresh filtru mini-logu po načtení serverů
+            if (typeof window.renderMiniLogFilter === 'function') {
+                window.renderMiniLogFilter(currentServersData);
+            }
             
             container.innerHTML = ''; 
             
@@ -128,13 +128,10 @@ export async function loadServers(isBackground = false) {
                 const isOnline = (server.status === 'online' || server.status === 1 || server.isOnline === 1 || server.is_online === 1);
                 const isDatabase = (server.type === 'database');
                 
-                // --- Generování příkazů ---
                 let commandsHtml = '';
                 if (server.commands && server.commands.length > 0) {
                     server.commands.forEach(cmd => {
                         const safeCmdName = escapeQuotes(cmd.name);
-                        
-                        // Zjištění, zda je příkaz oblíbený
                         const isFav = cmd.isFavorite === 1 || cmd.isFavorite === true;
                         
                         commandsHtml += `
@@ -183,7 +180,6 @@ export async function loadServers(isBackground = false) {
                     `;
                 }
 
-                // --- Generování celého bloku serveru ---
                 const safeServerName = escapeQuotes(server.name);
                 const serverHtml = `
                     <div class="server-block" data-id="${server.id}">
@@ -232,44 +228,40 @@ export async function loadServers(isBackground = false) {
 
         } else if (result.success && (!result.data || result.data.length === 0)) {
             currentServersData = [];
-            updateStatistics([]); // Vynulování statistik
+            updateStatistics([]);
+            // ✅ Refresh filtru i při prázdném seznamu
+            if (typeof window.renderMiniLogFilter === 'function') {
+                window.renderMiniLogFilter([]);
+            }
             showErrorOrEmptyState("Zatím tu nic není", "Seznam serverů je prázdný. Přidej svůj první server přes tlačítko v levém menu.");
         } else {
-            updateStatistics([]); // Vynulování statistik
+            updateStatistics([]);
             showErrorOrEmptyState("Data se nepodařilo načíst", result.message || "Server hlásí neznámou chybu.");
         }
     } catch (error) {
         console.error("Chyba loadServers:", error);
-        updateStatistics([]); // Vynulování statistik
+        updateStatistics([]);
         showErrorOrEmptyState("Chyba při komunikaci", "Nepodařilo se připojit k backendu. Zkontrolujte připojení nebo zkuste obnovit stránku.");
     }
 }
 
-
-
 // Funkce pro hvězdičku (přidání do oblíbených)
 export async function toggleFavoriteCommand(event, commandId) {
-    // Zastavíme probublávání kliknutí
     if (event) event.stopPropagation();
 
-    // 1. OKAMŽITÁ VIZUÁLNÍ ZMĚNA (Optimistic Update)
     const button = event.currentTarget;
     const icon = button.querySelector('i');
     
-    // Zjistíme aktuální stav podle třídy 'fas' (solidní hvězdička = aktuálně je oblíbený)
     const isCurrentlyFav = icon.classList.contains('fas');
 
     if (isCurrentlyFav) {
-        // Změníme na Vypnuto (prázdná šedá hvězdička)
         icon.classList.remove('fas', 'text-yellow-400');
         icon.classList.add('far', 'text-gray-400', 'hover:text-yellow-400');
     } else {
-        // Změníme na Zapnuto (plná žlutá hvězdička)
         icon.classList.remove('far', 'text-gray-400', 'hover:text-yellow-400');
         icon.classList.add('fas', 'text-yellow-400');
     }
 
-    // 2. ODESLÁNÍ NA POZADÍ
     try {
         const response = await fetch(`/command/${commandId}/favorite`, {
             method: 'PATCH',
@@ -280,13 +272,11 @@ export async function toggleFavoriteCommand(event, commandId) {
 
         if (!result.success) {
             console.error("Chyba při ukládání oblíbeného stavu:", result.message);
-            // Pokud server hodí chybu, zavoláme loadServers pro srovnání dat podle databáze
             loadServers(true); 
         }
-        // Pokud je to success, nemusíme dělat nic, protože UI už jsme změnili!
         
     } catch (error) {
         console.error("API chyba při změně oblíbeného:", error);
-        loadServers(true); // V případě chyby sítě překreslíme data
+        loadServers(true);
     }
 }
