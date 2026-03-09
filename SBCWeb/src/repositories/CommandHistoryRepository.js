@@ -55,5 +55,13 @@ class CommandHistoryRepository {
         const query = `SELECT * FROM command_history WHERE id = ?`;
         return db.prepare(query).get(id);
     }
+
+    // src/repositories/CommandHistoryRepository.js
+
+    static delete(id) {
+        const query = `DELETE FROM command_history WHERE id = ?`;
+        // Předpokládám tvůj db.prepare(...).run(...) styl
+        return db.prepare(query).run(id);
+    }
 }
 module.exports = CommandHistoryRepository;

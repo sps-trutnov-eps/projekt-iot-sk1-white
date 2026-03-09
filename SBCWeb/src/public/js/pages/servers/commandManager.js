@@ -12,7 +12,6 @@ function showNotification(message, type = 'info') {
 }
 
 export async function runCommand(cmdId, btnElement) {
-    console.log("[Frontend] Požadavek na spuštění příkazu ID:", cmdId);
 
     if (!btnElement) {
         const cardElement = document.querySelector(`div[data-cmd-id="${cmdId}"]`);
@@ -46,7 +45,6 @@ export async function runCommand(cmdId, btnElement) {
 
         // OPRAVA 2: Odchycení Wake on LAN a okamžité ukončení bez čekání
         if (data.type === 'wol') {
-            console.log(`[Frontend] WOL packet odeslán.`);
             showNotification('WOL paket byl úspěšně odeslán do sítě!', 'success');
             
             if (btnElement) btnElement.innerHTML = '<i class="fas fa-paper-plane text-green-500 text-[10px] ml-0.5"></i>';
@@ -56,7 +54,6 @@ export async function runCommand(cmdId, btnElement) {
         }
 
         const historyId = data.historyId;
-        console.log(`[Frontend] Příkaz odeslán. Čekám na výsledek (History ID: ${historyId})...`);
 
         // Okamžitě aktualizujeme mini-log, aby se tam objevil "pending" stav
         if (typeof loadMiniLog === 'function') loadMiniLog();
@@ -153,12 +150,15 @@ export async function loadMiniLog(serverId = null) {
             }
 
             // --- ZMĚNA ZDE: Využití globální funkce pro čas a přidání fallbacku ---
+            // ... (předchozí kód pro ikony a barvy zůstává stejný)
+
             const timeStr = window.formatTimeByTimezone 
                 ? window.formatTimeByTimezone(item.executed_at) 
                 : new Date(item.executed_at).toLocaleTimeString('cs-CZ');
 
+            // --- ZMĚNA ZDE: Přidán křížek pro smazání a potřebné CSS třídy (relative, group, pr-6) ---
             return `
-                <div class="flex gap-3 items-start border-b border-midnight-violet-800/30 pb-2 mb-2 last:border-0 last:mb-0 last:pb-0 transition-all duration-300 ${rowClass}">
+                <div class="flex gap-3 items-start border-b border-midnight-violet-800/30 pb-2 mb-2 last:border-0 last:mb-0 last:pb-0 transition-all duration-300 ${rowClass} relative group pr-6">
                     <div class="mt-0.5 ${statusColor} flex items-center justify-center">
                         ${iconHTML}
                     </div>
@@ -169,6 +169,12 @@ export async function loadMiniLog(serverId = null) {
                             <span class="local-time" data-timestamp="${item.executed_at}">${timeStr}</span>
                         </span>
                     </div>
+                    
+                    <button onclick="window.deleteCommandLog(event, ${item.id}, this)" 
+                            class="absolute right-0 top-0 text-silver-300 hover:text-red-500 transition-colors p-1 opacity-0 group-hover:opacity-100 focus:opacity-100" 
+                            title="Smazat historii příkazu">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
                 </div>
             `;
         }).join('');
@@ -178,6 +184,34 @@ export async function loadMiniLog(serverId = null) {
         container.innerHTML = `<div class="text-xs text-red-500 bg-red-500/10 p-2 rounded border border-red-500/20">Chyba načítání historie.</div>`;
     }
 }
+
+
+// =========================================================
+// GLOBÁLNÍ FUNKCE PRO SMAZÁNÍ MINI-LOGU
+// =========================================================
+
+window.deleteCommandLog = async (event, logId, btnElement) => {
+    event.stopPropagation();
+
+    // Vizuální feedback (ztmavení řádku před smazáním)
+    const logItem = btnElement.closest('.group');
+    if (logItem) logItem.style.opacity = '0.5';
+
+    try {
+        const res = await fetch(`/command/history/${logId}`, { method: 'DELETE' });
+        const data = await res.json();
+
+        if (data.success) {
+            // Po úspěšném smazání na backendu překreslíme Mini-log
+            window.loadMiniLog(); 
+        } else {
+            if (logItem) logItem.style.opacity = '1';
+            alert("Chyba: " + data.message);
+        }
+    } catch (err) {
+        console.error("Chyba při mazání historie:", err);
+    }
+};
 
 // OPRAVA 3: Zpřístupnění do globálního scope, aby na funkce dosáhlo HTML
 window.runCommand = runCommand;

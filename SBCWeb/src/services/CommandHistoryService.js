@@ -30,12 +30,20 @@ class CommandHistoryService {
         return CommandHistoryRepository.getRecent(parsedServerId, parsedLimit);
     }
 
-    // Přidej někam do třídy CommandHistoryService
     static getExecutionById(id) {
         if (!id) {
             throw new Error('ID historie je povinné.');
         }
         return CommandHistoryRepository.getById(id);
+    }
+    // src/services/CommandHistoryService.js
+
+    static deleteEntry(id) {
+        if (!id) throw new Error("ID záznamu je povinné.");
+        
+        const result = CommandHistoryRepository.delete(id);
+        // result.changes vrací počet ovlivněných řádků (u SQLite)
+        return result.changes > 0;
     }
 }
 module.exports = CommandHistoryService;

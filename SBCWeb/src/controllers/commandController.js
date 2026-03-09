@@ -55,6 +55,7 @@ class CommandController {
             CommandService.deleteCommand(id);
             res.status(200).json({ success: true, message: 'Příkaz úspěšně smazán.' });
         } catch (error) {
+            console.log(error)
             res.status(400).json({ success: false, message: error.message });
         }
     }
@@ -219,6 +220,26 @@ class CommandController {
                 console.error(error);
                 res.status(500).json({ success: false, message: error.message });
             }
+    }
+
+    // src/controllers/CommandController.js
+
+    // src/controllers/CommandController.js
+
+    static async deleteHistory(req, res) {
+        try {
+            const { id } = req.params;
+            const success = CommandHistoryService.deleteEntry(id);
+
+            if (success) {
+                res.json({ success: true, message: 'Záznam historie byl smazán.' });
+            } else {
+                res.status(404).json({ success: false, message: 'Záznam nebyl nalezen.' });
+            }
+        } catch (error) {
+            console.error("Controller Error (deleteHistory):", error);
+            res.status(500).json({ success: false, message: error.message });
+        }
     }
 
 }
