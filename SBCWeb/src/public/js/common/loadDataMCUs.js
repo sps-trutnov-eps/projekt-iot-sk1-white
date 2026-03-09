@@ -113,7 +113,6 @@ export function renderMCUGrid(mcusArray) {
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[m]));
 
-    // --- TADY SE PŘELOŽÍ ID (2) NA TEXT (Raspberry) ---
     const typeName = window.typeMap && window.typeMap[mcu.type] 
         ? window.typeMap[mcu.type] 
         : mcu.type;
@@ -165,6 +164,16 @@ export function renderMCUGrid(mcusArray) {
 
     let lastSeenDisplay = (statusVal === 1 || statusVal === 2) ? statusDisplay : formattedDateStr;
 
+    // PŘIDÁNO: Zpracování popisku
+    const descriptionHtml = mcu.description ? `
+      <div class="px-4 pb-3 pt-1">
+        <div class="pt-3 border-t border-ash-grey-100 dark:border-midnight-violet-800/60 flex items-start gap-2 text-silver-500 dark:text-silver-400 text-[11px]">
+          <i class="fas fa-align-left mt-0.5 opacity-60"></i>
+          <span class="truncate" title="${escape(mcu.description)}">${escape(mcu.description)}</span>
+        </div>
+      </div>
+    ` : '';
+
     return `
       <div class="mcu-card cursor-pointer bg-white dark:bg-midnight-violet-900 rounded-lg shadow-sm border border-ash-grey-200 dark:border-midnight-violet-800 hover:shadow-md transition-shadow mb-4" 
            data-id="${mcu.id}" 
@@ -212,6 +221,7 @@ export function renderMCUGrid(mcusArray) {
             </button>
           </div>
         </div>
+        ${descriptionHtml}
       </div>
     `;
   }).join('');
@@ -222,6 +232,13 @@ export function renderMCUGrid(mcusArray) {
 }
 
 export async function refreshMCUs() {
+    const types = await fetchData('/type/types') || [];
+    window.typeMap = {};
+    types.forEach(t => {
+        const id = t.id ?? t._id;
+        if (id) window.typeMap[id] = t.type;
+    });
+
     showMcuLoadingState(); 
     const mcus = await fetchData('/mcu/mcus');
     renderMCUGrid(mcus || []); 
@@ -277,11 +294,9 @@ export function populateTypeList(typesArray) {
   `;
 }
 
-// ---> ZDE JE HLAVNÍ OPRAVA PRO TVŮJ PROBLÉM S ČÍSLEM "2" <---
 export async function refreshTypes() {
     const types = await fetchData('/type/types') || [];
     
-    // VYTVOŘÍME SI GLOBÁLNÍ SLOVNÍK PRO PŘEKLAD ID TYPU NA TEXT
     window.typeMap = {};
     types.forEach(t => {
         const id = t.id ?? t._id;
@@ -292,13 +307,10 @@ export async function refreshTypes() {
     const dedupedTypes = dedupeTypes(types);
     populateSelector("TypeSelectorSearchBar", dedupedTypes);
     populateSelector("TypeSelectorMCUForm", dedupedTypes);
-    populateSelector("editTypeSelector", dedupedTypes); // Rovnou to nahrajeme i do Edit formuláře
+    populateSelector("editTypeSelector", dedupedTypes); 
 }
 
 export async function initDataLoad() {
-  // Prvně načteme Typy (a vytvoříme slovník window.typeMap)
   await refreshTypes();
-  
-  // Až potom načteme MCU, které už budou mít slovník k dispozici
   await refreshMCUs();
 }
