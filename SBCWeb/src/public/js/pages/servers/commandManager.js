@@ -18,7 +18,7 @@ export async function runCommand(cmdId, btnElement) {
     if (btnElement) {
         originalHtml = btnElement.innerHTML;
         // Nastavíme žluté točící se kolečko (Pending)
-        btnElement.innerHTML = '<i class="fas fa-circle-notch fa-spin text-yellow-500 text-[10px] ml-0.5"></i>';
+        btnElement.innerHTML = '<i class="fas fa-circle-notch animate-spin text-yellow-500 text-[10px] ml-0.5"></i>';
         btnElement.disabled = true;
     }
 
@@ -95,12 +95,18 @@ export async function runCommand(cmdId, btnElement) {
     }
 };
 
-// Jednoduchá pomocná funkce pro notifikace
+window.runCommand = runCommand;
+
+
 function showNotification(message, type = 'info') {
-    if (type === 'error') {
-        alert("❌ " + message);
+    if (typeof window.openToast === 'function') {
+        // Tvoje funkce bere (message, success)
+        // Takže pokud je type 'error', pošleme false. Jinak true.
+        const isSuccess = (type !== 'error');
+        window.openToast(message, isSuccess);
     } else {
-        console.log("✅ " + message); 
+        // Fallback, kdyby se náhodou openToast nestihl načíst
+        console.log((type === 'error' ? "❌ " : "✅ ") + message);
     }
 }
 
