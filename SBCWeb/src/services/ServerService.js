@@ -52,13 +52,13 @@ class ServerService {
 
     static deleteServer(id) {
         const existing = ServerRepository.getById(id);
+        console.log('existing:', existing);
         if (!existing) {
             throw new Error(`Server s ID ${id} nebyl nalezen.`);
         }
         
         // PŘIDÁNO: Zalogování smazání jako globální systémová událost
-        EventService.logSystemEvent('warning', `Server "${existing.name}" (${existing.ip}) byl odstraněn.`);
-
+        EventService.logSystemEvent('warning', `Server "${existing.name}" (${existing.ipAddress}) byl odstraněn.`); 
         return ServerRepository.delete(id);
     }
 
