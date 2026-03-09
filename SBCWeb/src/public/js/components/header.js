@@ -108,42 +108,35 @@ function initNotifications() {
         if (!list) return;
         if (emptyState) emptyState.classList.add('hidden');
 
-        const time = new Date(payload.timestamp).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        // --- ZMĚNA: Použití globální funkce z utils.js pro formátování času ---
+        const time = window.formatTimeByTimezone 
+            ? window.formatTimeByTimezone(payload.timestamp) 
+            : new Date(payload.timestamp).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         
         // --- LOGIKA PRO BARVY A IKONY ---
         let colorClass, bgClass, iconClass;
 
         switch (payload.type) {
             case 'alert':
-                colorClass = 'text-red-500';
-                bgClass = 'bg-red-50';
-                iconClass = 'fa-exclamation-circle';
-                break;
+                colorClass = 'text-red-500'; bgClass = 'bg-red-50'; iconClass = 'fa-exclamation-circle'; break;
             case 'warning':
-                colorClass = 'text-yellow-500';
-                bgClass = 'bg-yellow-50';
-                iconClass = 'fa-exclamation-triangle';
-                break;
+                colorClass = 'text-yellow-500'; bgClass = 'bg-yellow-50'; iconClass = 'fa-exclamation-triangle'; break;
             case 'info':
             default:
-                colorClass = 'text-blue-500';
-                bgClass = 'bg-blue-50';
-                iconClass = 'fa-info-circle';
-                break;
+                colorClass = 'text-blue-500'; bgClass = 'bg-blue-50'; iconClass = 'fa-info-circle'; break;
         }
 
         const item = document.createElement('div');
-        // Přidali jsme 'relative' kvůli pozicování křížku a 'pr-6' aby text nezasahoval do tlačítka
         item.className = `p-3 border-b border-ash-grey-100 last:border-0 rounded-lg mb-1 transition-colors ${bgClass} hover:brightness-95 cursor-default relative pr-6`;
         
-        // Vložení křížku přímo do HTML notifikace
+        // --- ZMĚNA: Přidána třída "local-time" a data-timestamp do spanu s časem ---
         item.innerHTML = `
             <div class="flex gap-3 items-start">
                 <i class="fas ${iconClass} ${colorClass} mt-0.5 text-sm shrink-0"></i>
                 <div class="flex-1 min-w-0">
                     <p class="text-xs text-midnight-violet-900 dark:text-silver-100 font-medium leading-relaxed">${payload.message}</p>
                     <div class="flex justify-between items-center mt-1.5">
-                        <span class="text-[10px] text-silver-400 font-medium">${time}</span>
+                        <span class="local-time text-[10px] text-silver-400 font-medium" data-timestamp="${payload.timestamp}">${time}</span>
                         ${payload.mcuId ? `<span class="text-[9px] uppercase tracking-wider bg-white dark:bg-midnight-violet-800 px-1.5 py-0.5 rounded text-silver-500 border border-silver-200 dark:border-midnight-violet-700 shadow-sm">ID: ${payload.mcuId}</span>` : ''}
                     </div>
                 </div>
@@ -155,7 +148,6 @@ function initNotifications() {
             </button>
         `;
         
-        // Nové události dáváme nahoru, historii dáváme dolů
         if (isNew) {
             list.insertBefore(item, list.firstChild);
         } else {
@@ -166,7 +158,7 @@ function initNotifications() {
     // 5. NAČTENÍ HISTORIE PŘI STARTU
     async function loadHistoricalNotifications() {
         try {
-            const res = await fetch('/event/recent?limit=20'); // Načteme posledních 20 událostí
+            const res = await fetch('/event/recent?limit=20');
             const data = await res.json();
             
             if (!res.ok) {
@@ -179,7 +171,7 @@ function initNotifications() {
                 
                 data.events.forEach(evt => {
                     const payload = {
-                        id: evt.id, // PŘIDÁNO: ID události z databáze
+                        id: evt.id,
                         mcuId: evt.mcu_id, 
                         type: evt.type,
                         message: evt.message,
@@ -221,11 +213,24 @@ function initNotifications() {
         });
     }
 
-    // Nakonec ihned zavoláme stažení historie
     loadHistoricalNotifications();
 }
 
 // Inicializace po načtení HTML
 document.addEventListener('DOMContentLoaded', () => {
     initNotifications();
+});
+
+// ------------------------------------------------------------
+// GLOBAL EVENT LISTENER: Překreslení při změně zóny
+// ------------------------------------------------------------
+window.addEventListener('timezoneChanged', () => {
+    if (window.formatTimeByTimezone) {
+        document.querySelectorAll('.local-time').forEach(el => {
+            const ts = el.getAttribute('data-timestamp');
+            if (ts) {
+                el.textContent = window.formatTimeByTimezone(ts);
+            }
+        });
+    }
 });
