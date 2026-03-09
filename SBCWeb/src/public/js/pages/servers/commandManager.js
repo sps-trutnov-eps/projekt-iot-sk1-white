@@ -152,7 +152,10 @@ export async function loadMiniLog(serverId = null) {
                 `;
             }
 
-            const timeStr = new Date(item.executed_at).toLocaleTimeString('cs-CZ');
+            // --- ZMĚNA ZDE: Využití globální funkce pro čas a přidání fallbacku ---
+            const timeStr = window.formatTimeByTimezone 
+                ? window.formatTimeByTimezone(item.executed_at) 
+                : new Date(item.executed_at).toLocaleTimeString('cs-CZ');
 
             return `
                 <div class="flex gap-3 items-start border-b border-midnight-violet-800/30 pb-2 mb-2 last:border-0 last:mb-0 last:pb-0 transition-all duration-300 ${rowClass}">
@@ -161,7 +164,10 @@ export async function loadMiniLog(serverId = null) {
                     </div>
                     <div class="flex flex-col">
                         <span class="text-sm text-gray-200 font-medium">${item.command_name}</span>
-                        <span class="text-[11px] text-ash-grey-400">${item.server_name || 'Neznámý server'} • ${timeStr}</span>
+                        <span class="text-[11px] text-ash-grey-400">
+                            ${item.server_name || 'Neznámý server'} • 
+                            <span class="local-time" data-timestamp="${item.executed_at}">${timeStr}</span>
+                        </span>
                     </div>
                 </div>
             `;
