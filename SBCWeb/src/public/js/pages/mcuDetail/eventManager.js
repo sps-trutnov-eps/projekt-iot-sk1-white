@@ -154,13 +154,17 @@ function renderEventLog(event, isNew = false) {
         }
     }
 
-    // Bezpečné parsování času (s UTC timezone fixem, co tam máš)
-    const timestampStr = event.timestamp.replace(' ', 'T') + (event.timestamp.includes('Z') ? '' : 'Z');
-    const date = new Date(timestampStr);
-    const timeStr = !isNaN(date) ? date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '--:--:--';
+    // Bezpečné parsování času a POUŽITÍ GLOBÁLNÍ FUNKCE
+    // Náš utils.js už "Z" a "T" fix obsahuje, ale pokud ho aplikuješ i zde, ničemu to nevadí.
+    const safeTimestamp = (event.timestamp || '').replace(' ', 'T') + ((event.timestamp || '').includes('Z') ? '' : 'Z');
+    
+    // --- NOVĚ: Využití globální funkce pro formátování, případně fallback ---
+    const timeStr = window.formatTimeByTimezone 
+        ? window.formatTimeByTimezone(safeTimestamp) 
+        : new Date(safeTimestamp).toLocaleTimeString('cs-CZ');
 
-    // HTML Šablona pro jeden log (PŘIDÁN relative, pr-6 a křížek)
-    // Přidali jsme padding dolů (pb-3) a lehký margin, aby se křížky nepletly do sebe
+    // HTML Šablona pro jeden log
+    // --- NOVĚ: Přidána třída "local-time" a "data-timestamp" do spanu s časem ---
     const logHtml = `
         <div class="flex gap-3 items-start animate-fade-in relative pr-6 pb-2 mb-2 border-b border-ash-grey-100 dark:border-midnight-violet-800 last:border-0 last:mb-0 last:pb-0 group">
             <div class="w-7 h-7 rounded-full ${bgColor} flex items-center justify-center shrink-0 mt-0.5">
@@ -168,7 +172,7 @@ function renderEventLog(event, isNew = false) {
             </div>
             <div class="flex-1 min-w-0">
                 <p class="text-xs font-medium text-gray-800 dark:text-silver-200 leading-relaxed">${event.message}</p>
-                <span class="text-[10px] text-silver-400 font-medium">${timeStr}</span>
+                <span class="local-time text-[10px] text-silver-400 font-medium" data-timestamp="${safeTimestamp}">${timeStr}</span>
             </div>
             
             <button onclick="window.removeMcuEvent(event, ${event.id ? event.id : 'null'}, this)" 
