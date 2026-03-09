@@ -2,6 +2,7 @@
 const CommandService = require('../services/commandService');
 const CommandHistoryService = require('../services/CommandHistoryService');
 const MqttHandler = require('../sockets/mqttHandler')
+const { sendMagicPacket } = require('../services/wolService');
 
 class CommandController {
     static async create(req, res) {
@@ -125,8 +126,8 @@ class CommandController {
             // ========================================================
             if (command.type === 'wol') {
                 // U WOL rovnou ukládáme do historie jako 'success', protože nečekáme na odpověď
+                await sendMagicPacket(command.command); // <-- tohle chybělo!
                 const historyId = CommandHistoryService.logExecution(id, 'success', null, null);
-
                 // ZDE ODEŠLEŠ WOL PAKET
                 // (Poznámka: Pokud WOL posíláš z tohoto Node.js serveru, doporučuji použít 
                 // knihovnu 'wake_on_lan' (npm install wake_on_lan) a zavolat:
