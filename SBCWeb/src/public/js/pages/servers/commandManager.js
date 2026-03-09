@@ -112,12 +112,20 @@ export async function runCommand(cmdId, btnElement) {
     }
 }
 
-export async function loadMiniLog(serverId = null) {
+// Stav filtru
+let activeMiniLogServerId = null;
+
+export async function loadMiniLog(serverId = undefined) {
+    // Pokud přijde konkrétní hodnota, ulož ji; jinak použij poslední
+    if (serverId !== undefined) activeMiniLogServerId = serverId;
+    
     const container = document.getElementById('mini-log-container');
     if (!container) return;
 
     try {
-        const url = serverId ? `/command/history/recent?serverId=${serverId}` : '/command/history/recent';
+        const url = activeMiniLogServerId 
+            ? `/command/history/recent?serverId=${activeMiniLogServerId}` 
+            : '/command/history/recent';
         const res = await fetch(url);
         const json = await res.json();
 
@@ -127,63 +135,90 @@ export async function loadMiniLog(serverId = null) {
         }
 
         container.innerHTML = json.data.map(item => {
-            let statusColor = 'text-yellow-500';
-            let rowClass = 'opacity-80';
-            let iconHTML = '';
+    let statusColor = 'text-yellow-500';
+    let rowClass = 'opacity-80';
+    let iconHTML = '';
 
-            if (item.status === 'success') {
-                statusColor = 'text-green-500';
-                rowClass = '';
-                iconHTML = `<i class="fas fa-check-circle text-sm"></i>`;
-            } else if (item.status === 'error') {
-                statusColor = 'text-red-500';
-                rowClass = '';
-                iconHTML = `<i class="fas fa-exclamation-circle text-sm"></i>`;
-            } else {
-                // Spinner pomocí Tailwind animate-spin
-                iconHTML = `
-                    <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                    </svg>
-                `;
-            }
+    if (item.status === 'success') {
+        statusColor = 'text-green-500';
+        rowClass = '';
+        iconHTML = `<i class="fas fa-check-circle text-sm"></i>`;
+    } else if (item.status === 'error') {
+        statusColor = 'text-red-500';
+        rowClass = '';
+        iconHTML = `<i class="fas fa-exclamation-circle text-sm"></i>`;
+    } else {
+        iconHTML = `
+            <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+        `;
+    }
 
-            // --- ZMĚNA ZDE: Využití globální funkce pro čas a přidání fallbacku ---
-            // ... (předchozí kód pro ikony a barvy zůstává stejný)
+    const timeStr = window.formatTimeByTimezone 
+        ? window.formatTimeByTimezone(item.executed_at) 
+        : new Date(item.executed_at).toLocaleTimeString('cs-CZ');
 
-            const timeStr = window.formatTimeByTimezone 
-                ? window.formatTimeByTimezone(item.executed_at) 
-                : new Date(item.executed_at).toLocaleTimeString('cs-CZ');
-
-            // --- ZMĚNA ZDE: Přidán křížek pro smazání a potřebné CSS třídy (relative, group, pr-6) ---
-            return `
-                <div class="flex gap-3 items-start border-b border-midnight-violet-800/30 pb-2 mb-2 last:border-0 last:mb-0 last:pb-0 transition-all duration-300 ${rowClass} relative group pr-6">
-                    <div class="mt-0.5 ${statusColor} flex items-center justify-center">
-                        ${iconHTML}
-                    </div>
-                    <div class="flex flex-col">
-                        <span class="text-sm text-gray-200 font-medium">${item.command_name}</span>
-                        <span class="text-[11px] text-ash-grey-400">
-                            ${item.server_name || 'Neznámý server'} • 
-                            <span class="local-time" data-timestamp="${item.executed_at}">${timeStr}</span>
-                        </span>
-                    </div>
-                    
-                    <button onclick="window.deleteCommandLog(event, ${item.id}, this)" 
-                            class="absolute right-0 top-0 text-silver-300 hover:text-red-500 transition-colors p-1 opacity-0 group-hover:opacity-100 focus:opacity-100" 
-                            title="Smazat historii příkazu">
-                        <i class="fas fa-times text-xs"></i>
-                    </button>
-                </div>
-            `;
-        }).join('');
+    return `
+        <div class="flex gap-3 items-start border-b border-midnight-violet-800/30 pb-2 mb-2 last:border-0 last:mb-0 last:pb-0 transition-all duration-300 ${rowClass} relative group pr-6">
+            <div class="mt-0.5 ${statusColor} flex items-center justify-center">
+                ${iconHTML}
+            </div>
+            <div class="flex flex-col">
+                <span class="text-sm text-gray-200 font-medium">${item.command_name}</span>
+                <span class="text-[11px] text-ash-grey-400">
+                    ${item.server_name || 'Neznámý server'} • 
+                    <span class="local-time" data-timestamp="${item.executed_at}">${timeStr}</span>
+                </span>
+            </div>
+            <button onclick="window.deleteCommandLog(event, ${item.id}, this)" 
+                    class="absolute right-0 top-0 text-silver-300 hover:text-red-500 transition-colors p-1 opacity-0 group-hover:opacity-100 focus:opacity-100" 
+                    title="Smazat historii příkazu">
+                <i class="fas fa-times text-xs"></i>
+            </button>
+        </div>
+    `;
+}).join('');
 
     } catch (err) {
         console.error(err);
         container.innerHTML = `<div class="text-xs text-red-500 bg-red-500/10 p-2 rounded border border-red-500/20">Chyba načítání historie.</div>`;
     }
 }
+
+// Funkce pro vykreslení přepínače serverů (zavolej ji při načtení stránky)
+export function renderMiniLogFilter(servers) {
+    const filterContainer = document.getElementById('mini-log-filter');
+    if (!filterContainer) return;
+
+    filterContainer.innerHTML = `
+        <div class="flex gap-1.5 flex-wrap">
+            <button onclick="window.setMiniLogFilter(null, this)" 
+                    class="mini-log-filter-btn active px-2.5 py-1 rounded-md text-[11px] font-medium bg-midnight-violet-700 text-silver-100 border border-midnight-violet-600 transition-colors">
+                Vše
+            </button>
+            ${servers.map(s => `
+                <button onclick="window.setMiniLogFilter(${s.id}, this)" 
+                        class="mini-log-filter-btn px-2.5 py-1 rounded-md text-[11px] font-medium bg-midnight-violet-900 text-silver-400 border border-midnight-violet-700 hover:bg-midnight-violet-800 transition-colors">
+                    ${s.name}
+                </button>
+            `).join('')}
+        </div>
+    `;
+}
+
+window.setMiniLogFilter = (serverId, btnElement) => {
+    // Přepnutí aktivního tlačítka
+    document.querySelectorAll('.mini-log-filter-btn').forEach(btn => {
+        btn.classList.remove('bg-midnight-violet-700', 'text-silver-100');
+        btn.classList.add('bg-midnight-violet-900', 'text-silver-400');
+    });
+    btnElement.classList.add('bg-midnight-violet-700', 'text-silver-100');
+    btnElement.classList.remove('bg-midnight-violet-900', 'text-silver-400');
+
+    loadMiniLog(serverId);
+};
 
 
 // =========================================================

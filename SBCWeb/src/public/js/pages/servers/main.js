@@ -1,7 +1,7 @@
 // public/js/pages/servers/main.js
 
 import { loadServers, toggleFavoriteCommand } from './serverManager.js'; 
-import { loadMiniLog } from './commandManager.js';
+import { loadMiniLog,renderMiniLogFilter  } from './commandManager.js';
 import { 
     openAddServerModal,
     openAddCommandModal,
@@ -10,9 +10,17 @@ import {
     openDeleteModal
 } from './modalManager.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     loadServers();
     loadMiniLog();
+    try {
+        const res = await fetch('/server/all');
+        const json = await res.json();
+        const servers = json.result || json.data || [];
+        renderMiniLogFilter(servers);
+    } catch (err) {
+        console.error('Chyba načítání serverů pro filtr:', err);
+    }
     const addServerBtn = document.getElementById('addServerOpen');
     if (addServerBtn) {
         addServerBtn.addEventListener('click', openAddServerModal);
