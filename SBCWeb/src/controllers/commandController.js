@@ -243,6 +243,18 @@ class CommandController {
         }
     }
 
+    static async deleteAllHistory(req, res) {
+    try {
+        console.log('deleteAllHistory zavolán');
+        const result = CommandHistoryService.deleteAll();
+        console.log('výsledek:', result);
+        res.json({ success: true, message: 'Historie byla smazána.' });
+    } catch (error) {
+        console.error('deleteAllHistory chyba:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+
 }
 
 module.exports = CommandController;

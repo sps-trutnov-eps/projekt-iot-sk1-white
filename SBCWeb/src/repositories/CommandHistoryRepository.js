@@ -63,5 +63,9 @@ class CommandHistoryRepository {
         // Předpokládám tvůj db.prepare(...).run(...) styl
         return db.prepare(query).run(id);
     }
+
+    static deleteAll() {
+        return db.prepare('DELETE FROM command_history').run();
+    }
 }
 module.exports = CommandHistoryRepository;

@@ -193,33 +193,17 @@ export function renderMiniLogFilter(servers) {
     if (!filterContainer) return;
 
     filterContainer.innerHTML = `
-        <div class="flex gap-1.5 flex-wrap">
-            <button onclick="window.setMiniLogFilter(null, this)" 
-                    class="mini-log-filter-btn active px-2.5 py-1 rounded-md text-[11px] font-medium bg-midnight-violet-700 text-silver-100 border border-midnight-violet-600 transition-colors">
-                Vše
-            </button>
-            ${servers.map(s => `
-                <button onclick="window.setMiniLogFilter(${s.id}, this)" 
-                        class="mini-log-filter-btn px-2.5 py-1 rounded-md text-[11px] font-medium bg-midnight-violet-900 text-silver-400 border border-midnight-violet-700 hover:bg-midnight-violet-800 transition-colors">
-                    ${s.name}
-                </button>
-            `).join('')}
-        </div>
+        <select onchange="window.setMiniLogFilter(this.value ? parseInt(this.value) : null)"
+                class="w-full text-[11px] p-1.5 bg-midnight-violet-800 border border-midnight-violet-700 rounded-md text-silver-300 outline-none cursor-pointer focus:ring-1 focus:ring-midnight-violet-600 transition-all">
+            <option value="">Všechny servery</option>
+            ${servers.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
+        </select>
     `;
 }
 
-window.setMiniLogFilter = (serverId, btnElement) => {
-    // Přepnutí aktivního tlačítka
-    document.querySelectorAll('.mini-log-filter-btn').forEach(btn => {
-        btn.classList.remove('bg-midnight-violet-700', 'text-silver-100');
-        btn.classList.add('bg-midnight-violet-900', 'text-silver-400');
-    });
-    btnElement.classList.add('bg-midnight-violet-700', 'text-silver-100');
-    btnElement.classList.remove('bg-midnight-violet-900', 'text-silver-400');
-
-    loadMiniLog(serverId);
+window.setMiniLogFilter = (serverId) => {
+    loadMiniLog(serverId || null);
 };
-
 
 // =========================================================
 // GLOBÁLNÍ FUNKCE PRO SMAZÁNÍ MINI-LOGU
@@ -248,6 +232,16 @@ window.deleteCommandLog = async (event, logId, btnElement) => {
     }
 };
 
+
+window.deleteAllCommandLogs = () => {
+    if (!window.deleteModal) return;
+    
+    document.getElementById('deleteTargetId').value = 'all';
+    document.getElementById('deleteTargetType').value = 'command_history_all';
+    document.getElementById('deleteTargetName').textContent = 'celá historie příkazů';
+    
+    window.deleteModal.open();
+};
 // OPRAVA 3: Zpřístupnění do globálního scope, aby na funkce dosáhlo HTML
 window.runCommand = runCommand;
 window.loadMiniLog = loadMiniLog;

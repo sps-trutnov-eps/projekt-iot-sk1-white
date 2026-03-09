@@ -45,5 +45,9 @@ class CommandHistoryService {
         // result.changes vrací počet ovlivněných řádků (u SQLite)
         return result.changes > 0;
     }
+
+    static deleteAll() {
+    return CommandHistoryRepository.deleteAll();
+    }
 }
 module.exports = CommandHistoryService;

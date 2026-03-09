@@ -28,11 +28,9 @@ export function openAddCommandModal(serverId) {
     if (commandModal) {
         commandModal.clear(); 
         
-        // Nastavení ID serveru do skrytého pole
         const serverInput = document.getElementById('commandServerId');
         if (serverInput) serverInput.value = serverId;
         
-        // Reset přepínače zpět na 'shell'
         const commandTypeSelect = document.getElementById('commandType');
         if (commandTypeSelect) {
             commandTypeSelect.value = 'shell';
@@ -69,12 +67,10 @@ export function openEditCommandModal(serverId, commandId) {
         document.getElementById('editCommandId').value = cmd.id;
         document.getElementById('editCommandName').value = cmd.name;
 
-        // ✅ OPRAVA: nastavení server_id do formuláře
         const serverIdInput = document.getElementById('editCommandServerId');
         if (serverIdInput) {
             serverIdInput.value = serverId;
         } else {
-            // Pokud hidden input neexistuje v HTML, vytvoříme ho dynamicky
             const hiddenInput = document.createElement('input');
             hiddenInput.type = 'hidden';
             hiddenInput.name = 'server_id';
@@ -103,7 +99,7 @@ export function openDeleteModal(targetId, type, name) {
     if (deleteModalObj) {
         deleteModalObj.clear();
         document.getElementById('deleteTargetId').value = targetId;
-        document.getElementById('deleteTargetType').value = type; // 'server' nebo 'command'
+        document.getElementById('deleteTargetType').value = type;
         document.getElementById('deleteTargetName').innerText = name;
         deleteModalObj.open();
     }
@@ -114,7 +110,6 @@ export function openDeleteModal(targetId, type, name) {
 // 3. LOGIKA PŘEPÍNÁNÍ (SHELL vs WOL)
 // ==========================================
 
-// Přepínání pro PŘIDÁNÍ příkazu
 const addTypeSelect = document.getElementById('commandType');
 if (addTypeSelect) {
     addTypeSelect.addEventListener('change', (e) => {
@@ -132,7 +127,6 @@ if (addTypeSelect) {
     });
 }
 
-// Přepínání pro EDITACI příkazu
 const editTypeSelect = document.getElementById('editCommandType');
 if (editTypeSelect) {
     editTypeSelect.addEventListener('change', (e) => {
@@ -235,8 +229,6 @@ if (editCommandModal && editCommandModal.submitBtn) {
         const finalCommand = data.type === 'wol' ? data.macAddress : data.command;
         
         if (!data.name || !finalCommand) return editCommandModal.showError('Vyplňte prosím všechny údaje.');
-        
-        // ✅ OPRAVA: server_id je nyní součástí FormData z hidden inputu
         if (!data.server_id) return editCommandModal.showError('Chybí ID serveru, zkuste modal zavřít a otevřít znovu.');
 
         try {
@@ -247,7 +239,7 @@ if (editCommandModal && editCommandModal.submitBtn) {
                     name: data.name,
                     type: data.type,
                     command: finalCommand,
-                    server_id: data.server_id  // ✅ správně předáváme server_id
+                    server_id: data.server_id
                 })
             });
             const result = await res.json();
@@ -260,22 +252,41 @@ if (editCommandModal && editCommandModal.submitBtn) {
     });
 }
 
-// SMAZAT (Server nebo Příkaz)
+// SMAZAT (Server, Příkaz nebo celá Historie) — jediný handler
 if (deleteModalObj && deleteModalObj.submitBtn) {
     deleteModalObj.submitBtn.addEventListener('click', async () => {
         deleteModalObj.hideError();
         const id = document.getElementById('deleteTargetId').value;
         const type = document.getElementById('deleteTargetType').value;
-        const endpoint = type === 'server' ? `/server/${id}` : `/command/${id}`;
+
+        let endpoint;
+        if (type === 'command_history_all') {
+            endpoint = '/command/history/all';
+        } else if (type === 'server') {
+            endpoint = `/server/${id}`;
+        } else {
+            endpoint = `/command/${id}`;
+        }
 
         try {
             const res = await fetch(endpoint, { method: 'DELETE' });
             const result = await res.json();
             if (result.success) { 
-                deleteModalObj.close(); loadServers(); 
+                deleteModalObj.close();
+                if (type === 'command_history_all') {
+                    window.loadMiniLog?.();
+                } else {
+                    loadServers();
+                }
             } else {
                 deleteModalObj.showError(result.message || 'Nelze smazat.');
             }
         } catch (err) { deleteModalObj.showError('Smazání selhalo.'); }
     });
 }
+
+// Globální funkce pro smazání celé historie přes delete modal
+window.deleteAllCommandLogs = () => {
+    if (!window.openDeleteModal) return;
+    window.openDeleteModal('all', 'command_history_all', 'celá historie příkazů');
+};

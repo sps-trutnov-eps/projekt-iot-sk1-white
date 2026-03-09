@@ -10,6 +10,8 @@ router.get('/favorites', CommandController.getFavorites);
 router.post('/run/:id', CommandController.run);
 router.get('/history/recent', CommandController.getRecentHistory);
 router.get('/history/:id', CommandController.getHistory);
+router.delete('/history/all', CommandController.deleteAllHistory);
+
 router.delete('/history/:id', CommandController.deleteHistory);
 router.delete('/:id', CommandController.delete);
 
