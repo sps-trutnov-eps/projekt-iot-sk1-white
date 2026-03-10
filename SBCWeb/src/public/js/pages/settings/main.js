@@ -122,9 +122,7 @@ async function saveUsername() {
         const data = await res.json();
         if (data.success) {
             showToast('success', data.message);
-            document.getElementById('account_new_username').value = '';
-            // Aktualizuj zobrazené jméno v sidebar patičce bez reload
-            document.querySelectorAll('[data-username]').forEach(el => el.textContent = username);
+            setTimeout(() => window.location.reload(), 1200);
         } else {
             showToast('error', data.message);
         }
@@ -158,9 +156,7 @@ async function savePassword() {
         const data = await res.json();
         if (data.success) {
             showToast('success', data.message);
-            document.getElementById('account_current_password').value = '';
-            document.getElementById('account_new_password').value = '';
-            document.getElementById('account_confirm_password').value = '';
+            setTimeout(() => window.location.reload(), 1200);
         } else {
             showToast('error', data.message);
         }
@@ -170,6 +166,10 @@ async function savePassword() {
         btn.disabled = false;
     }
 }
+
+// Vystavení funkcí do globálního scope (script je type="module")
+window.saveUsername = saveUsername;
+window.savePassword = savePassword;
 
 // ... fuknce showToast zůstává stejná ...
 
