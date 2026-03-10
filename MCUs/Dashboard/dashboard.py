@@ -566,7 +566,12 @@ def main():
         if time.ticks_diff(now, last_draw) >= 100:
             last_draw = now
             if server_detail_active and selected_server:
-                draw_server_detail(selected_server)
+                # Vždy použij čerstvá data z aktuálního configu
+                if config:
+                    fresh = next((s for s in config.get("servers", []) if s.get("id") == selected_server.get("id")), selected_server)
+                else:
+                    fresh = selected_server
+                draw_server_detail(fresh)
             elif assign_mode:
                 cmds = config.get("commands", []) if config else []
                 items_a = ["--- (zrusit)"] + [c.get("name", "?") for c in cmds]
