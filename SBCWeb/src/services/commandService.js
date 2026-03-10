@@ -123,7 +123,11 @@ static updateCommand(id, data) {
             MqttHandler.publishConfig(topic, payload);
 
             // Aktualizace dashboard config pro MCU dashboard
-            MqttHandler.pushDashboardConfig();
+            // setImmediate zajistí, že MqttHandler je plně načtený (vyhnutí se circular dependency)
+            setImmediate(() => {
+                const MH = require('../sockets/mqttHandler');
+                MH.pushDashboardConfig();
+            });
         } catch (error) {
             console.error(`[Service] Chyba při synchronizaci příkazů pro server ${serverId}:`, error);
         }
