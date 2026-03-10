@@ -4,13 +4,12 @@ const Server = require('../models/Server');
 class ServerRepository {
     static create(serverData) {
         const query = `
-            INSERT INTO servers (name, ip, api_key, type, is_online, created_at)
-            VALUES (?, ?, ?, ?, ?, datetime('now'))
+            INSERT INTO servers (name, ip, type, is_online, created_at)
+            VALUES (?, ?, ?, ?, datetime('now'))
         `;
         const result = db.prepare(query).run(
             serverData.name,
             serverData.ip,
-            serverData.api_key,
             serverData.type,
             serverData.is_online
         );
@@ -36,14 +35,8 @@ class ServerRepository {
     }
 
     static update(id, data) {
-        const query = `UPDATE servers SET name = ?, ip = ?, api_key = ?, type = ? WHERE id = ?`;
-        const result = db.prepare(query).run(data.name, data.ip, data.api_key, data.type, id);
-        return result.changes > 0;
-    }
-
-    static updateApiKey(id, key) {
-        const query = `UPDATE servers SET api_key = ? WHERE id = ?`;
-        const result = db.prepare(query).run(key, id);
+        const query = `UPDATE servers SET name = ?, ip = ?, type = ? WHERE id = ?`;
+        const result = db.prepare(query).run(data.name, data.ip, data.type, id);
         return result.changes > 0;
     }
 

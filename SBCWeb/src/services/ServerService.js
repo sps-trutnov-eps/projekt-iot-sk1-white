@@ -74,7 +74,6 @@ class ServerService {
         const result = ServerRepository.update(id, {
             name: data.name, 
             ip: data.ip, 
-            api_key: data.api_key || null, 
             type: data.type || 'server'
         });
 
