@@ -18,6 +18,8 @@ router.post('/account/update-username', (req, res, next) => {
 
 router.get('/change-password', (req, res, next) => {
   if (!req.session || !req.session.userId) return res.redirect('/login');
+  // Pokud heslo není potřeba měnit, přesměruj na dashboard
+  if (!req.session.mustChangePassword) return res.redirect('/dashboard');
   next();
 }, authController.getChangePassword);
 

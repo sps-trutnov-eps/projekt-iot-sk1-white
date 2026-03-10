@@ -4,6 +4,12 @@ const db = require('../config/database');
 /** GET /login */
 const getLogin = (req, res) => {
   if (req.session && req.session.userId) {
+    // Platná relace – ověř příznak přímo z DB (ochrana před stale session)
+    const user = db.prepare('SELECT must_change_password FROM users WHERE id = ?').get(req.session.userId);
+    if (user && user.must_change_password === 1) {
+      req.session.mustChangePassword = true;
+      return res.redirect('/change-password');
+    }
     return res.redirect('/dashboard');
   }
   res.render('login', { title: 'Přihlášení', error: null });
