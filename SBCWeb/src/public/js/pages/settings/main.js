@@ -105,6 +105,72 @@ async function saveSettings() {
     }
 }
 
+// ─── Správa účtu ─────────────────────────────────────────────────────────────
+
+async function saveUsername() {
+    const btn = document.getElementById('saveUsernameBtn');
+    const username = document.getElementById('account_new_username').value.trim();
+    if (!username) { showToast('error', 'Zadejte nové uživatelské jméno.'); return; }
+
+    btn.disabled = true;
+    try {
+        const res = await fetch('/account/update-username', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast('success', data.message);
+            document.getElementById('account_new_username').value = '';
+            // Aktualizuj zobrazené jméno v sidebar patičce bez reload
+            document.querySelectorAll('[data-username]').forEach(el => el.textContent = username);
+        } else {
+            showToast('error', data.message);
+        }
+    } catch (e) {
+        showToast('error', 'Chyba při komunikaci se serverem.');
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+async function savePassword() {
+    const btn = document.getElementById('savePasswordBtn');
+    const currentPassword = document.getElementById('account_current_password').value;
+    const newPassword     = document.getElementById('account_new_password').value;
+    const confirmPassword = document.getElementById('account_confirm_password').value;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+        showToast('error', 'Vyplňte všechna pole hesla.'); return;
+    }
+    if (newPassword !== confirmPassword) {
+        showToast('error', 'Nová hesla se neshodují.'); return;
+    }
+
+    btn.disabled = true;
+    try {
+        const res = await fetch('/account/update-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ currentPassword, newPassword, confirmPassword })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast('success', data.message);
+            document.getElementById('account_current_password').value = '';
+            document.getElementById('account_new_password').value = '';
+            document.getElementById('account_confirm_password').value = '';
+        } else {
+            showToast('error', data.message);
+        }
+    } catch (e) {
+        showToast('error', 'Chyba při komunikaci se serverem.');
+    } finally {
+        btn.disabled = false;
+    }
+}
+
 // ... fuknce showToast zůstává stejná ...
 
 /**

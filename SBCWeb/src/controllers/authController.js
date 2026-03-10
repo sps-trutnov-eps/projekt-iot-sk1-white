@@ -65,4 +65,49 @@ const postLogout = (req, res) => {
   });
 };
 
-module.exports = { getLogin, postLogin, postLogout, getChangePassword, postChangePassword };
+/** POST /account/update-password  (AJAX) */
+const apiUpdatePassword = (req, res) => {
+  const { currentPassword, newPassword, confirmPassword } = req.body;
+
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    return res.status(400).json({ success: false, message: 'Vyplňte všechna pole.' });
+  }
+  if (newPassword.length < 6) {
+    return res.status(400).json({ success: false, message: 'Nové heslo musí mít alespoň 6 znaků.' });
+  }
+  if (newPassword !== confirmPassword) {
+    return res.status(400).json({ success: false, message: 'Hesla se neshodují.' });
+  }
+
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.session.userId);
+  if (!user || !bcrypt.compareSync(currentPassword, user.password_hash)) {
+    return res.status(400).json({ success: false, message: 'Aktuální heslo je nesprávné.' });
+  }
+
+  const hash = bcrypt.hashSync(newPassword, 10);
+  db.prepare('UPDATE users SET password_hash = ?, must_change_password = 0 WHERE id = ?').run(hash, user.id);
+  req.session.mustChangePassword = false;
+
+  res.json({ success: true, message: 'Heslo bylo změněno.' });
+};
+
+/** POST /account/update-username  (AJAX) */
+const apiUpdateUsername = (req, res) => {
+  const { username } = req.body;
+
+  if (!username || username.trim().length < 2) {
+    return res.status(400).json({ success: false, message: 'Uživatelské jméno musí mít alespoň 2 znaky.' });
+  }
+
+  const existing = db.prepare('SELECT id FROM users WHERE username = ? AND id != ?').get(username.trim(), req.session.userId);
+  if (existing) {
+    return res.status(400).json({ success: false, message: 'Toto jméno je již obsazeno.' });
+  }
+
+  db.prepare('UPDATE users SET username = ? WHERE id = ?').run(username.trim(), req.session.userId);
+  req.session.username = username.trim();
+
+  res.json({ success: true, message: 'Uživatelské jméno bylo změněno.' });
+};
+
+module.exports = { getLogin, postLogin, postLogout, getChangePassword, postChangePassword, apiUpdatePassword, apiUpdateUsername };

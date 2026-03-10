@@ -223,6 +223,86 @@
         </div>
       </div>
 
+      <!-- Správa účtu -->
+      <div class="bg-white dark:bg-midnight-violet-900 rounded-xl shadow-sm border border-ash-grey-200 dark:border-midnight-violet-800 overflow-hidden transition-colors duration-300">
+        <div class="px-6 py-4 border-b border-ash-grey-200 dark:border-midnight-violet-800 bg-silver-50 dark:bg-midnight-violet-900/50 flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-vintage-grape-100 dark:bg-vintage-grape-900/50 text-vintage-grape-700 dark:text-vintage-grape-300 flex items-center justify-center">
+            <i class="fas fa-user-shield"></i>
+          </div>
+          <h2 class="text-lg font-bold text-midnight-violet-900 dark:text-silver-100">Správa účtu</h2>
+        </div>
+
+        <div class="p-6 space-y-8 bg-white dark:bg-[#150f18] transition-colors duration-300">
+
+          <!-- Změna uživatelského jména -->
+          <div class="space-y-3">
+            <div>
+              <label class="block text-sm font-semibold text-midnight-violet-900 dark:text-silver-200 mb-0.5">Uživatelské jméno</label>
+              <p class="text-xs text-silver-500 dark:text-silver-400">Aktuálně přihlášen jako <span class="font-mono font-bold text-vintage-grape-500"><%= currentUser %></span></p>
+            </div>
+            <div class="flex gap-3">
+              <div class="relative flex-1">
+                <i class="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-silver-400 dark:text-silver-500"></i>
+                <input type="text" id="account_new_username" placeholder="Nové uživatelské jméno"
+                  class="w-full pl-11 pr-4 py-3 bg-ash-grey-100 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-sm text-gray-900 dark:text-silver-100 dark:placeholder-silver-600 focus:outline-none focus:border-vintage-grape-500 focus:ring-1 focus:ring-vintage-grape-500 transition-all">
+              </div>
+              <button id="saveUsernameBtn" onclick="saveUsername()"
+                class="px-5 py-3 bg-midnight-violet-700 hover:bg-midnight-violet-600 text-white text-sm font-semibold rounded-lg transition-colors flex items-center gap-2 shrink-0">
+                <i class="fas fa-check"></i> Uložit
+              </button>
+            </div>
+          </div>
+
+          <hr class="border-ash-grey-200 dark:border-midnight-violet-800">
+
+          <!-- Změna hesla -->
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-semibold text-midnight-violet-900 dark:text-silver-200 mb-0.5">Změna hesla</label>
+              <p class="text-xs text-silver-500 dark:text-silver-400">Zadejte aktuální heslo pro ověření, pak nové heslo (min. 6 znaků).</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="relative">
+                <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-silver-400 dark:text-silver-500"></i>
+                <input type="password" id="account_current_password" placeholder="Aktuální heslo"
+                  class="w-full pl-11 pr-4 py-3 bg-ash-grey-100 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-sm text-gray-900 dark:text-silver-100 dark:placeholder-silver-600 focus:outline-none focus:border-vintage-grape-500 focus:ring-1 focus:ring-vintage-grape-500 transition-all">
+              </div>
+              <div class="relative">
+                <i class="fas fa-key absolute left-4 top-1/2 -translate-y-1/2 text-silver-400 dark:text-silver-500"></i>
+                <input type="password" id="account_new_password" placeholder="Nové heslo"
+                  class="w-full pl-11 pr-4 py-3 bg-ash-grey-100 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-sm text-gray-900 dark:text-silver-100 dark:placeholder-silver-600 focus:outline-none focus:border-vintage-grape-500 focus:ring-1 focus:ring-vintage-grape-500 transition-all">
+              </div>
+              <div class="relative">
+                <i class="fas fa-key absolute left-4 top-1/2 -translate-y-1/2 text-silver-400 dark:text-silver-500"></i>
+                <input type="password" id="account_confirm_password" placeholder="Potvrzení hesla"
+                  class="w-full pl-11 pr-4 py-3 bg-ash-grey-100 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-sm text-gray-900 dark:text-silver-100 dark:placeholder-silver-600 focus:outline-none focus:border-vintage-grape-500 focus:ring-1 focus:ring-vintage-grape-500 transition-all">
+              </div>
+            </div>
+            <div class="flex justify-end">
+              <button id="savePasswordBtn" onclick="savePassword()"
+                class="px-6 py-2.5 bg-vintage-grape-600 hover:bg-vintage-grape-700 text-white font-semibold rounded-lg shadow-sm transition-colors flex items-center gap-2">
+                <i class="fas fa-lock"></i> Změnit heslo
+              </button>
+            </div>
+          </div>
+
+          <!-- Odhlášení -->
+          <hr class="border-ash-grey-200 dark:border-midnight-violet-800">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-semibold text-midnight-violet-900 dark:text-silver-200">Odhlášení</p>
+              <p class="text-xs text-silver-500 dark:text-silver-400">Ukončí aktuální přihlášenou relaci.</p>
+            </div>
+            <form method="POST" action="/logout">
+              <button type="submit" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors flex items-center gap-2 text-sm">
+                <i class="fas fa-sign-out-alt"></i> Odhlásit se
+              </button>
+            </form>
+          </div>
+
+        </div>
+      </div>
+
     </div>
   </main>
 </div>

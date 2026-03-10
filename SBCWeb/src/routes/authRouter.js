@@ -6,6 +6,16 @@ router.get('/login', authController.getLogin);
 router.post('/login', authController.postLogin);
 router.post('/logout', authController.postLogout);
 
+router.post('/account/update-password', (req, res, next) => {
+  if (!req.session || !req.session.userId) return res.status(401).json({ error: 'Nepřihlášen' });
+  next();
+}, authController.apiUpdatePassword);
+
+router.post('/account/update-username', (req, res, next) => {
+  if (!req.session || !req.session.userId) return res.status(401).json({ error: 'Nepřihlášen' });
+  next();
+}, authController.apiUpdateUsername);
+
 router.get('/change-password', (req, res, next) => {
   if (!req.session || !req.session.userId) return res.redirect('/login');
   next();
