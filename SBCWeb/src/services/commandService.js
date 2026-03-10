@@ -1,6 +1,5 @@
 const Command = require('../models/Command');
 const CommandRepository = require('../repositories/CommandRepository');
-const MqttHandler = require('../sockets/mqttHandler');
 
 class CommandService {
     static createCommand(data) {
@@ -107,6 +106,7 @@ static updateCommand(id, data) {
     }
 
     static syncCommandsToServer(serverId) {
+        const MqttHandler = require('../sockets/mqttHandler');
         try {
             const rawCommands = CommandRepository.getByServerId(serverId);
             const commandMap = {};
@@ -121,6 +121,9 @@ static updateCommand(id, data) {
             const topic = `server/${serverId}/config`;
 
             MqttHandler.publishConfig(topic, payload);
+
+            // Aktualizace dashboard config pro MCU dashboard
+            MqttHandler.pushDashboardConfig();
         } catch (error) {
             console.error(`[Service] Chyba při synchronizaci příkazů pro server ${serverId}:`, error);
         }

@@ -6,6 +6,7 @@ const SettingService = require('./SettingsService'); // Změněno na Service!
 
 const MCU = require('../models/MCU');
 const MCURepository = require('../repositories/MCURepository');
+const MqttHandler = require('../sockets/mqttHandler');
 
 class MCUService {
     
@@ -155,6 +156,7 @@ class MCUService {
         // SPRÁVNĚ ZAPOJENO
         EventService.logEvent(newId, 'info', `Nové zařízení "${data.name}" bylo zaregistrováno do systému.`);
 
+        MqttHandler.publishDashboardConfig();
         return mcu;
     }
 
@@ -188,7 +190,9 @@ class MCUService {
         // SPRÁVNĚ ZAPOJENO
         EventService.logEvent(id, 'info', `Nastavení zařízení bylo upraveno.`);
 
-        return MCURepository.update(id, updateData);
+        const updateResult = MCURepository.update(id, updateData);
+        MqttHandler.publishDashboardConfig();
+        return updateResult;
     }
 
     // DELETE
@@ -200,7 +204,9 @@ class MCUService {
         // použijeme globální systémový log, aby informace o smazání v historii zůstala.
         EventService.logSystemEvent('warning', `Zařízení "${mcu.name}" (IP: ${mcu.ipAddress || mcu.ip_address || 'N/A'}) bylo odstraněno ze systému.`);
 
-        return MCURepository.delete(id);
+        const deleteResult = MCURepository.delete(id);
+        MqttHandler.publishDashboardConfig();
+        return deleteResult;
     }
 
     // HELPERY

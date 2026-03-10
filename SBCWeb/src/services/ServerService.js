@@ -3,6 +3,7 @@ const Server = require('../models/Server');
 const ServerRepository = require('../repositories/ServerRepository');
 const CommandRepository = require('../repositories/CommandRepository'); 
 const EventService = require('./EventService');
+const MqttHandler = require('../sockets/mqttHandler');
 
 class ServerService {
     static createServer(data) {
@@ -22,6 +23,7 @@ class ServerService {
         // PŘIDÁNO: Zalogování vytvoření přímo k novému serveru
         EventService.logServerEvent(newId, 'info', `Server byl přidán do systému.`);
 
+        MqttHandler.publishDashboardConfig();
         return server;
     }
 
@@ -58,8 +60,10 @@ class ServerService {
         }
         
         // PŘIDÁNO: Zalogování smazání jako globální systémová událost
-        EventService.logSystemEvent('warning', `Server "${existing.name}" (${existing.ipAddress}) byl odstraněn.`); 
-        return ServerRepository.delete(id);
+        EventService.logSystemEvent('warning', `Server "${existing.name}" (${existing.ipAddress}) byl odstraněn.`);
+        const deleted = ServerRepository.delete(id);
+        MqttHandler.publishDashboardConfig();
+        return deleted;
     }
 
     static updateServer(id, data) {
@@ -80,6 +84,7 @@ class ServerService {
         // PŘIDÁNO: Zalogování editace
         EventService.logServerEvent(id, 'info', `Konfigurace serveru byla upravena.`);
 
+        MqttHandler.publishDashboardConfig();
         return result;
     }
 }

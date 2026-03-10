@@ -1,5 +1,4 @@
 // services/MeasurementService.js
-const MCUService = require('../services/mcuService');
 const SensorService = require('../services/SensorService');
 const SocketService = require('../sockets/socketService');
 const ReadingRepository = require('../repositories/ReadingRepository'); 
@@ -21,6 +20,7 @@ class MeasurementService {
      * Hlavní metoda volaná z MQTT Controlleru
      */
     static async processPayload(data) {
+        const MCUService = require('../services/mcuService');
         // console.log("!!! MQTT DATA DORAZILA DO SERVERU !!!", data);
         try {
             if (!data.apiKey) return;
@@ -78,6 +78,25 @@ class MeasurementService {
 
                     // B) ODESLAT DO SOCKETŮ (Live data)
                     SocketService.broadcastReading(mcu.id, targetChannel.id, parsedValue);
+
+                    // C) ODESLAT NA DASHBOARD MCU (MQTT live topic)
+                    try {
+                        const MqttHandler = require('../sockets/mqttHandler');
+                        if (MqttHandler.client && MqttHandler.client.connected) {
+                            MqttHandler.client.publish(
+                                `dashboard/live/${mcu.apiKey}/${targetChannel.type}`,
+                                JSON.stringify({
+                                    value: parsedValue,
+                                    unit: targetChannel.unit || '',
+                                    name: targetChannel.type,
+                                    mcuName: mcu.name,
+                                    ts: Math.floor(Date.now() / 1000)
+                                })
+                            );
+                        }
+                    } catch (mqttErr) {
+                        // Tiché selhání – dashboard není kritická funkce
+                    }
                 }
             }
 
