@@ -15,6 +15,8 @@ router.post('/get', MCUController.getMCU);
 
 router.post('/update', MCUController.updateMCU);
 
+router.post('/update-api-key', MCUController.updateApiKey);
+
 router.get('/:id', MCUController.renderMCUDetail)
 
 module.exports = router;

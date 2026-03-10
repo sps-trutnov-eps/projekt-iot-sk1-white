@@ -41,6 +41,12 @@ class ServerRepository {
         return result.changes > 0;
     }
 
+    static updateApiKey(id, key) {
+        const query = `UPDATE servers SET api_key = ? WHERE id = ?`;
+        const result = db.prepare(query).run(key, id);
+        return result.changes > 0;
+    }
+
     static updateStatus(id, isOnline) {
         const query = `UPDATE servers SET is_online = ? WHERE id = ?`;
         const result = db.prepare(query).run(isOnline, id);

@@ -52,7 +52,6 @@ export function openEditServerModal(serverId) {
         document.getElementById('editServerId').value = server.id;
         document.getElementById('editServerName').value = server.name;
         document.getElementById('editServerIp').value = server.ip;
-        document.getElementById('editServerApiKey').value = server.apiKey || '';
         editServerModal.open();
     }
 }
@@ -290,3 +289,68 @@ window.deleteAllCommandLogs = () => {
     if (!window.openDeleteModal) return;
     window.openDeleteModal('all', 'command_history_all', 'celá historie příkazů');
 };
+
+// ==========================================
+// SERVER API KEY MODAL
+// ==========================================
+
+let _serverApiKeyTargetId = null;
+
+export function openServerApiKeyModal(serverId, currentKey) {
+    _serverApiKeyTargetId = serverId;
+    const modal  = document.getElementById('serverApiKeyModal');
+    const input  = document.getElementById('serverApiKeyInput');
+    const errEl  = document.getElementById('serverApiKeyError');
+    if (!modal || !input) return;
+    input.value = currentKey || '';
+    errEl.classList.add('hidden');
+    modal.classList.remove('hidden');
+    input.focus();
+}
+
+export function initServerApiKeyModal() {
+    const modal    = document.getElementById('serverApiKeyModal');
+    const input    = document.getElementById('serverApiKeyInput');
+    const errEl    = document.getElementById('serverApiKeyError');
+    const closeBtn = document.getElementById('serverApiKeyClose');
+    const cancelBtn= document.getElementById('serverApiKeyCancelBtn');
+    const saveBtn  = document.getElementById('serverApiKeySaveBtn');
+    if (!modal) return;
+
+    const close = () => modal.classList.add('hidden');
+    closeBtn.addEventListener('click', close);
+    cancelBtn.addEventListener('click', close);
+    modal.addEventListener('click', e => { if (e.target === modal) close(); });
+
+    saveBtn.addEventListener('click', async () => {
+        if (!_serverApiKeyTargetId) return;
+        const apiKey = input.value.trim();
+        saveBtn.disabled = true;
+        errEl.classList.add('hidden');
+        try {
+            const res = await fetch(`/server/${_serverApiKeyTargetId}/api-key`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ apiKey })
+            });
+            const data = await res.json();
+            if (data.success) {
+                // Aktualizuj pill v kartě
+                const pill = document.querySelector(`.server-api-key-text[data-server-id="${_serverApiKeyTargetId}"]`);
+                if (pill) pill.textContent = data.apiKey;
+                // Aktualizuj lokální cache
+                const srv = currentServersData.find(s => s.id == _serverApiKeyTargetId);
+                if (srv) srv.apiKey = data.apiKey;
+                close();
+            } else {
+                errEl.querySelector('span').textContent = data.message;
+                errEl.classList.remove('hidden');
+            }
+        } catch (e) {
+            errEl.querySelector('span').textContent = 'Chyba komunikace se serverem.';
+            errEl.classList.remove('hidden');
+        } finally {
+            saveBtn.disabled = false;
+        }
+    });
+}

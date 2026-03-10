@@ -1,4 +1,7 @@
+const { randomBytes } = require('crypto');
 const ServerService = require('../services/ServerService');
+
+const generateApiKey = () => 'api_' + randomBytes(16).toString('hex');
 
 class ServerController {
     
@@ -55,6 +58,19 @@ class ServerController {
             res.json({ success: true, message: 'Server upraven.' });
         } catch (error) {
             res.status(400).json({ success: false, message: error.message });
+        }
+    }
+    static async updateApiKey(req, res) {
+        try {
+            const ServerRepository = require('../repositories/ServerRepository');
+            const id = req.params.id;
+            const { apiKey } = req.body;
+            const newKey = (apiKey && apiKey.trim()) ? apiKey.trim() : generateApiKey();
+            const ok = ServerRepository.updateApiKey(id, newKey);
+            if (!ok) return res.status(404).json({ success: false, message: 'Server nenalezen.' });
+            res.json({ success: true, message: 'API klíč byl aktualizován.', apiKey: newKey });
+        } catch (error) {
+            res.status(500).json({ success: false, message: error.message });
         }
     }
 }

@@ -133,42 +133,97 @@ export function updateMcuStatusUI(lastSeenDbTime, statusVal = null) {
 }
 
 export function initApiKeyListeners() {
-    // ... [Zbytek tvého kódu zůstává stejný] ...
     const apiKeyContainer = document.getElementById('api-key-container');
-    const apiKeyText = document.getElementById('mcu-api-key');
-    const apiKeyEye = document.getElementById('api-key-eye');
-    const apiKeyCopy = document.getElementById('api-key-copy');
+    const apiKeyText     = document.getElementById('mcu-api-key');
+    const apiKeyEye      = document.getElementById('api-key-eye');
+    const apiKeyCopy     = document.getElementById('api-key-copy');
+    const apiKeyEdit     = document.getElementById('api-key-edit');
 
-    if(!apiKeyContainer) return;
+    if (!apiKeyContainer) return;
 
-    apiKeyContainer.addEventListener('click', (e) => {
-        if (e.target.closest('#api-key-copy')) return;
+    // --- Zobrazit / skrýt ---
+    apiKeyEye.addEventListener('click', () => {
         const isBlurred = apiKeyText.classList.contains('blur-[4px]');
-
         if (isBlurred) {
             apiKeyText.classList.remove('blur-[4px]');
-            apiKeyText.style.webkitTextSecurity = 'none'; 
+            apiKeyText.style.webkitTextSecurity = 'none';
             apiKeyEye.classList.replace('fa-eye', 'fa-eye-slash');
-            apiKeyEye.classList.add('text-midnight-violet-600'); 
         } else {
             apiKeyText.classList.add('blur-[4px]');
             apiKeyText.style.webkitTextSecurity = 'disc';
             apiKeyEye.classList.replace('fa-eye-slash', 'fa-eye');
-            apiKeyEye.classList.remove('text-midnight-violet-600');
         }
     });
 
-    apiKeyCopy.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        const textToCopy = apiKeyText.textContent.trim();
+    // --- Kopírovat ---
+    apiKeyCopy.addEventListener('click', async () => {
         try {
-            await navigator.clipboard.writeText(textToCopy);
+            await navigator.clipboard.writeText(apiKeyText.textContent.trim());
             apiKeyCopy.classList.replace('fa-copy', 'fa-check');
-            apiKeyCopy.classList.replace('text-silver-400', 'text-green-500');
+            apiKeyCopy.classList.add('text-green-500');
             setTimeout(() => {
                 apiKeyCopy.classList.replace('fa-check', 'fa-copy');
-                apiKeyCopy.classList.replace('text-green-500', 'text-silver-400');
+                apiKeyCopy.classList.remove('text-green-500');
             }, 2000);
         } catch (err) { console.error(err); }
+    });
+
+    // --- Modal: helpers ---
+    const modal    = document.getElementById('apiKeyModal');
+    const input    = document.getElementById('apiKeyInput');
+    const errorEl  = document.getElementById('apiKeyModalError');
+    const closeBtn = document.getElementById('apiKeyModalClose');
+    const cancelBtn= document.getElementById('apiKeyModalCancel');
+    const saveBtn  = document.getElementById('apiKeyModalSave');
+
+    const openModal = (prefill = '') => {
+        input.value = prefill;
+        errorEl.classList.add('hidden');
+        modal.classList.remove('hidden');
+        input.focus();
+    };
+    const closeModal = () => modal.classList.add('hidden');
+
+    closeBtn.addEventListener('click', closeModal);
+    cancelBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+    // --- Upravit / vygenerovat (otevře modal s aktuálním klíčem; prázdné pole = UUID) ---
+    apiKeyEdit.addEventListener('click', () => {
+        openModal(apiKeyText.textContent.trim());
+    });
+
+    // --- Uložit ---
+    saveBtn.addEventListener('click', async () => {
+        const { getMcuId } = await import('./utils.js');
+        const mcuId = getMcuId();
+        const apiKey = input.value.trim();
+
+        saveBtn.disabled = true;
+        errorEl.classList.add('hidden');
+
+        try {
+            const res = await fetch('/mcu/update-api-key', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: mcuId, apiKey })
+            });
+            const data = await res.json();
+            if (data.success) {
+                apiKeyText.textContent = data.apiKey;
+                apiKeyText.classList.add('blur-[4px]');
+                apiKeyText.style.webkitTextSecurity = 'disc';
+                apiKeyEye.classList.replace('fa-eye-slash', 'fa-eye');
+                closeModal();
+            } else {
+                errorEl.querySelector('span').textContent = data.message;
+                errorEl.classList.remove('hidden');
+            }
+        } catch (e) {
+            errorEl.querySelector('span').textContent = 'Chyba komunikace se serverem.';
+            errorEl.classList.remove('hidden');
+        } finally {
+            saveBtn.disabled = false;
+        }
     });
 }

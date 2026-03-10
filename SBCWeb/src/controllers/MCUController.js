@@ -1,5 +1,8 @@
+const { randomBytes } = require('crypto');
 const MCU = require('../models/MCU');
 const MCUService = require('../services/mcuService');
+
+const generateApiKey = () => 'api_' + randomBytes(16).toString('hex');
 
 const renderMCU = (req, res) =>{
   try{
@@ -134,4 +137,23 @@ const updateMCU = (req,res) => {
 
 }
 
-module.exports = {createMCU, getMCU, getALLMCUs, deleteMCU, updateMCU, renderMCU, renderMCUDetail};
+const updateApiKey = (req, res) => {
+  try {
+    const { id, apiKey } = req.body;
+    if (!id) return res.status(400).json({ success: false, message: 'Chybí ID.' });
+
+    // Pokud přijde prázdný řetězec, vygenerujeme nový klíč
+    const newKey = (apiKey && apiKey.trim()) ? apiKey.trim() : generateApiKey();
+
+    const MCURepository = require('../repositories/mcuRepository');
+    const result = MCURepository.updateApiKey(id, newKey);
+    if (!result || result.changes === 0) {
+      return res.status(404).json({ success: false, message: 'MCU nenalezeno.' });
+    }
+    res.json({ success: true, message: 'API klíč byl aktualizován.', apiKey: newKey });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = {createMCU, getMCU, getALLMCUs, deleteMCU, updateMCU, updateApiKey, renderMCU, renderMCUDetail};

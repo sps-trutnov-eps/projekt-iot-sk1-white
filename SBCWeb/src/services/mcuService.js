@@ -205,7 +205,8 @@ class MCUService {
 
     // HELPERY
     static generateApiKey() {
-        return 'api_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        const { randomBytes } = require('crypto');
+        return 'api_' + randomBytes(16).toString('hex');
     }
 
     static checkMAC(mac){

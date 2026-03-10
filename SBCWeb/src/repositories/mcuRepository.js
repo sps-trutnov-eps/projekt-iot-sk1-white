@@ -122,6 +122,11 @@ class MCURepository{
     return result;
     }
 
+    static updateApiKey(id, apiKey) {
+        const query = `UPDATE mcus SET api_key = ? WHERE device_id = ?`;
+        return db.prepare(query).run(apiKey, id);
+    }
+
     static delete(id) {
         const query = `DELETE FROM mcus WHERE device_id = ?`
         const result = db.prepare(query).run(id);

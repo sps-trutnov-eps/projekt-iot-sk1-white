@@ -199,6 +199,15 @@ export async function loadServers(isBackground = false) {
                                             : `<span class="flex items-center gap-1 text-red-500 font-medium"><i class="fas fa-circle text-[8px]"></i> Offline</span>`
                                         }
                                     </div>
+                                    <!-- API Key pill -->
+                                    <div class="flex items-center gap-2 mt-2 bg-silver-50 dark:bg-midnight-violet-800 px-3 py-1.5 rounded-lg border border-silver-200 dark:border-midnight-violet-700 w-fit hover:border-vintage-grape-300 transition-colors">
+                                        <span class="text-[10px] font-bold text-silver-400 uppercase">API</span>
+                                        <span class="server-api-key-text font-mono text-xs text-gray-500 dark:text-silver-400 blur-[4px]" data-server-id="${server.id}" style="-webkit-text-security:disc">${server.apiKey || 'Žádný klíč'}</span>
+                                        <div class="h-4 w-[1px] bg-silver-300 dark:bg-midnight-violet-700 mx-1"></div>
+                                        <i class="fas fa-eye text-silver-400 hover:text-midnight-violet-600 transition-colors p-1 cursor-pointer" onclick="window.toggleServerApiKeyVis(this)" title="Zobrazit/skrýt"></i>
+                                        <i class="fas fa-copy text-silver-400 hover:text-vintage-grape-600 transition-colors p-1 cursor-pointer" onclick="window.copyServerApiKey(this)" title="Kopírovat"></i>
+                                        <i class="fas fa-pen text-silver-400 hover:text-vintage-grape-500 transition-colors p-1 cursor-pointer" onclick="window.openServerApiKeyModal(${server.id}, '${escapeQuotes(server.apiKey || '')}')" title="Upravit / vygenerovat klíč"></i>
+                                    </div>
                                 </div>
                             </div>
                             
