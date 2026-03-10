@@ -71,8 +71,8 @@ const seedDB = () => {
     const existingUser = db.prepare('SELECT id FROM users WHERE username = ?').get('admin');
     if (!existingUser) {
       const passwordHash = bcrypt.hashSync('admin', 10);
-      db.prepare('INSERT INTO users (username, password_hash) VALUES (?, ?)').run('admin', passwordHash);
-      console.log('Výchozí admin uživatel vytvořen (admin/admin) – po přihlášení změňte heslo!');
+      db.prepare('INSERT INTO users (username, password_hash, must_change_password) VALUES (?, ?, 1)').run('admin', passwordHash);
+      console.log('Výchozí admin uživatel vytvořen (admin/admin) – při prvním přihlášení bude vyžadována změna hesla!');
     }
 
     console.log('Databáze byla úspěšně seednuta (typy MCU a výchozí nastavení).');

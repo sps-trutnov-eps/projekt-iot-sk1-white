@@ -135,9 +135,15 @@ db.exec(`
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
+      must_change_password INTEGER DEFAULT 1,
       created_at TEXT DEFAULT (datetime('now'))
     )
   `);
+
+  // Migrace: přidání sloupce must_change_password pokud tabulka existuje bez něj
+  try {
+    db.exec('ALTER TABLE users ADD COLUMN must_change_password INTEGER DEFAULT 1');
+  } catch (_) { /* sloupec již existuje */ }
 
 }
 initDB();

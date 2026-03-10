@@ -25,7 +25,36 @@ const postLogin = (req, res) => {
 
   req.session.userId = user.id;
   req.session.username = user.username;
+  req.session.mustChangePassword = user.must_change_password === 1;
 
+  if (req.session.mustChangePassword) {
+    return res.redirect('/change-password');
+  }
+
+  res.redirect('/dashboard');
+};
+
+/** GET /change-password */
+const getChangePassword = (req, res) => {
+  res.render('change-password', { title: 'Změna hesla', error: null, success: null });
+};
+
+/** POST /change-password */
+const postChangePassword = (req, res) => {
+  const { newPassword, confirmPassword } = req.body;
+
+  if (!newPassword || newPassword.length < 6) {
+    return res.render('change-password', { title: 'Změna hesla', error: 'Heslo musí mít alespoň 6 znaků.', success: null });
+  }
+  if (newPassword !== confirmPassword) {
+    return res.render('change-password', { title: 'Změna hesla', error: 'Hesla se neshodují.', success: null });
+  }
+
+  const hash = bcrypt.hashSync(newPassword, 10);
+  db.prepare('UPDATE users SET password_hash = ?, must_change_password = 0 WHERE id = ?')
+    .run(hash, req.session.userId);
+
+  req.session.mustChangePassword = false;
   res.redirect('/dashboard');
 };
 
@@ -36,4 +65,4 @@ const postLogout = (req, res) => {
   });
 };
 
-module.exports = { getLogin, postLogin, postLogout };
+module.exports = { getLogin, postLogin, postLogout, getChangePassword, postChangePassword };
