@@ -1,4 +1,5 @@
 const db = require('./database');
+const bcrypt = require('bcryptjs');
 
 /**
  * Inicializace a seedování databáze pro typy MCU a výchozí Nastavení
@@ -18,6 +19,15 @@ const seedDB = () => {
       setting_value TEXT NOT NULL,
       description TEXT,
       updated_at TEXT DEFAULT (datetime('now'))
+    )
+  `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now'))
     )
   `);
 
@@ -56,6 +66,15 @@ const seedDB = () => {
   try {
     insertManyTypes(mcuTypes);
     insertManySettings(defaultSettings);
+
+    // Výchozí admin uživatel (pokud ještě neexistuje)
+    const existingUser = db.prepare('SELECT id FROM users WHERE username = ?').get('admin');
+    if (!existingUser) {
+      const passwordHash = bcrypt.hashSync('admin', 10);
+      db.prepare('INSERT INTO users (username, password_hash) VALUES (?, ?)').run('admin', passwordHash);
+      console.log('Výchozí admin uživatel vytvořen (admin/admin) – po přihlášení změňte heslo!');
+    }
+
     console.log('Databáze byla úspěšně seednuta (typy MCU a výchozí nastavení).');
   } catch (error) {
     console.error('Chyba při seedování databáze:', error.message);

@@ -78,12 +78,19 @@
 
     <!-- Footer -->
     <div class="shrink-0 border-t border-midnight-violet-800 p-4">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <br>
-          
+      <div class="flex items-center space-x-3 px-1 py-1">
+        <div class="w-8 h-8 bg-vintage-grape-600 rounded-full flex items-center justify-center flex-shrink-0">
+          <span class="text-ash-grey-50 text-sm font-semibold"><%= currentUser ? currentUser[0].toUpperCase() : 'U' %></span>
         </div>
-        
+        <div class="flex-1 overflow-hidden">
+          <p class="text-ash-grey-50 text-sm font-medium truncate"><%= currentUser || 'User' %></p>
+          <p class="text-ash-grey-400 text-xs">Přihlášen</p>
+        </div>
+        <form method="POST" action="/logout">
+          <button type="submit" title="Odhlásit se" class="p-2 rounded-full hover:bg-midnight-violet-700 transition text-ash-grey-300 hover:text-red-400">
+            <i class="fas fa-sign-out-alt"></i>
+          </button>
+        </form>
       </div>
     </div>
 
