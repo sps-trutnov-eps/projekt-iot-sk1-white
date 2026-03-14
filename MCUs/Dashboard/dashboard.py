@@ -79,6 +79,8 @@ assign_mode   = False
 assign_btn_id = None
 assign_idx    = 0
 
+is_flashing   = False  # Zajišťuje animaci probliknutí vybraného prvku
+
 # ─────────────────────────────────────────────
 #   ENKODÉR — IRQ
 # ─────────────────────────────────────────────
@@ -149,15 +151,23 @@ def draw_menu(title, items, idx, breadcrumb=""):
 
     safe = idx % count
     if count == 1:
-        oled.fill_rect(0, 25, 128, 10, 1)
-        oled.text(fit(items[0]), 0, 26, 0)
+        if is_flashing:
+            oled.fill_rect(0, 25, 128, 10, 0)
+            oled.text(fit(items[0]), 0, 26, 1)
+        else:
+            oled.fill_rect(0, 25, 128, 10, 1)
+            oled.text(fit(items[0]), 0, 26, 0)
     elif count == 2:
         y_pos = [18, 32]
         for i in range(2):
             label = fit(items[i])
             if i == safe:
-                oled.fill_rect(0, y_pos[i] - 1, 128, 10, 1)
-                oled.text(label, 0, y_pos[i], 0)
+                if is_flashing:
+                    oled.fill_rect(0, y_pos[i] - 1, 128, 10, 0)
+                    oled.text(label, 0, y_pos[i], 1)
+                else:
+                    oled.fill_rect(0, y_pos[i] - 1, 128, 10, 1)
+                    oled.text(label, 0, y_pos[i], 0)
             else:
                 oled.text(label, 0, y_pos[i], 1)
     else:
@@ -166,23 +176,27 @@ def draw_menu(title, items, idx, breadcrumb=""):
         for i, row_idx in enumerate(rows):
             label = fit(items[row_idx])
             if i == 1:
-                oled.fill_rect(0, y_positions[i] - 1, 128, 10, 1)
-                oled.text(label, 0, y_positions[i], 0)
+                if is_flashing:
+                    oled.fill_rect(0, y_positions[i] - 1, 128, 10, 0)
+                    oled.text(label, 0, y_positions[i], 1)
+                else:
+                    oled.fill_rect(0, y_positions[i] - 1, 128, 10, 1)
+                    oled.text(label, 0, y_positions[i], 0)
             else:
                 oled.text(label, 0, y_positions[i], 1)
 
     draw_context_bar(items, safe, breadcrumb)
     oled.show()
 
-def draw_click_feedback():
-    oled.invert(1)
-    time.sleep_ms(50)
-    oled.invert(0)
-
 def draw_server_detail(server):
     oled_clear()
-    oled.fill_rect(0, 0, 128, 11, 1)
-    oled.text(fit(server.get("name", "Server")), 0, 2, 0)
+    if is_flashing: # Při kliknutí problikne hlavička serveru
+        oled.fill_rect(0, 0, 128, 11, 0)
+        oled.text(fit(server.get("name", "Server")), 0, 2, 1)
+    else:
+        oled.fill_rect(0, 0, 128, 11, 1)
+        oled.text(fit(server.get("name", "Server")), 0, 2, 0)
+        
     oled.text(fit("IP: " + server.get("ip", "?")), 0, 16, 1)
     status = server.get("status", "?")
     oled.text(fit("Stav: " + ("ONLINE" if status == "online" else "OFFLINE")), 0, 28, 1)
@@ -198,7 +212,11 @@ def draw_live(mcu_name, ch_name, value, unit, vmin, vmax):
     if value is not None:
         val_str = f"{value:.1f} {unit}"
         x_off = max(0, (16 - len(val_str)) * 4)
-        oled.text(val_str[:16], x_off, 26, 1)
+        if is_flashing: # Problikne hodnota
+            oled.fill_rect(x_off, 25, len(val_str)*8, 10, 1)
+            oled.text(val_str[:16], x_off, 26, 0)
+        else:
+            oled.text(val_str[:16], x_off, 26, 1)
     else:
         oled.text("Cekam...", 20, 26, 1)
     mn = f"{vmin:.1f}" if vmin is not None else "--"
@@ -221,8 +239,12 @@ def draw_assign(btn_id, items, idx):
         for i, row_idx in enumerate(rows):
             label = fit(items[row_idx])
             if i == 1:
-                oled.fill_rect(0, y_positions[i] - 1, 128, 10, 1)
-                oled.text(label, 0, y_positions[i], 0)
+                if is_flashing:
+                    oled.fill_rect(0, y_positions[i] - 1, 128, 10, 0)
+                    oled.text(label, 0, y_positions[i], 1)
+                else:
+                    oled.fill_rect(0, y_positions[i] - 1, 128, 10, 1)
+                    oled.text(label, 0, y_positions[i], 0)
             else:
                 oled.text(label, 0, y_positions[i], 1)
     oled.text("dlouze = zrusit", 0, 54, 1)
@@ -232,13 +254,55 @@ def draw_no_config():
     draw_status("Neni konfig.", "Zkus Aktualizovat", "v hlavnim menu")
 
 # ─────────────────────────────────────────────
-#   UX LOKÁLNÍ FUNKCE (Jas)
+#   UX LOGIKA (Zpětná vazba a UI Render)
 # ─────────────────────────────────────────────
+def update_display():
+    """Vykreslí aktuální stav UI (volá se z main loopu i z feedbacku)"""
+    if server_detail_active and selected_server:
+        if config:
+            fresh = next((s for s in config.get("servers", []) if s.get("id") == selected_server.get("id")), selected_server)
+        else:
+            fresh = selected_server
+        draw_server_detail(fresh)
+    elif assign_mode:
+        cmds = config.get("commands", []) if config else []
+        items_a = ["--- (zrusit)"] + [c.get("name", "?") for c in cmds]
+        draw_assign(assign_btn_id, items_a, assign_idx)
+    elif level == 0:
+        draw_menu("=== MENU ===", get_l1_items(), current_idx, "Hlavni")
+    elif level == 1:
+        if config is None: draw_no_config()
+        else:
+            titles = {"servers": "Servery", "commands": "Prikazy", "mcus": "Sledovat MCU"}
+            items = get_l2_items()
+            draw_menu(titles.get(mode, "Menu"), items if items else ["(prazdne)"], current_idx, "")
+    elif level == 2:
+        items = get_l3_items()
+        draw_menu(fit(selected_mcu.get("name", "MCU") if selected_mcu else "MCU"), items if items else ["(prazdne)"], current_idx, "Kanaly")
+    elif level == 3:
+        draw_live(live_mcu_name or "MCU", live_channel_name or live_channel_type or "?", live_value, live_unit, live_min, live_max)
+
+def draw_click_feedback(custom_draw_func=None):
+    global is_flashing
+    is_flashing = True
+    if custom_draw_func: custom_draw_func()
+    else: update_display()
+    
+    time.sleep_ms(80)
+    
+    is_flashing = False
+    if custom_draw_func: custom_draw_func()
+    else: update_display()
+
 def _draw_brightness_ui(brightness):
     oled_clear()
     oled.text("Nastaveni Jasu", 4, 0, 1)
-    oled.fill_rect(10, 30, 108, 10, 1)
-    oled.fill_rect(12, 32, int(104 * (brightness / 255)), 6, 0)
+    if is_flashing:
+        oled.fill_rect(10, 30, 108, 10, 0)
+        oled.text(" ULOZENO ", 28, 31, 1)
+    else:
+        oled.fill_rect(10, 30, 108, 10, 1)
+        oled.fill_rect(12, 32, int(104 * (brightness / 255)), 6, 0)
     oled.text("[klik] = ulozit", 0, 54, 1)
     oled.show()
 
@@ -260,7 +324,7 @@ def change_brightness():
             sw_handled = True
             settings["brightness"] = brightness
             save_settings()
-            draw_click_feedback()
+            draw_click_feedback(lambda: _draw_brightness_ui(brightness))
             break
         time.sleep_ms(50)
 
@@ -418,26 +482,21 @@ def main():
         for bid, state in btn_hw.items():
             cur = state["pin"].value()
             
-            # Sestupná hrana (stisknutí)
             if cur == 0 and state["last"] == 1:
                 state["t_down"] = now
                 state["long_triggered"] = False
             
-            # Tlačítko se aktuálně drží
             elif cur == 0 and state["last"] == 0:
                 if not state["long_triggered"] and time.ticks_diff(now, state["t_down"]) > 800:
                     state["long_triggered"] = True
-                    # OKAMŽITÁ AKCE DLOUHÉHO STISKU (Assign Mód)
                     if not assign_mode and config and config.get("commands"):
                         draw_click_feedback()
                         assign_mode = True
                         assign_btn_id = bid
                         assign_idx = 0
 
-            # Náběžná hrana (uvolnění)
             elif cur == 1 and state["last"] == 0:
                 held = time.ticks_diff(now, state["t_down"])
-                # Pokud neproběhl dlouhý stisk a debounce je OK -> Krátký stisk
                 if held > 15 and not state["long_triggered"]:
                     if not assign_mode:
                         cmd = settings.get("hotkeys", {}).get(bid)
@@ -449,7 +508,6 @@ def main():
                             time.sleep_ms(800)
             
             state["last"] = cur
-
 
         # ─ 2. ZPRACOVÁNÍ ENKODÉRU (ROTACE) ─
         if scroll_delta != 0:
@@ -471,30 +529,25 @@ def main():
                     items = get_l3_items()
                     if items: current_idx = (current_idx + step) % len(items)
 
-
         # ─ 3. ZPRACOVÁNÍ STISKU ENKODÉRU ─
-        # A) Pokud je tlačítko stisknuto (drží se)
         if not sw_handled and sw.value() == 0:
             if not sw_long_triggered and time.ticks_diff(now, sw_down_time) > 800:
                 sw_long_triggered = True
                 draw_click_feedback()
-                # OKAMŽITÁ AKCE DLOUHÉHO STISKU (Zpět)
                 if assign_mode:
                     assign_mode = False
                     assign_btn_id = None
                 else:
                     go_back()
 
-        # B) Pokud je tlačítko uvolněno (krátký stisk)
         if not sw_handled and sw.value() == 1:
             held = time.ticks_diff(now, sw_down_time)
             sw_handled = True
             
             if held > 15 and not sw_long_triggered: 
                 draw_click_feedback()
-                # AKCE KRÁTKÉHO STISKU (Potvrzení)
                 if server_detail_active:
-                    pass # V detailu pouze dlouhý stisk pro návrat
+                    pass 
                 
                 elif assign_mode:
                     cmds = config.get("commands", []) if config else []
@@ -565,30 +618,7 @@ def main():
         # ─ 4. VYKRESLENÍ DISPLEJE ─
         if time.ticks_diff(now, last_draw) >= 100:
             last_draw = now
-            if server_detail_active and selected_server:
-                # Vždy použij čerstvá data z aktuálního configu
-                if config:
-                    fresh = next((s for s in config.get("servers", []) if s.get("id") == selected_server.get("id")), selected_server)
-                else:
-                    fresh = selected_server
-                draw_server_detail(fresh)
-            elif assign_mode:
-                cmds = config.get("commands", []) if config else []
-                items_a = ["--- (zrusit)"] + [c.get("name", "?") for c in cmds]
-                draw_assign(assign_btn_id, items_a, assign_idx)
-            elif level == 0:
-                draw_menu("=== MENU ===", get_l1_items(), current_idx, "Hlavni")
-            elif level == 1:
-                if config is None: draw_no_config()
-                else:
-                    titles = {"servers": "Servery", "commands": "Prikazy", "mcus": "Sledovat MCU"}
-                    items = get_l2_items()
-                    draw_menu(titles.get(mode, "Menu"), items if items else ["(prazdne)"], current_idx, "")
-            elif level == 2:
-                items = get_l3_items()
-                draw_menu(fit(selected_mcu.get("name", "MCU") if selected_mcu else "MCU"), items if items else ["(prazdne)"], current_idx, "Kanaly")
-            elif level == 3:
-                draw_live(live_mcu_name or "MCU", live_channel_name or live_channel_type or "?", live_value, live_unit, live_min, live_max)
+            update_display()
         
         time.sleep_ms(10)
 
