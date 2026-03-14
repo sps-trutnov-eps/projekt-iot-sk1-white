@@ -203,10 +203,14 @@ export async function loadServers(isBackground = false) {
                             </div>
                             
                             <div class="flex gap-2 w-full md:w-auto">
-                                <button onclick="window.openAddCommandModal(${server.id})" class="flex-1 md:flex-none px-4 py-2 bg-vintage-grape-50 border border-vintage-grape-200 text-vintage-grape-700 font-semibold rounded-lg hover:bg-vintage-grape-100 transition-colors shadow-sm flex items-center justify-center gap-2" title="Nová akce">
+                                <button onclick="window.openAddCommandModal(${server.id})" 
+                                    class="flex-1 md:flex-none px-4 py-2 bg-vintage-grape-50 dark:bg-vintage-grape-900/30 border border-vintage-grape-200 dark:border-vintage-grape-700 text-vintage-grape-700 dark:text-vintage-grape-300 font-semibold rounded-lg hover:bg-vintage-grape-100 dark:hover:bg-vintage-grape-800/40 transition-colors shadow-sm flex items-center justify-center gap-2" title="Nová akce">
                                     <i class="fas fa-plus"></i> Nová akce
                                 </button>
-                                <button onclick="window.openEditServerModal(${server.id})" class="flex-none px-4 py-2 bg-white dark:bg-midnight-violet-900 border border-ash-grey-300 dark:border-midnight-violet-700 text-midnight-violet-900 dark:text-silver-100 font-semibold rounded-lg hover:bg-ash-grey-50 dark:hover:bg-midnight-violet-800 transition-colors shadow-sm" title="Upravit server">
+
+
+                                <button onclick="window.openEditServerModal(${server.id})" 
+                                    class="flex-none px-4 py-2 bg-white dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 text-midnight-violet-900 dark:text-silver-100 font-semibold rounded-lg hover:bg-ash-grey-50 dark:hover:bg-midnight-violet-700 transition-colors shadow-sm" title="Upravit server">
                                     <i class="fas fa-pen text-silver-400"></i>
                                 </button>
                                 <button onclick="window.openDeleteModal(${server.id}, 'server', '${safeServerName}')" class="flex-none px-4 py-2 bg-white dark:bg-midnight-violet-900 border border-red-200 text-red-600 font-semibold rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors shadow-sm" title="Smazat server">
