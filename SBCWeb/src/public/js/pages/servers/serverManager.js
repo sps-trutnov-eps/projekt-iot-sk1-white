@@ -117,7 +117,7 @@ export async function loadServers(isBackground = false) {
             
             updateStatistics(currentServersData);
 
-            // ✅ Refresh filtru mini-logu po načtení serverů
+            // Refresh filtru mini-logu po načtení serverů
             if (typeof window.renderMiniLogFilter === 'function') {
                 window.renderMiniLogFilter(currentServersData);
             }
@@ -195,8 +195,8 @@ export async function loadServers(isBackground = false) {
                                             <i class="fas fa-network-wired text-xs"></i> ${server.ip}
                                         </span>
                                         ${isOnline 
-                                            ? `<span class="flex items-center gap-1 text-green-600 font-medium"><i class="fas fa-circle text-[8px] animate-pulse"></i> Online</span>` 
-                                            : `<span class="flex items-center gap-1 text-red-500 font-medium"><i class="fas fa-circle text-[8px]"></i> Offline</span>`
+                                            ? `<span data-status-indicator class="flex items-center gap-1 text-green-600 font-medium"><i class="fas fa-circle text-[8px] animate-pulse"></i> Online</span>` 
+                                            : `<span data-status-indicator class="flex items-center gap-1 text-red-500 font-medium"><i class="fas fa-circle text-[8px]"></i> Offline</span>`
                                         }
                                     </div>
                                 </div>
@@ -229,7 +229,7 @@ export async function loadServers(isBackground = false) {
         } else if (result.success && (!result.data || result.data.length === 0)) {
             currentServersData = [];
             updateStatistics([]);
-            // ✅ Refresh filtru i při prázdném seznamu
+            // Refresh filtru i při prázdném seznamu
             if (typeof window.renderMiniLogFilter === 'function') {
                 window.renderMiniLogFilter([]);
             }
@@ -251,32 +251,64 @@ export async function toggleFavoriteCommand(event, commandId) {
 
     const button = event.currentTarget;
     const icon = button.querySelector('i');
-    
+
     const isCurrentlyFav = icon.classList.contains('fas');
 
-    if (isCurrentlyFav) {
-        icon.classList.remove('fas', 'text-yellow-400');
-        icon.classList.add('far', 'text-gray-400', 'hover:text-yellow-400');
-    } else {
-        icon.classList.remove('far', 'text-gray-400', 'hover:text-yellow-400');
-        icon.classList.add('fas', 'text-yellow-400');
-    }
+    // Optimistická aktualizace DOM
+    icon.classList.toggle('fas', !isCurrentlyFav);
+    icon.classList.toggle('far', isCurrentlyFav);
+    icon.classList.toggle('text-yellow-400', !isCurrentlyFav);
+    icon.classList.toggle('text-gray-400', isCurrentlyFav);
+    icon.classList.toggle('dark:text-silver-500', isCurrentlyFav);
+    icon.classList.toggle('hover:text-yellow-400', isCurrentlyFav);
 
     try {
         const response = await fetch(`/command/${commandId}/favorite`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' }
         });
-        
+
         const result = await response.json();
 
-        if (!result.success) {
+        if (result.success) {
+            // Synchronizuj cache s novým stavem, aby příští render nepřepsal ikonu
+            currentServersData = currentServersData.map(server => ({
+                ...server,
+                commands: server.commands?.map(cmd =>
+                    cmd.id === commandId
+                        ? { ...cmd, isFavorite: isCurrentlyFav ? 0 : 1 }
+                        : cmd
+                )
+            }));
+        } else {
             console.error("Chyba při ukládání oblíbeného stavu:", result.message);
-            loadServers(true); 
+            loadServers(true);
         }
-        
+
     } catch (error) {
         console.error("API chyba při změně oblíbeného:", error);
         loadServers(true);
     }
+}
+
+export function updateServerStatusInDom(serverId, status) {
+    const isOnline = status === 'online';
+
+    // Aktualizuj cache
+    currentServersData = currentServersData.map(s =>
+        s.id === serverId ? { ...s, status } : s
+    );
+
+    // Aktualizuj jen ten jeden element — bez překreslení
+    const block = document.querySelector(`.server-block[data-id="${serverId}"]`);
+    if (!block) return;
+
+    const statusEl = block.querySelector('[data-status-indicator]');
+    if (!statusEl) return;
+
+    statusEl.outerHTML = isOnline
+        ? `<span data-status-indicator class="flex items-center gap-1 text-green-600 font-medium"><i class="fas fa-circle text-[8px] animate-pulse"></i> Online</span>`
+        : `<span data-status-indicator class="flex items-center gap-1 text-red-500 font-medium"><i class="fas fa-circle text-[8px]"></i> Offline</span>`;
+
+    updateStatistics(currentServersData);
 }

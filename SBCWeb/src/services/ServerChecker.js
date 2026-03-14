@@ -1,6 +1,7 @@
 const ping = require('ping');
 const ServerRepository = require('../repositories/ServerRepository');
 const SettingService = require('./SettingsService');
+const SocketService = require('../sockets/socketService');
 
 class ServerChecker {
     static async checkAllServers() {
@@ -33,8 +34,13 @@ class ServerChecker {
 
                 const currentStatus = server.isOnline !== undefined ? server.isOnline : server.is_online;
                 
-                if (currentStatus !== isOnline) {
+                if (currentStatus !== isOnline) {          
                     ServerRepository.updateStatus(server.id, isOnline);
+                    
+                    if (SocketService.io) {
+                        SocketService.broadcastServerStatus(server.id, isOnline ? 'online' : 'offline');
+                    }
+
                     console.log(`[ServerChecker] Server ${server.name} (${ipToPing}) změnil stav na: ${isOnline ? 'ONLINE 🟢' : 'OFFLINE 🔴'}`);
                 }
             }

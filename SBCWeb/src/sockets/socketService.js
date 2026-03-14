@@ -92,6 +92,13 @@ class SocketService {
 
         this.io.emit('global_alert', payload);
     }
+    
+    broadcastServerStatus(serverId, status) {
+    if (!this.io) return;
+
+    const payload = { serverId, status, timestamp: Date.now() };
+    this.io.emit('server_status', payload);
+    }
 }
 
 // Exportujeme jako Singleton

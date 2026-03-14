@@ -1,6 +1,6 @@
 // public/js/pages/servers/main.js
 
-import { loadServers, toggleFavoriteCommand } from './serverManager.js'; 
+import { loadServers, toggleFavoriteCommand, updateServerStatusInDom  } from './serverManager.js'; 
 import { loadMiniLog,renderMiniLogFilter  } from './commandManager.js';
 import { 
     openAddServerModal,
@@ -13,6 +13,12 @@ import {
 document.addEventListener('DOMContentLoaded', async () => {
     loadServers();
     loadMiniLog();
+
+    const socket = io();
+    socket.on('server_status', ({ serverId, status }) => {
+        updateServerStatusInDom(serverId, status);
+    });
+
     try {
         const res = await fetch('/server/all');
         const json = await res.json();
