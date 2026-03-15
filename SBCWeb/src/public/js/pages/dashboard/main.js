@@ -51,11 +51,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     socket.on('system_alert', () => {
-        currentStats.alertsToday += 1;
-        renderStats();
+        socket.emit('request_dashboard_stats');
     });
 
     socket.on('mcu_status', () => {
         socket.emit('request_dashboard_stats');
     });
+
+    socket.on('alerts_changed', () => {
+        socket.emit('request_dashboard_stats');
+    });
+
+
 });

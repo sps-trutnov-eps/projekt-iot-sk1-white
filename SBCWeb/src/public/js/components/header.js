@@ -5,14 +5,11 @@
 window.removeSingleNotification = async (event, eventId, btnElement) => {
     event.stopPropagation();
 
-    const notificationItem = btnElement.closest('.border-b'); 
-    if (notificationItem) {
-        notificationItem.remove();
-    }
+    const notificationItem = btnElement.closest('.border-b');
+    if (notificationItem) notificationItem.remove();
 
     const list = document.getElementById('notificationList');
     const emptyState = document.getElementById('emptyNotifications');
-    
     if (list && list.children.length <= 1) {
         if (emptyState) emptyState.classList.remove('hidden');
     }
@@ -20,9 +17,12 @@ window.removeSingleNotification = async (event, eventId, btnElement) => {
     if (eventId) {
         try {
             const res = await fetch(`/event/delete/${eventId}`, { method: 'DELETE' });
-            if (!res.ok) console.error("Chyba při mazání notifikace na backendu.");
+            if (!res.ok) {
+                console.error("Chyba při mazání notifikace na backendu.");
+            }
+            // NOVÉ — dashboard stats se updatnou přes socket z backendu (EventService)
         } catch (error) {
-            console.error('Chyba při komunikaci se serverem (mazání notifikace):', error);
+            console.error('Chyba při komunikaci se serverem:', error);
         }
     }
 };
@@ -198,7 +198,25 @@ function initNotifications() {
                 window.openToast(`${toastPrefix}${payload.message}`, isSuccessToast);
             }
         });
+        notifySocket.on('alerts_changed', () => {
+        // Vyčisti list a načti znovu z DB
+        if (list) {
+            Array.from(list.children).forEach(child => {
+                if (child.id !== 'emptyNotifications') child.remove();
+            });
+        }
+        loadHistoricalNotifications();
+
+        // Pokud je dropdown zavřený, nuluj badge
+        // (mazal někdo jiný nebo jiná záložka)
+        if (dropdown.classList.contains('hidden')) {
+            unreadCount = 0;
+            updateBadge();
+        }
+    });
+    
     }
+
 
     loadHistoricalNotifications();
 }

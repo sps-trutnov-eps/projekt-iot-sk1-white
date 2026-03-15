@@ -64,9 +64,6 @@ class EventService {
     // ==========================================
     // SPOLEČNÉ METODY
     // ==========================================
-    static clearAllEvents() {
-        return EventRepository.deleteAll();
-    }
 
     static getRecentEvents(limit = 20) {
         return EventRepository.getRecent(limit);
@@ -76,8 +73,16 @@ class EventService {
         return EventRepository.countTodayAlerts();
     }
 
+    static clearAllEvents() {
+    const result = EventRepository.deleteAll();
+    if (SocketService.io) SocketService.io.emit('alerts_changed');
+    return result;
+    }
+
     static deleteEvent(id) {
-        return EventRepository.deleteById(id); 
+        const result = EventRepository.deleteById(id);
+        if (SocketService.io) SocketService.io.emit('alerts_changed');
+        return result;
     }
 }
 
