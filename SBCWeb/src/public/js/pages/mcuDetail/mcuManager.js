@@ -130,6 +130,34 @@ export function updateMcuStatusUI(lastSeenDbTime, statusVal = null) {
     
     const lastSeenEl = document.getElementById('mcu-lastseen');
     if (lastSeenEl) lastSeenEl.textContent = formattedTime;
+
+    // PŘIDÁNO: Když se MCU přejde na offline/passive, vymaž live data
+    if (currentStatus === 0 || currentStatus === 2) {
+        clearLiveData();
+    } else if (currentStatus === 1) {
+        // Když se vrátí do online, opět povolí live data
+        enableLiveData();
+    }
+}
+
+// NOVÁ FUNKCE: Vymazání starých live dat když MCU nejde
+export function clearLiveData() {
+    const cardValues = document.querySelectorAll('[id^="card-value-"]');
+    cardValues.forEach(el => {
+        // Označíme jako zastaralé data
+        el.textContent = '---';
+        el.classList.add('opacity-50');
+        el.parentElement?.classList.add('pointer-events-none');
+    });
+}
+
+// NOVÁ FUNKCE: Aktivace live dat když se MCU vrátí do online
+export function enableLiveData() {
+    const cardValues = document.querySelectorAll('[id^="card-value-"]');
+    cardValues.forEach(el => {
+        el.classList.remove('opacity-50');
+        el.parentElement?.classList.remove('pointer-events-none');
+    });
 }
 
 export function initApiKeyListeners() {

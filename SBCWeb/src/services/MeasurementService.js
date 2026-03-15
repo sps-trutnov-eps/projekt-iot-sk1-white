@@ -21,12 +21,32 @@ class MeasurementService {
      */
     static async processPayload(data) {
         const MCUService = require('../services/mcuService');
-        // console.log("!!! MQTT DATA DORAZILA DO SERVERU !!!", data);
+        const MCURepository = require('../repositories/mcuRepository');
+        
         try {
-            if (!data.apiKey) return;
-            
-            const mcu = await MCUService.validateAndGetDevice(data.apiKey);
-            if (!mcu) return;
+            let mcu = null;
+
+            // 1. POKUS O VALIDACI PŘES API KEY (novější firmware)
+            if (data.apiKey) {
+                mcu = await MCUService.validateAndGetDevice(data.apiKey);
+            }
+
+            // 2. FALLBACK: Pokud nemáme apiKey lub nenašli jsme MCU, zkusíme MAC adresu (starší firmware)
+            if (!mcu && data.mac) {
+                const mcuRow = MCURepository.findByMac(data.mac);
+                if (mcuRow && mcuRow.device_id) {
+                    mcu = MCURepository.findById(mcuRow.device_id);
+                    if (mcu) {
+                        console.log(`[MeasurementService] MCU nalezeno podle MAC: ${data.mac} -> ID: ${mcu.id}`);
+                    }
+                }
+            }
+
+            // Pokud jsme STÁLE nenašli MCU, vrátíme se
+            if (!mcu) {
+                console.warn(`[MeasurementService] MCU nenalezeno pro payload:`, data);
+                return;
+            }
 
             // Zápis do DB (aktualizuje timestamp, nastaví online stav a případně loguje připojení)
             await MCUService.updateLastSeen(mcu.id);

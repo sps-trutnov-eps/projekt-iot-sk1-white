@@ -20,16 +20,35 @@ window.removeSingleNotification = async (event, eventId, btnElement) => {
             if (!res.ok) {
                 console.error("Chyba při mazání notifikace na backendu.");
             }
-            // NOVÉ — dashboard stats se updatnou přes socket z backendu (EventService)
+            updateNotificationBadge();
         } catch (error) {
             console.error('Chyba při komunikaci se serverem:', error);
         }
     }
 };
 
+// PŘIDÁNO: Funkce na update badge s počtem nepřečtených
+async function updateNotificationBadge() {
+    try {
+        const res = await fetch('/event/unread-count');
+        const data = await res.json();
+        const badge = document.getElementById('notificationBadge');
+        
+        if (badge && data.success) {
+            const count = data.unreadCount;
+            if (count > 0) {
+                badge.textContent = count > 9 ? '9+' : count;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+    } catch (error) {
+        console.error('Chyba při aktualizaci badge:', error);
+    }
+}
+
 function initNotifications() {
-    let unreadCount = 0;
-    
     const bellBtn = document.getElementById('notificationBellBtn');
     const badge = document.getElementById('notificationBadge');
     const dropdown = document.getElementById('notificationDropdown');
@@ -41,10 +60,12 @@ function initNotifications() {
 
     bellBtn.addEventListener('click', (e) => {
         e.stopPropagation();
+        const wasHidden = dropdown.classList.contains('hidden');
         dropdown.classList.toggle('hidden');
-        if (!dropdown.classList.contains('hidden')) {
-            unreadCount = 0;
-            updateBadge();
+        
+        // PŘIDÁNO: Při otevření označit všechny jako přečtené
+        if (wasHidden && !dropdown.classList.contains('hidden')) {
+            markAllNotificationsAsRead();
         }
     });
 
@@ -65,8 +86,7 @@ function initNotifications() {
                         if (child.id !== 'emptyNotifications') child.remove();
                     });
                     emptyState.classList.remove('hidden');
-                    unreadCount = 0;
-                    updateBadge();
+                    updateNotificationBadge();
                     if (window.openToast) window.openToast("Logy byly trvale smazány.", true);
                 } else {
                     if (window.openToast) window.openToast("Chyba při mazání logů.", false);
@@ -77,15 +97,17 @@ function initNotifications() {
         });
     }
 
-    function updateBadge() {
-        if (!badge) return;
-        if (unreadCount > 0) {
-            badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
-            badge.classList.remove('hidden');
-            badge.classList.add('animate-bounce');
-            setTimeout(() => badge.classList.remove('animate-bounce'), 1000);
-        } else {
-            badge.classList.add('hidden');
+    // PŘIDÁNO: Funkce na označení všech jako přečtených
+    async function markAllNotificationsAsRead() {
+        try {
+            const res = await fetch('/event/mark-all-as-read', { method: 'PUT' });
+            if (!res.ok) {
+                console.error("Chyba při označování notifikací jako přečtené.");
+                return;
+            }
+            updateNotificationBadge();
+        } catch (error) {
+            console.error('Chyba při komunikaci se serverem:', error);
         }
     }
 
@@ -168,6 +190,8 @@ function initNotifications() {
                     addNotification(payload, false);
                 });
             }
+            // PŘIDÁNO: Aktualizovat badge po načtení starých notifikací
+            updateNotificationBadge();
         } catch (err) {
             console.error("Chyba při stahování starších logů:", err);
         }
@@ -177,11 +201,8 @@ function initNotifications() {
 
     if (notifySocket) {
         notifySocket.on('global_alert', (payload) => {
-            if (dropdown.classList.contains('hidden')) {
-                unreadCount++;
-                updateBadge();
-            }
             addNotification(payload, true);
+            updateNotificationBadge();
 
             if (window.openToast) {
                 let toastPrefix = "";
@@ -198,25 +219,17 @@ function initNotifications() {
                 window.openToast(`${toastPrefix}${payload.message}`, isSuccessToast);
             }
         });
+
         notifySocket.on('alerts_changed', () => {
-        // Vyčisti list a načti znovu z DB
-        if (list) {
-            Array.from(list.children).forEach(child => {
-                if (child.id !== 'emptyNotifications') child.remove();
-            });
-        }
-        loadHistoricalNotifications();
-
-        // Pokud je dropdown zavřený, nuluj badge
-        // (mazal někdo jiný nebo jiná záložka)
-        if (dropdown.classList.contains('hidden')) {
-            unreadCount = 0;
-            updateBadge();
-        }
-    });
-    
+            // Vyčisti list a načti znovu z DB
+            if (list) {
+                Array.from(list.children).forEach(child => {
+                    if (child.id !== 'emptyNotifications') child.remove();
+                });
+            }
+            loadHistoricalNotifications();
+        });
     }
-
 
     loadHistoricalNotifications();
 }

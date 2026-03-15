@@ -54,6 +54,7 @@ class MqttHandler {
             if (topic === 'sensor/data') {
                 try {
                     const payload = JSON.parse(message.toString());
+                    console.log(`[MQTT DEBUG] Payload ze senzoru:`, payload);
                     await MeasurementService.processPayload(payload);
                 } catch (error) {
                     console.error('[MQTT] Chyba při zpracování zprávy senzoru:', error.message);

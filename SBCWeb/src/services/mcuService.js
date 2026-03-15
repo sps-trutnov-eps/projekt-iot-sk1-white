@@ -28,19 +28,35 @@ class MCUService {
 
                 for (const mcu of allMcus) {
                     let dbTime = mcu.lastSeen;
-                    let lastSeenTime = 0;
+                    let lastSeenTime = null;
                     
+                    // Robustní parsování času
                     if (dbTime) {
-                        if (typeof dbTime === 'string') {
-                            dbTime = dbTime.replace(' ', 'T');
-                            if (!dbTime.endsWith('Z')) {
-                                dbTime += 'Z'; 
+                        try {
+                            let dateStr = String(dbTime).trim();
+                            
+                            // Pokud je to SQLite formát "2026-03-15 14:30:45", konvertuj na ISO 8601
+                            if (dateStr.includes(' ') && !dateStr.includes('T')) {
+                                dateStr = dateStr.replace(' ', 'T');
                             }
+                            
+                            // Přidej Z pro UTC, pokud chybí
+                            if (!dateStr.endsWith('Z') && !dateStr.includes('+')) {
+                                dateStr += 'Z';
+                            }
+                            
+                            const parsedDate = new Date(dateStr);
+                            if (!isNaN(parsedDate.getTime())) {
+                                lastSeenTime = parsedDate.getTime();
+                            }
+                        } catch (parseErr) {
+                            console.warn(`[MONITOR] Chyba při parsování času pro MCU ${mcu.id}: ${dbTime}`, parseErr.message);
                         }
-                        const parsedDate = new Date(dbTime);
-                        if (!isNaN(parsedDate)) {
-                            lastSeenTime = parsedDate.getTime();
-                        }
+                    }
+
+                    // Pokud jsme nenašli validní čas, nastavíme aktuální čas (MCU je nové nebo nikdy neposílalo data)
+                    if (!lastSeenTime || lastSeenTime === 0 || lastSeenTime > now) {
+                        lastSeenTime = now;
                     }
 
                     const diffMs = now - lastSeenTime;
