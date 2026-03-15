@@ -204,8 +204,8 @@ export async function loadServers(isBackground = false) {
                             
                             <div class="flex gap-2 w-full md:w-auto">
                                 <button onclick="window.openAddCommandModal(${server.id})" 
-                                    class="flex-1 md:flex-none px-4 py-2 bg-vintage-grape-50 dark:bg-vintage-grape-900/30 border border-vintage-grape-200 dark:border-vintage-grape-700 text-vintage-grape-700 dark:text-vintage-grape-300 font-semibold rounded-lg hover:bg-vintage-grape-100 dark:hover:bg-vintage-grape-800/40 transition-colors shadow-sm flex items-center justify-center gap-2" title="Nová akce">
-                                    <i class="fas fa-plus"></i> Nová akce
+                                    class="flex-1 md:flex-none px-4 py-2 bg-vintage-grape-50 dark:bg-vintage-grape-900/30 border border-vintage-grape-200 dark:border-vintage-grape-700 text-vintage-grape-700 dark:text-vintage-grape-300 font-semibold rounded-lg hover:bg-vintage-grape-100 dark:hover:bg-vintage-grape-800/40 transition-colors shadow-sm flex items-center justify-center gap-2" title="Nový příkaz">
+                                    <i class="fas fa-plus"></i> Nový příkaz
                                 </button>
 
 
