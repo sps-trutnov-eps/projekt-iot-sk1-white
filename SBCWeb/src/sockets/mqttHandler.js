@@ -1,11 +1,11 @@
-// mqtt/MqttHandler.js (nebo kde máš soubor uložený)
+// mqtt/MqttHandler.js
 const mqtt = require('mqtt');
 const MeasurementService = require('../services/MeasurementService');
 const SettingService = require('../services/SettingsService');
 
 class MqttHandler {
-    static client = null;      
-    static currentIp = null;   
+    static client = null;
+    static currentIp = null;
 
     static init() {
         this.connect();
@@ -20,35 +20,37 @@ class MqttHandler {
 
     static connect() {
         this.currentIp = SettingService.getSettingValue('mqtt_broker_ip', '127.0.0.1');
-        const BROKER_URL = `mqtt://${this.currentIp}:1883`; 
-        
+        const BROKER_URL = `mqtt://${this.currentIp}:1883`;
+
         console.log(`[MQTT] Připojuji se k brokeru na: ${BROKER_URL}`);
-        
+
         this.client = mqtt.connect(BROKER_URL);
 
         this.client.on('connect', () => {
             console.log('[MQTT] Úspěšně připojeno k brokeru.');
-            
-            // Odběr pro senzory (původní)
+
+            // Odběr pro senzory
             this.client.subscribe('sensor/data');
-            
-            // Odběr pro výsledky spuštěných příkazů (NOVÉ)
+
+            // Odběr pro výsledky spuštěných příkazů
             this.client.subscribe('server/+/status');
 
             // Odběr pro dashboard config request
             this.client.subscribe('dashboard/request/config');
             console.log('[MQTT] Subscribováno na dashboard/request/config');
 
-            // Hned po připojení pushni retenované konfigurace, aby je Pico a executor
-            // dostali okamžitě při svém (znovu)připojení – bez nutnosti ruční aktualizace.
-            setTimeout(() => { this.pushAllConfigs(); }, 500);
+            // Odběr pro WOL status zprávy od všech MCU
+            this.client.subscribe('mcu/+/wol/status');
+            console.log('[MQTT] Subscribováno na mcu/+/wol/status');
 
+            // Pushni retenované konfigurace hned po připojení
+            setTimeout(() => { this.pushAllConfigs(); }, 500);
         });
 
-        // Zpracování všech příchozích zpráv
         this.client.on('message', async (topic, message) => {
             console.log(`[DEBUG MQTT] Přišla zpráva na topic: ${topic}`);
-            // 1. Zpracování dat ze senzorů
+
+            // 1. Data ze senzorů
             if (topic === 'sensor/data') {
                 try {
                     const payload = JSON.parse(message.toString());
@@ -57,33 +59,60 @@ class MqttHandler {
                     console.error('[MQTT] Chyba při zpracování zprávy senzoru:', error.message);
                 }
             }
-            
-            // 3. Zpracování požadavku o konfiguraci pro Dashboard MCU
+
+            // 2. Požadavek o konfiguraci od Dashboard MCU
             if (topic === 'dashboard/request/config') {
                 this.pushDashboardConfig();
             }
 
-            // 2. Zpracování výsledků od Linuxového skriptu (OPRAVENO)
+            // 3. Výsledky od Linuxového skriptu
             if (topic.startsWith('server/') && topic.endsWith('/status')) {
                 try {
                     const payload = JSON.parse(message.toString());
-                    
-                    // Zajímá nás to jen v případě, že to má history_id (spouštěl to náš web)
+
                     if (payload.history_id) {
                         const CommandHistoryService = require('../services/CommandHistoryService');
-                        
-                        // Updatneme záznam v databázi podle ID
+
                         CommandHistoryService.updateExecution(
-                            payload.history_id, 
-                            payload.status,        // 'success' nebo 'error' nebo 'running'
-                            payload.log,           // ZMĚNA: Python posílá výstup v 'log', ne v 'output'
-                            null                   // error_output můžeme nechat null, Python to spojuje do jednoho logu
+                            payload.history_id,
+                            payload.status,
+                            payload.log,
+                            null
                         );
-                        
+
                         console.log(`[MQTT] Zapsán výsledek pro historii ID: ${payload.history_id} (Stav: ${payload.status})`);
                     }
                 } catch (error) {
                     console.error('[MQTT] Chyba při uložení výsledku příkazu:', error.message);
+                }
+            }
+
+            // 4. WOL status zprávy od MCU (Pico)
+            //    Topic format: mcu/{mcuId}/wol/status
+            //    Payload: { mac, success, history_id?, error? }
+            if (topic.startsWith('mcu/') && topic.endsWith('/wol/status')) {
+                try {
+                    const payload = JSON.parse(message.toString());
+                    const mcuId = topic.split('/')[1];
+
+                    console.log(`[MQTT] WOL status od MCU ${mcuId}: mac=${payload.mac}, success=${payload.success}`);
+
+                    if (payload.history_id) {
+                        const CommandHistoryService = require('../services/CommandHistoryService');
+
+                        CommandHistoryService.updateExecution(
+                            payload.history_id,
+                            payload.success ? 'success' : 'error',
+                            payload.success
+                                ? `WOL magic packet úspěšně odeslán na ${payload.mac}`
+                                : `WOL selhalo pro ${payload.mac}: ${payload.error || 'neznámá chyba'}`,
+                            null
+                        );
+
+                        console.log(`[MQTT] WOL výsledek zapsán pro historii ID: ${payload.history_id}`);
+                    }
+                } catch (error) {
+                    console.error('[MQTT] Chyba při zpracování WOL statusu:', error.message);
                 }
             }
         });
@@ -115,7 +144,10 @@ class MqttHandler {
                 id: c.id,
                 name: c.name,
                 type: c.type,
-                server_id: c.server_id || c.serverId
+                server_id: c.server_id || c.serverId,
+                // MAC adresa se přidá pouze u WOL příkazů — Pico ji potřebuje znát
+                // MAC je uložená v c.command (stejné pole jako shell příkaz)
+                ...(c.type === 'wol' && c.command ? { mac: c.command.trim() } : {})
             }));
 
             const mcusRaw = MCUService.getAllMCUs();
@@ -149,15 +181,47 @@ class MqttHandler {
         }
     }
 
-    // NOVÁ METODA PRO ODESÍLÁNÍ PŘÍKAZŮ
+    /**
+     * Odešle obecný příkaz (shell) na server.
+     * Pro WOL používej publishWolCommand().
+     *
+     * @param {string} topic    - např. 'server/3/run'
+     * @param {object} payload  - { command, history_id }
+     */
     static publishCommand(topic, payload) {
-        if (this.client && this.client.connected) {
-            this.client.publish(topic, JSON.stringify(payload));
-            console.log(`[MQTT] Odeslán příkaz na ${topic}:`, payload);
-        } else {
-            console.error("[MQTT] Nelze odeslat příkaz: MQTT klient není připojen k brokeru.");
-            throw new Error("MQTT klient není připojen k brokeru.");
+        if (!this.client || !this.client.connected) {
+            console.error('[MQTT] Nelze odeslat příkaz: MQTT klient není připojen k brokeru.');
+            throw new Error('MQTT klient není připojen k brokeru.');
         }
+
+        this.client.publish(topic, JSON.stringify(payload));
+        console.log(`[MQTT] Odeslán příkaz na ${topic}:`, payload);
+    }
+
+    /**
+     * Odešle WOL příkaz přes MCU (Pico).
+     * MCU přijme zprávu na topic mcu/{mcuId}/command a odešle magic packet broadcastem.
+     * Výsledek pošle zpátky na mcu/{mcuId}/wol/status.
+     *
+     * @param {number|string} mcuId     - ID MCU, které provede broadcast
+     * @param {string}        mac       - MAC adresa cílového zařízení, formát 'AA:BB:CC:DD:EE:FF'
+     * @param {number|null}   historyId - ID záznamu v historii příkazů (pro zpětný callback)
+     */
+    static publishWolCommand(mcuId, mac, historyId = null) {
+        if (!this.client || !this.client.connected) {
+            console.error('[MQTT] Nelze odeslat WOL příkaz: MQTT klient není připojen k brokeru.');
+            throw new Error('MQTT klient není připojen k brokeru.');
+        }
+
+        const topic = `mcu/${mcuId}/command`;
+        const payload = {
+            action: 'wol',
+            mac,
+            ...(historyId !== null ? { history_id: historyId } : {})
+        };
+
+        this.client.publish(topic, JSON.stringify(payload));
+        console.log(`[MQTT] WOL příkaz odeslán na ${topic}:`, payload);
     }
 
     static reconnect() {
@@ -173,11 +237,10 @@ class MqttHandler {
 
     static publishConfig(topic, payload) {
         if (this.client && this.client.connected) {
-            // retain: true zajistí, že si broker zprávu pamatuje a pošle ji agentovi hned po jeho připojení
             this.client.publish(topic, JSON.stringify(payload), { retain: true });
             console.log(`[MQTT] Odeslána konfigurace (Retained) na ${topic}:`, payload);
         } else {
-            console.error("[MQTT] Nelze odeslat konfiguraci: MQTT klient není připojen.");
+            console.error('[MQTT] Nelze odeslat konfiguraci: MQTT klient není připojen.');
         }
     }
 

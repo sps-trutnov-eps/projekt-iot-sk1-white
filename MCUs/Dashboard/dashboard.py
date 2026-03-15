@@ -2,6 +2,7 @@ from machine import Pin, I2C
 import machine
 import ssd1306
 import network
+import socket
 import time
 import json
 import gc
@@ -79,7 +80,7 @@ assign_mode   = False
 assign_btn_id = None
 assign_idx    = 0
 
-is_flashing   = False  # Zajišťuje animaci probliknutí vybraného prvku
+is_flashing   = False
 
 # ─────────────────────────────────────────────
 #   ENKODÉR — IRQ
@@ -190,13 +191,13 @@ def draw_menu(title, items, idx, breadcrumb=""):
 
 def draw_server_detail(server):
     oled_clear()
-    if is_flashing: # Při kliknutí problikne hlavička serveru
+    if is_flashing:
         oled.fill_rect(0, 0, 128, 11, 0)
         oled.text(fit(server.get("name", "Server")), 0, 2, 1)
     else:
         oled.fill_rect(0, 0, 128, 11, 1)
         oled.text(fit(server.get("name", "Server")), 0, 2, 0)
-        
+
     oled.text(fit("IP: " + server.get("ip", "?")), 0, 16, 1)
     status = server.get("status", "?")
     oled.text(fit("Stav: " + ("ONLINE" if status == "online" else "OFFLINE")), 0, 28, 1)
@@ -212,7 +213,7 @@ def draw_live(mcu_name, ch_name, value, unit, vmin, vmax):
     if value is not None:
         val_str = f"{value:.1f} {unit}"
         x_off = max(0, (16 - len(val_str)) * 4)
-        if is_flashing: # Problikne hodnota
+        if is_flashing:
             oled.fill_rect(x_off, 25, len(val_str)*8, 10, 1)
             oled.text(val_str[:16], x_off, 26, 0)
         else:
@@ -257,7 +258,6 @@ def draw_no_config():
 #   UX LOGIKA (Zpětná vazba a UI Render)
 # ─────────────────────────────────────────────
 def update_display():
-    """Vykreslí aktuální stav UI (volá se z main loopu i z feedbacku)"""
     if server_detail_active and selected_server:
         if config:
             fresh = next((s for s in config.get("servers", []) if s.get("id") == selected_server.get("id")), selected_server)
@@ -287,9 +287,7 @@ def draw_click_feedback(custom_draw_func=None):
     is_flashing = True
     if custom_draw_func: custom_draw_func()
     else: update_display()
-    
     time.sleep_ms(80)
-    
     is_flashing = False
     if custom_draw_func: custom_draw_func()
     else: update_display()
@@ -319,7 +317,6 @@ def change_brightness():
             scroll_delta = 0
             oled.contrast(brightness)
             _draw_brightness_ui(brightness)
-        
         if not sw_handled and sw.value() == 1:
             sw_handled = True
             settings["brightness"] = brightness
@@ -327,6 +324,31 @@ def change_brightness():
             draw_click_feedback(lambda: _draw_brightness_ui(brightness))
             break
         time.sleep_ms(50)
+
+# ─────────────────────────────────────────────
+#   WOL — Magic Packet
+# ─────────────────────────────────────────────
+def send_wol(mac_str):
+    """
+    Odešle Wake-on-LAN magic packet přímo ze sítě Pica.
+    MAC adresa ve formátu 'AA:BB:CC:DD:EE:FF' nebo 'AA-BB-CC-DD-EE-FF'.
+    Vrací (True, None) při úspěchu nebo (False, chyba_str) při selhání.
+    """
+    try:
+        mac_str = mac_str.strip().replace('-', ':').upper()
+        parts   = mac_str.split(':')
+        if len(parts) != 6:
+            return False, f"Spatny format MAC"
+        mac_bytes = bytearray(int(p, 16) for p in parts)
+        magic     = b'\xff' * 6 + bytes(mac_bytes) * 16
+
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        sock.sendto(magic, ('255.255.255.255', 9))
+        sock.close()
+        return True, None
+    except Exception as e:
+        return False, str(e)
 
 # ─────────────────────────────────────────────
 #   WIFI + MQTT LOGIKA
@@ -388,17 +410,51 @@ def request_config():
             mqtt_client.publish(b"dashboard/request/config", b"1")
         except: pass
 
+# ─────────────────────────────────────────────
+#   SPUŠTĚNÍ PŘÍKAZU
+# ─────────────────────────────────────────────
 def execute_command(cmd):
+    """
+    Spustí příkaz. Rozlišuje dva typy:
+      - 'wol'  → odešle magic packet přímo ze sítě Pica (bez serveru)
+      - ostatní → pošle zprávu přes MQTT na server (stávající chování)
+    """
+    cmd_type = cmd.get("type", "")
+    cmd_name = cmd.get("name", "?")
+
+    # ── WOL příkaz ──────────────────────────────────────────────────────────
+    if cmd_type == "wol":
+        mac = cmd.get("mac")
+
+        if not mac:
+            draw_status("WOL CHYBA", "Chybi MAC adresa", fit(cmd_name))
+            time.sleep(1)
+            return
+
+        # Vizuální feedback — zobrazíme "Budicek..." než se packet odešle
+        draw_status("WOL: Budim...", fit(cmd_name), mac[:16])
+
+        ok, err = send_wol(mac)
+
+        if ok:
+            draw_status("WOL: Odeslano!", fit(cmd_name), mac[:16])
+        else:
+            draw_status("WOL CHYBA!", fit(err or "?"), mac[:16])
+        time.sleep(1)
+        return
+
+    # ── Standardní shell příkaz přes MQTT ───────────────────────────────────
     if not mqtt_client:
         draw_status("CHYBA", "MQTT odpojeno", "")
         time.sleep(1)
         return
+
     server_id = cmd.get("server_id") or cmd.get("serverId")
-    topic = f"server/{server_id}/execute"
-    payload = json.dumps({"command_id": cmd.get("name"), "sender_id": CLIENT_ID, "history_id": None})
+    topic     = f"server/{server_id}/execute"
+    payload   = json.dumps({"command_id": cmd_name, "sender_id": CLIENT_ID, "history_id": None})
     try:
         mqtt_client.publish(topic.encode(), payload.encode())
-        draw_status("Prikaz odeslan", fit(cmd.get("name", "?")), "OK!")
+        draw_status("Prikaz odeslan", fit(cmd_name), "OK!")
         time.sleep(1)
     except Exception as e:
         draw_status("CHYBA", str(e)[:16], "")
@@ -462,14 +518,13 @@ def main():
         if config: break
         time.sleep(0.2)
 
-    last_draw = 0
+    last_draw        = 0
     last_auto_refresh = time.ticks_ms()
 
     while True:
         gc.collect()
         now = time.ticks_ms()
-        
-        # Auto-refresh configu každých 5 minut pro jistotu
+
         if time.ticks_diff(now, last_auto_refresh) > 300000:
             request_config()
             last_auto_refresh = now
@@ -481,11 +536,11 @@ def main():
         # ─ 1. ZPRACOVÁNÍ HARDWAROVÝCH TLAČÍTEK (HOTKEYS) ─
         for bid, state in btn_hw.items():
             cur = state["pin"].value()
-            
+
             if cur == 0 and state["last"] == 1:
                 state["t_down"] = now
                 state["long_triggered"] = False
-            
+
             elif cur == 0 and state["last"] == 0:
                 if not state["long_triggered"] and time.ticks_diff(now, state["t_down"]) > 800:
                     state["long_triggered"] = True
@@ -506,7 +561,7 @@ def main():
                         else:
                             draw_status(f"Btn {bid} prazdny", "Drz 1s pro", "prirazeni")
                             time.sleep_ms(800)
-            
+
             state["last"] = cur
 
         # ─ 2. ZPRACOVÁNÍ ENKODÉRU (ROTACE) ─
@@ -543,21 +598,21 @@ def main():
         if not sw_handled and sw.value() == 1:
             held = time.ticks_diff(now, sw_down_time)
             sw_handled = True
-            
-            if held > 15 and not sw_long_triggered: 
+
+            if held > 15 and not sw_long_triggered:
                 draw_click_feedback()
                 if server_detail_active:
-                    pass 
-                
+                    pass
+
                 elif assign_mode:
                     cmds = config.get("commands", []) if config else []
                     items_a = ["--- (zrusit)"] + [c.get("name", "?") for c in cmds]
                     safe = assign_idx % len(items_a) if items_a else 0
-                    
+
                     settings.setdefault("hotkeys", {})
                     settings["hotkeys"][assign_btn_id] = None if safe == 0 else cmds[safe - 1]
                     save_settings()
-                    
+
                     cmd_name = (settings["hotkeys"][assign_btn_id] or {}).get("name", "zruseno")
                     draw_status("Prirazeno!", fit(cmd_name), f"Tl. {assign_btn_id}")
                     time.sleep_ms(800)
@@ -577,10 +632,10 @@ def main():
                             request_config()
                         else:
                             level = 1; current_idx = 0
-                            if selected == "Servery": mode = "servers"
-                            elif selected == "Prikazy": mode = "commands"
+                            if selected == "Servery":     mode = "servers"
+                            elif selected == "Prikazy":   mode = "commands"
                             elif selected == "Sledovat MCU": mode = "mcus"
-                
+
                 elif level == 1:
                     if mode == "servers":
                         servers = config.get("servers", [])
@@ -596,7 +651,7 @@ def main():
                         if current_idx < len(mcus):
                             selected_mcu = mcus[current_idx]
                             level = 2; current_idx = 0
-                                
+
                 elif level == 2:
                     channels = selected_mcu.get("channels", [])
                     if current_idx < len(channels):
@@ -608,7 +663,7 @@ def main():
                         live_channel_name = ch.get("type", "?")
                         live_unit         = ch.get("unit", "")
                         live_value = None; live_min = None; live_max = None
-                        
+
                         if mqtt_client:
                             topic = f"dashboard/live/{live_api_key}/{live_channel_type}"
                             try: mqtt_client.subscribe(topic.encode())
@@ -619,9 +674,10 @@ def main():
         if time.ticks_diff(now, last_draw) >= 100:
             last_draw = now
             update_display()
-        
+
         time.sleep_ms(10)
 
 try: main()
 except KeyboardInterrupt:
     oled_clear(); oled.show()
+
