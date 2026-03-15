@@ -244,3 +244,18 @@ window.handleAddCommandClick = () => {
 };
 
 window.CommandManager = CommandManager;
+
+// Přepínání Shell ↔ WOL inputu
+document.getElementById('commandType').addEventListener('change', function () {
+    const isWol = this.value === 'wol';
+    document.getElementById('shellInputWrapper').classList.toggle('hidden', isWol);
+    document.getElementById('wolInputWrapper').classList.toggle('hidden', !isWol);
+});
+
+// Při submitu zkopíruj MAC do command fieldu (server čeká vždy pole "command")
+document.getElementById('addCommandForm').addEventListener('submit', function (e) {
+    if (document.getElementById('commandType').value === 'wol') {
+        const mac = document.getElementById('macAddress').value.trim();
+        document.getElementById('commandCode').value = mac;
+    }
+});
