@@ -68,10 +68,16 @@ function initDB() {
       type TEXT NOT NULL,
       message TEXT NOT NULL,
       timestamp TEXT DEFAULT (datetime('now')),
+      is_read INTEGER DEFAULT 0, -- PŘIDÁNO: 0 = nepřečteno, 1 = přečteno
       FOREIGN KEY (mcu_id) REFERENCES mcus(device_id) ON DELETE SET NULL,
       FOREIGN KEY (server_id) REFERENCES servers(id) ON DELETE SET NULL
     )
   `);
+
+  // Migrace: přidání sloupce is_read pokud tabulka existuje bez něj
+  try {
+    db.exec('ALTER TABLE event_logs ADD COLUMN is_read INTEGER DEFAULT 0');
+  } catch (_) { /* sloupec již existuje */ }
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS channel_thresholds (

@@ -6,6 +6,7 @@ class Event {
         this.type = data.type; 
         this.message = data.message;
         this.timestamp = data.timestamp || new Date().toISOString();
+        this.is_read = data.is_read || 0; // PŘIDÁNO: Status přečtení (0 = nepřečteno, 1 = přečteno)
     }
 
     toDatabase() {
@@ -14,7 +15,8 @@ class Event {
             server_id: this.serverId, // PŘIDÁNO
             type: this.type,
             message: this.message,
-            timestamp: this.timestamp
+            timestamp: this.timestamp,
+            is_read: this.is_read // PŘIDÁNO
         };
     }
 }

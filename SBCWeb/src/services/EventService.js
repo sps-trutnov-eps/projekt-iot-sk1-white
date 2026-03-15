@@ -69,6 +69,23 @@ class EventService {
         return EventRepository.getRecent(limit);
     }
 
+    // PŘIDÁNO: Počet nepřečtených notifikací
+    static getUnreadCount() {
+        return EventRepository.getUnreadCount();
+    }
+
+    // PŘIDÁNO: Označit notifikaci jako přečtenou
+    static markAsRead(id) {
+        return EventRepository.markAsRead(id);
+    }
+
+    // PŘIDÁNO: Označit všechny jako přečtené
+    static markAllAsRead() {
+        const result = EventRepository.markAllAsRead();
+        if (SocketService.io) SocketService.io.emit('alerts_changed');
+        return result;
+    }
+
     static getTodayAlertsCount() {
         return EventRepository.countTodayAlerts();
     }

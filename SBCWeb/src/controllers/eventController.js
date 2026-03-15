@@ -62,6 +62,50 @@ class EventController {
         }
     }
 
+    // PŘIDÁNO: Počet nepřečtených notifikací
+    static async getUnreadCount(req, res) {
+        try {
+            const count = EventService.getUnreadCount();
+            res.status(200).json({ 
+                success: true, 
+                unreadCount: count 
+            });
+        } catch (error) {
+            console.error('Chyba při načítání počtu nepřečtených:', error);
+            res.status(500).json({ 
+                success: false, 
+                message: error.message 
+            });
+        }
+    }
+
+    // PŘIDÁNO: Označit notifikaci jako přečtenou
+    static async markAsRead(req, res) {
+        try {
+            const { id } = req.params;
+            if (!id) {
+                return res.status(400).json({ success: false, message: "Chybí ID notifikace." });
+            }
+
+            EventService.markAsRead(id);
+            res.status(200).json({ success: true, message: "Notifikace označena jako přečtená." });
+        } catch (error) {
+            console.error('Chyba při označování notifikace:', error);
+            res.status(500).json({ success: false, message: error.message });
+        }
+    }
+
+    // PŘIDÁNO: Označit všechny jako přečtené
+    static async markAllAsRead(req, res) {
+        try {
+            EventService.markAllAsRead();
+            res.status(200).json({ success: true, message: "Všechny notifikace označeny jako přečtené." });
+        } catch (error) {
+            console.error('Chyba při označování notifikací:', error);
+            res.status(500).json({ success: false, message: error.message });
+        }
+    }
+
     // Kompletní vymazání historie (např. tlačítko "Vymazat" v notifikacích)
     static async clearAll(req, res) {
         try {
