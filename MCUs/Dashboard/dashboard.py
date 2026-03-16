@@ -12,9 +12,9 @@ from umqtt.simple import MQTTClient
 # ─────────────────────────────────────────────
 #   KONFIGURACE — uprav dle prostředí
 # ─────────────────────────────────────────────
-WIFI_SSID     = "Forbelina"
-WIFI_PASSWORD = "SvisteVodicka1"
-MQTT_BROKER   = "192.168.1.100"
+WIFI_SSID     = "Vincent"
+WIFI_PASSWORD = "password"
+MQTT_BROKER   = "172.20.10.2"
 MQTT_PORT     = 1883
 CLIENT_ID     = "dashboard_mcu"
 

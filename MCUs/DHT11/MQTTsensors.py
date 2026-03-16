@@ -9,9 +9,9 @@ import gc
 import socket
 
 # --- KONFIGURACE ---
-WIFI_SSID = "Forbelina"
-WIFI_PASS = "SvisteVodicka1"
-MQTT_BROKER = "192.168.1.100"
+WIFI_SSID = "Vincent"
+WIFI_PASS = "password"
+MQTT_BROKER = "172.20.10.2"
 MQTT_PORT = 1883
 API_KEY = "api_key"
 PUBLISH_INTERVAL = 5

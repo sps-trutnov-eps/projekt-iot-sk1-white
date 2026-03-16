@@ -80,6 +80,6 @@ app.use((req, res) => {
   res.status(404).render('404', { title: '404 - Stránka nenalezena' });
 });
 
-server.listen(PORT, () => {
+server.listen(PORT,'0.0.0.0' , () => {
     console.log(`Server běží na http://localhost:${PORT}`);
 });
