@@ -22,7 +22,7 @@ class MeasurementService {
      */
     static async processPayload(data) {
         const MCUService = require('../services/mcuService');
-        const MCURepository = require('../repositories/mcuRepository');
+        const MCURepository = require('../repositories/MCURepository');
         
         try {
             let mcu = null;
