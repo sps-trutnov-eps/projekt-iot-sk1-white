@@ -1,5 +1,6 @@
 const dgram = require('dgram');
 const os = require('os');
+const config = require('../config/config');
 
 function getLocalAddress() {
     const interfaces = os.networkInterfaces();
@@ -40,7 +41,7 @@ function sendMagicPacket(mac) {
 
         socket.bind({ address: localAddress }, () => {
             socket.setBroadcast(true);
-            socket.send(buf, 0, buf.length, 9, broadcastAddress, () => {
+            socket.send(buf, 0, buf.length, config.wol_udp_port, broadcastAddress, () => {
                 socket.close();
                 resolve();
             });

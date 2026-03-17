@@ -1,4 +1,5 @@
 // services/MeasurementService.js
+const config = require('../config/config');
 const SensorService = require('../services/SensorService');
 const SocketService = require('../sockets/socketService');
 const ReadingRepository = require('../repositories/ReadingRepository'); 
@@ -13,7 +14,7 @@ class MeasurementService {
     static startAggregationWorker() {
         setInterval(() => {
             this.processMinuteAggregation();
-        }, 60000); 
+        }, config.measurement_aggregation_interval); 
     }
 
     /**

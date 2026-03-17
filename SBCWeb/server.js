@@ -4,7 +4,8 @@ const socketIo = require('socket.io');
 const path = require('path');
 const session = require('express-session');
 const app = express();
-const PORT = 3000;
+const config = require('./src/config/config');
+const { server_port, server_host, session_secret } = config;
 
 const db = require('./src/config/database');
 const initDB = require('./src/config/initDatabase');
@@ -25,7 +26,7 @@ seedDB();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(session({
-  secret: 'iot-sk1-white-secret-key-change-in-production',
+  secret: session_secret,
   resave: false,
   saveUninitialized: false,
   cookie: { secure: false, httpOnly: true, maxAge: 8 * 60 * 60 * 1000 } // 8 hodin
@@ -80,6 +81,6 @@ app.use((req, res) => {
   res.status(404).render('404', { title: '404 - Stránka nenalezena' });
 });
 
-server.listen(PORT,'0.0.0.0' , () => {
-    console.log(`Server běží na http://localhost:${PORT}`);
+server.listen(server_port, server_host , () => {
+    console.log(`Server běží na http://localhost:${server_port}`);
 });

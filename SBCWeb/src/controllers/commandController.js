@@ -158,7 +158,7 @@ class CommandController {
             const executeTopic = `server/${targetId}/execute`;
             MqttHandler.publishCommand(executeTopic, payload);
 
-            // 3. BEZPEČNOSTNÍ TIMEOUT (30 vteřin)
+            // 3. BEZPEČNOSTNÍ TIMEOUT (z configu)
             setTimeout(() => {
                 try {
                     const checkRecord = CommandHistoryService.getExecutionById(historyId);
@@ -175,7 +175,7 @@ class CommandController {
                 } catch (err) {
                     console.error('[TIMEOUT] Chyba při kontrole timeoutu:', err);
                 }
-            }, 30000); 
+            }, config.command_timeout); 
 
             // 4. Odpověď frontendu
             return res.status(202).json({ 
