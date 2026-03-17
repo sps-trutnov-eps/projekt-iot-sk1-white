@@ -4,15 +4,19 @@
  */
 
 const config = {
+
+
     // Server
     server_port: process.env.SERVER_PORT || 3000,
     server_host: process.env.SERVER_HOST || '0.0.0.0',
     session_secret: process.env.SESSION_SECRET || 'iot-sk1-white-secret-key-change-in-production',
 
+
     // Database
     database_path: process.env.DATABASE_PATH || './data/telemetry.db',
 
     // MQTT Broker
+    mqtt_broker_ip: process.env.MQTT_BROKER_IP || '127.0.0.1',
     mqtt_broker_port: process.env.MQTT_BROKER_PORT || 1883,
     mqtt_push_delay: process.env.MQTT_PUSH_DELAY || 500,
 
