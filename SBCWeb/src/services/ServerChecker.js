@@ -1,4 +1,5 @@
 const ping = require('ping');
+const config = require('../config/config');
 const ServerRepository = require('../repositories/ServerRepository');
 const SettingService = require('./SettingsService');
 const SocketService = require('../sockets/socketService');
@@ -14,7 +15,7 @@ class ServerChecker {
 
                 // Spustíme ping
                 const res = await ping.promise.probe(ipToPing, {
-                    timeout: 2,
+                    timeout: config.server_checker_ping_timeout,
                 });
                 
                 let isOnline = res.alive ? 1 : 0;

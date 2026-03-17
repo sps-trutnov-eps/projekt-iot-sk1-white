@@ -2,6 +2,7 @@
 const mqtt = require('mqtt');
 const MeasurementService = require('../services/MeasurementService');
 const SettingService = require('../services/SettingsService');
+const config = require('../config/config');
 
 class MqttHandler {
     static client = null;
@@ -20,7 +21,7 @@ class MqttHandler {
 
     static connect() {
         this.currentIp = SettingService.getSettingValue('mqtt_broker_ip', '127.0.0.1');
-        const BROKER_URL = `mqtt://${this.currentIp}:1883`;
+        const BROKER_URL = `mqtt://${this.currentIp}:${config.mqtt_broker_port}`;
 
         console.log(`[MQTT] Připojuji se k brokeru na: ${BROKER_URL}`);
 
@@ -44,7 +45,7 @@ class MqttHandler {
             console.log('[MQTT] Subscribováno na mcu/+/wol/status');
 
             // Pushni retenované konfigurace hned po připojení
-            setTimeout(() => { this.pushAllConfigs(); }, 500);
+            setTimeout(() => { this.pushAllConfigs(); }, config.mqtt_push_delay);
         });
 
         this.client.on('message', async (topic, message) => {
