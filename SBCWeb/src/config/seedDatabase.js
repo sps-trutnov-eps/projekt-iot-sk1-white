@@ -42,7 +42,9 @@ const seedDB = () => {
   const defaultSettings = [
     { key: 'mqtt_broker_ip', value: '127.0.0.1', desc: 'IP adresa MQTT brokeru' },
     { key: 'mcu_ping_interval', value: '30000', desc: 'Interval pingu pro MCU (v ms)' },
-    { key: 'server_ping_interval', value: '60000', desc: 'Interval pingu pro servery (v ms)' }
+    { key: 'server_ping_interval', value: '60000', desc: 'Interval pingu pro servery (v ms)' },
+    { key: 'command_timeout', value: '30000', desc: 'Timeout pro shell příkazy (v ms)' },
+    { key: 'server_checker_ping_timeout', value: '2', desc: 'Timeout pro ping serverů (v sekundách)' }
   ];
 
   // 3. Příprava SQL dotazů

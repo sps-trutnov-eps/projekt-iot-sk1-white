@@ -20,7 +20,7 @@ class MqttHandler {
     }
 
     static connect() {
-        this.currentIp = SettingService.getSettingValue('mqtt_broker_ip', config.mqtt_broker_ip);   
+        this.currentIp = SettingService.getSettingValue('mqtt_broker_ip', '127.0.0.1');   
         const BROKER_URL = `mqtt://${this.currentIp}:${config.mqtt_broker_port}`;
 
         console.log(`[MQTT] Připojuji se k brokeru na: ${BROKER_URL}`);
