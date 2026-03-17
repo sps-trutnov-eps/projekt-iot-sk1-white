@@ -1,6 +1,7 @@
 // controllers/commandController.js
 const CommandService = require('../services/commandService');
 const CommandHistoryService = require('../services/CommandHistoryService');
+const SettingService = require('../services/SettingsService');
 const MqttHandler = require('../sockets/mqttHandler')
 const { sendMagicPacket } = require('../services/wolService');
 
