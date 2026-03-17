@@ -49,13 +49,10 @@ class MqttHandler {
         });
 
         this.client.on('message', async (topic, message) => {
-            console.log(`[DEBUG MQTT] Přišla zpráva na topic: ${topic}`);
-
             // 1. Data ze senzorů
             if (topic === 'sensor/data') {
                 try {
                     const payload = JSON.parse(message.toString());
-                    console.log(`[MQTT DEBUG] Payload ze senzoru:`, payload);
                     await MeasurementService.processPayload(payload);
                 } catch (error) {
                     console.error('[MQTT] Chyba při zpracování zprávy senzoru:', error.message);
@@ -81,8 +78,6 @@ class MqttHandler {
                             payload.log,
                             null
                         );
-
-                        console.log(`[MQTT] Zapsán výsledek pro historii ID: ${payload.history_id} (Stav: ${payload.status})`);
                     }
                 } catch (error) {
                     console.error('[MQTT] Chyba při uložení výsledku příkazu:', error.message);
@@ -97,8 +92,6 @@ class MqttHandler {
                     const payload = JSON.parse(message.toString());
                     const mcuId = topic.split('/')[1];
 
-                    console.log(`[MQTT] WOL status od MCU ${mcuId}: mac=${payload.mac}, success=${payload.success}`);
-
                     if (payload.history_id) {
                         const CommandHistoryService = require('../services/CommandHistoryService');
 
@@ -110,8 +103,6 @@ class MqttHandler {
                                 : `WOL selhalo pro ${payload.mac}: ${payload.error || 'neznámá chyba'}`,
                             null
                         );
-
-                        console.log(`[MQTT] WOL výsledek zapsán pro historii ID: ${payload.history_id}`);
                     }
                 } catch (error) {
                     console.error('[MQTT] Chyba při zpracování WOL statusu:', error.message);
@@ -130,8 +121,6 @@ class MqttHandler {
             const CommandService = require('../services/commandService');
             const MCUService = require('../services/mcuService');
             const SensorService = require('../services/SensorService');
-
-            console.log('[MQTT] Building and pushing dashboard config...');
 
             const serversRaw = ServerService.getAllServersWithCommands();
             const servers = serversRaw.map(s => ({
@@ -177,7 +166,6 @@ class MqttHandler {
 
             const configPayload = { servers, commands, mcus, ts: Math.floor(Date.now() / 1000) };
             this.publishConfig('dashboard/config', configPayload);
-            console.log(`[MQTT] Dashboard config odeslána (${mcus.length} MCU, ${servers.length} serverů, ${commands.length} příkazů).`);
         } catch (error) {
             console.error('[MQTT] Chyba při sestavení dashboard config:', error.message);
         }
@@ -197,7 +185,6 @@ class MqttHandler {
         }
 
         this.client.publish(topic, JSON.stringify(payload));
-        console.log(`[MQTT] Odeslán příkaz na ${topic}:`, payload);
     }
 
     /**
@@ -223,7 +210,6 @@ class MqttHandler {
         };
 
         this.client.publish(topic, JSON.stringify(payload));
-        console.log(`[MQTT] WOL příkaz odeslán na ${topic}:`, payload);
     }
 
     static reconnect() {
@@ -240,7 +226,6 @@ class MqttHandler {
     static publishConfig(topic, payload) {
         if (this.client && this.client.connected) {
             this.client.publish(topic, JSON.stringify(payload), { retain: true });
-            console.log(`[MQTT] Odeslána konfigurace (Retained) na ${topic}:`, payload);
         } else {
             console.error('[MQTT] Nelze odeslat konfiguraci: MQTT klient není připojen.');
         }
