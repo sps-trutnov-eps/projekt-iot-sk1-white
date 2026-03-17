@@ -1,7 +1,25 @@
 const dgram = require('dgram');
+const os = require('os');
+
+function getLocalAddress() {
+    const interfaces = os.networkInterfaces();
+    for (const iface of Object.values(interfaces)) {
+        for (const entry of iface) {
+            if (entry.family === 'IPv4' && !entry.internal) {
+                return entry.address;
+            }
+        }
+    }
+    return '0.0.0.0'; // fallback – OS si vybere sám
+}
+
+function getBroadcastAddress(localAddress) {
+    const parts = localAddress.split('.').map(Number);
+    parts[3] = 255;
+    return parts.join('.');
+}
 
 function sendMagicPacket(mac) {
-    console.log("bagrsss")
     return new Promise((resolve, reject) => {
         const macHex = mac.replace(/[:\-]/g, '');
         if (macHex.length !== 12) return reject(new Error('Neplatná MAC adresa'));
@@ -12,12 +30,17 @@ function sendMagicPacket(mac) {
             Buffer.from(macHex, 'hex').copy(buf, i * 6);
         }
 
+        const localAddress = getLocalAddress();
+        const broadcastAddress = getBroadcastAddress(localAddress);
+
+        console.log(`Odesílám z ${localAddress} na ${broadcastAddress}`);
+
         const socket = dgram.createSocket('udp4');
         socket.once('error', (err) => { socket.close(); reject(err); });
 
-        socket.bind({ address: '192.168.1.100' }, () => {
+        socket.bind({ address: localAddress }, () => {
             socket.setBroadcast(true);
-            socket.send(buf, 0, buf.length, 9, '192.168.1.255', () => {
+            socket.send(buf, 0, buf.length, 9, broadcastAddress, () => {
                 socket.close();
                 resolve();
             });
