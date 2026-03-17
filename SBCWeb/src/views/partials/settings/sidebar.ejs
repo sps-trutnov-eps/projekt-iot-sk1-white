@@ -1,0 +1,41 @@
+<!-- Settings Sidebar -->
+<aside id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-midnight-violet-900 dark:bg-[#0c090f] shadow-2xl transition-all duration-300 ease-in-out z-40">
+  <div class="flex flex-col h-full">
+    <!-- Sidebar Header -->
+    <div class="p-6 border-b border-midnight-violet-800 dark:border-midnight-violet-900">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3 overflow-hidden">
+          <div class="w-10 h-10 bg-gradient-to-br from-vintage-grape-400 to-midnight-violet-500 rounded-lg shadow-lg flex-shrink-0"></div>
+          <span class="text-ash-grey-50 font-bold text-lg whitespace-nowrap">IoT Control</span>
+        </div>
+        <button id="closeSidebar" class="text-ash-grey-300 hover:text-ash-grey-50 lg:hidden">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="flex-1 overflow-y-auto p-4">
+      <div class="space-y-6">
+        <!-- Settings Sections -->
+        <div>
+          <h3 class="text-xs font-semibold text-ash-grey-400 uppercase tracking-wider mb-3">Nastavení</h3>
+          <div class="space-y-1">
+            <a href="#network-section" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-ash-grey-300 hover:bg-midnight-violet-800 dark:hover:bg-midnight-violet-900 transition scroll-smooth">
+              <i class="fas fa-network-wired w-5 text-center flex-shrink-0 text-midnight-violet-400"></i>
+              <span class="whitespace-nowrap font-medium text-sm">Síť</span>
+            </a>
+            <a href="#appearance-section" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-ash-grey-300 hover:bg-midnight-violet-800 dark:hover:bg-midnight-violet-900 transition scroll-smooth">
+              <i class="fas fa-palette w-5 text-center flex-shrink-0 text-vintage-grape-400"></i>
+              <span class="whitespace-nowrap font-medium text-sm">Vzhled</span>
+            </a>
+            <a href="#account-section" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-ash-grey-300 hover:bg-midnight-violet-800 dark:hover:bg-midnight-violet-900 transition scroll-smooth">
+              <i class="fas fa-user-shield w-5 text-center flex-shrink-0 text-vintage-grape-500"></i>
+              <span class="whitespace-nowrap font-medium text-sm">Účet</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </nav>
+  </div>
+</aside>

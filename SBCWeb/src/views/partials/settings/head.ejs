@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            'ash-grey': {'50':'#f2f3f1','100':'#e6e7e4','200':'#ccd0c8','300':'#b3b8ad','400':'#9aa092','500':'#808877','600':'#676d5f','700':'#4d5247','800':'#33372f','900':'#1a1b18','950':'#121311'},
+            'silver': {'50':'#f2f3f2','100':'#e5e6e5','200':'#cbcdcb','300':'#b1b4b1','400':'#979b97','500':'#7d827d','600':'#646864','700':'#4b4e4b','800':'#323432','900':'#191a19','950':'#111211'},
+            'vintage-grape': {'50':'#f3f0f4','100':'#e7e2e9','200':'#cfc4d4','300':'#b7a7be','400':'#a08aa8','500':'#886c93','600':'#6d5775','700':'#514158','800':'#362b3b','900':'#1b161d','950':'#130f15'},
+            'midnight-violet': {'50':'#f3eff5','100':'#e8e0eb','200':'#d0c1d7','300':'#b9a2c3','400':'#a183af','500':'#8a639c','600':'#6e507c','700':'#533c5d','800':'#37283e','900':'#1c141f','950':'#130e16'}
+          }
+        }
+      }
+    }
+  </script>
+  <script>
+    if (localStorage.getItem('ui_theme') === 'dark') {
+        document.documentElement.classList.add('dark');
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body class="bg-ash-grey-50 dark:bg-midnight-violet-950 dark:text-silver-100 min-h-screen transition-colors duration-300">
+
+<div id="toast-success" class="hidden fixed bottom-8 right-8 z-[10000] flex items-stretch min-w-[300px] bg-white dark:bg-midnight-violet-900 text-gray-900 dark:text-silver-100 rounded-lg shadow-xl border border-gray-100 dark:border-midnight-violet-800 overflow-hidden transition-all duration-700 opacity-0 translate-y-4">
+    <div class="w-3 bg-green-500 shrink-0"></div>
+    <div class="flex items-center py-4 px-5 w-full">
+        <div class="flex items-center justify-center flex-shrink-0 h-8 w-8 bg-green-100 dark:bg-green-900/30 rounded-full mr-3">
+            <i class="fas fa-check text-green-600 dark:text-green-400"></i>
+        </div>
+        <div id="toast-message-success" class="flex-1 text-sm font-semibold text-gray-800 dark:text-silver-100"></div>
+    </div>
+</div>
+
+<div id="toast-error" class="hidden fixed bottom-8 right-8 z-[10000] flex items-stretch min-w-[300px] bg-white dark:bg-midnight-violet-900 text-gray-900 dark:text-silver-100 rounded-lg shadow-xl border border-gray-100 dark:border-midnight-violet-800 overflow-hidden transition-all duration-700 opacity-0 translate-y-4">
+    <div class="w-3 bg-red-500 shrink-0"></div>
+    <div class="flex items-center py-4 px-5 w-full">
+        <div class="flex items-center justify-center flex-shrink-0 h-8 w-8 bg-red-100 dark:bg-red-900/30 rounded-full mr-3">
+            <i class="fas fa-times text-red-600 dark:text-red-400"></i>
+        </div>
+        <div id="toast-message-error" class="flex-1 text-sm font-semibold text-gray-800 dark:text-silver-100"></div>
+    </div>
+</div>
