@@ -145,7 +145,7 @@ const updateApiKey = (req, res) => {
     // Pokud přijde prázdný řetězec, vygenerujeme nový klíč
     const newKey = (apiKey && apiKey.trim()) ? apiKey.trim() : generateApiKey();
 
-    const MCURepository = require('../repositories/mcuRepository');
+    const MCURepository = require('../repositories/MCURepository');
     const result = MCURepository.updateApiKey(id, newKey);
     if (!result || result.changes === 0) {
       return res.status(404).json({ success: false, message: 'MCU nenalezeno.' });
