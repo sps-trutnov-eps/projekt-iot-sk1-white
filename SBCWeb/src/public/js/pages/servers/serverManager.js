@@ -22,6 +22,13 @@ function updateStatistics(servers) {
     if (statOnline) statOnline.innerText = online;
     if (statOffline) statOffline.innerText = offline;
     if (statTotal) statTotal.innerText = total;
+
+    const countAll = document.getElementById('countAll');
+    const countOnline = document.getElementById('countOnline');
+    const countOffline = document.getElementById('countOffline');
+    if (countAll) countAll.textContent = total;
+    if (countOnline) countOnline.textContent = online;
+    if (countOffline) countOffline.textContent = offline;
 }
 
 // Skeleton loader - zobrazí se při načítání dat v hlavní části
@@ -182,7 +189,7 @@ export async function loadServers(isBackground = false) {
 
                 const safeServerName = escapeQuotes(server.name);
                 const serverHtml = `
-                    <div class="server-block" data-id="${server.id}">
+                    <div class="server-block" data-id="${server.id}" data-status="${isOnline ? 'online' : 'offline'}" data-type="${server.type}">
                         <div class="bg-white dark:bg-midnight-violet-900 rounded-t-xl shadow-sm border border-ash-grey-200 dark:border-midnight-violet-800 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
                             <div class="flex items-center gap-5">
                                 <div class="w-14 h-14 rounded-xl flex items-center justify-center shadow-md shrink-0 ${isDatabase ? 'bg-gradient-to-br from-ash-grey-500 to-silver-600' : 'bg-gradient-to-br from-midnight-violet-700 to-vintage-grape-600'}">

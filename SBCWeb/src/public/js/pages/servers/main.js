@@ -1,7 +1,8 @@
 // public/js/pages/servers/main.js
 
-import { loadServers, toggleFavoriteCommand, updateServerStatusInDom  } from './serverManager.js'; 
+import { loadServers, toggleFavoriteCommand, updateServerStatusInDom  } from './serverManager.js';
 import { loadMiniLog,renderMiniLogFilter  } from './commandManager.js';
+import { applyFilters, attachFilterListeners, initSearchBar } from './filterManager.js';
 import { 
     openAddServerModal,
     openAddCommandModal,
@@ -11,7 +12,12 @@ import {
 } from './modalManager.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-    loadServers();
+    attachFilterListeners();
+    initSearchBar();
+
+    await loadServers();
+    applyFilters();
+
     loadMiniLog();
 
     const socket = io();
@@ -37,7 +43,10 @@ setInterval(() => {
     loadMiniLog();
 }, 3000);
 
-window.loadServers = loadServers;
+window.loadServers = async (isBackground = false) => {
+    await loadServers(isBackground);
+    applyFilters();
+};
 // window.runCommand není potřeba — commandManager.js to dělá sám
 window.toggleFavoriteCommand = toggleFavoriteCommand; 
 
