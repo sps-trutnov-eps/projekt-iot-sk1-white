@@ -23,6 +23,7 @@ function initDB() {
       last_seen TEXT DEFAULT (datetime('now')),
       is_online INTEGER DEFAULT 0,
       api_key TEXT,
+      role TEXT DEFAULT 'sensor',
       created_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (type_id) REFERENCES types(id)
       -- Tady CASCADE nedáváme. Nechceme smazat všechny MCU, když smažeme jen štítek typu.

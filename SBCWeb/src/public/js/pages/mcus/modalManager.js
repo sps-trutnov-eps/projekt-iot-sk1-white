@@ -270,6 +270,9 @@ function initEditMcuModal() {
                 document.getElementById('editMcuMAC').value = mcu.macAddress || mcu.mac_address || '';
                 document.getElementById('editMcuDescription').value = mcu.description || '';
 
+                const roleSelect = document.getElementById('editMcuRole');
+                if (roleSelect) roleSelect.value = mcu.role || 'sensor';
+
                 editModal.open();
             } else {
                 console.error("Server vrátil success, ale chybí data 'mcu':", result);
@@ -287,7 +290,8 @@ function initEditMcuModal() {
             const formData = {
                 id: document.getElementById('editMcuId').value,
                 name: document.getElementById('editMcuName').value,
-                type: parseInt(document.getElementById('editTypeSelector').value), 
+                type: parseInt(document.getElementById('editTypeSelector').value),
+                role: document.getElementById('editMcuRole')?.value || 'sensor',
                 location: document.getElementById('editMcuLocation').value,
                 ipAddress: document.getElementById('editMcuIP').value,
                 macAddress: document.getElementById('editMcuMAC').value,
