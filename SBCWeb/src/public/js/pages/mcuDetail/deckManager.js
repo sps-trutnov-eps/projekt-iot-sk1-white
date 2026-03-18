@@ -70,6 +70,7 @@ function renderServers(servers) {
                             class="deck-checkbox deck-server-checkbox w-4.5 h-4.5 accent-vintage-grape-600 rounded cursor-pointer">
                         <i class="fas fa-server text-xs text-vintage-grape-500"></i>
                         <span class="font-semibold text-sm text-midnight-violet-900 dark:text-silver-100 truncate">${server.name}</span>
+                        <span class="text-[10px] font-mono text-silver-400 bg-ash-grey-100 dark:bg-midnight-violet-700 px-1.5 py-0.5 rounded">#${server.id}</span>
                         <span class="text-xs font-mono text-silver-400 ml-auto">${server.ip}</span>
                     </label>
                     <div class="flex items-center gap-1 shrink-0">

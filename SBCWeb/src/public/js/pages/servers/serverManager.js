@@ -196,7 +196,7 @@ export async function loadServers(isBackground = false) {
                                     <i class="fas ${isDatabase ? 'fa-database' : 'fa-server'} text-2xl text-white"></i>
                                 </div>
                                 <div>
-                                    <h2 class="text-2xl font-bold text-midnight-violet-900 dark:text-silver-100">${server.name}</h2>
+                                    <h2 class="text-2xl font-bold text-midnight-violet-900 dark:text-silver-100">${server.name} <span class="text-[10px] font-mono text-silver-400 bg-ash-grey-100 dark:bg-midnight-violet-700 px-1.5 py-0.5 rounded align-middle">#${server.id}</span></h2>
                                     <div class="flex items-center gap-4 mt-1 text-sm text-silver-600 dark:text-silver-400">
                                         <span class="flex items-center gap-1 font-mono bg-ash-grey-100 dark:bg-midnight-violet-800 px-2 py-0.5 rounded border border-ash-grey-200 dark:border-midnight-violet-700">
                                             <i class="fas fa-network-wired text-xs"></i> ${server.ip}
