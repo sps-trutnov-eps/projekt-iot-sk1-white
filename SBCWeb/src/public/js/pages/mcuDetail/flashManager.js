@@ -1,13 +1,24 @@
-// flashManager.js — Flash MCU přes USB z webového rozhraní
+// flashManager.js — Flash MCU přes Web Serial API (client-side)
 
 let isFlashing = false;
+let serialPort = null;
+
+const CTRL_A = 0x01;
+const CTRL_B = 0x02;
+const CTRL_C = 0x03;
+const CTRL_D = 0x04;
+const PICO_VENDOR_ID = 0x2E8A;
+
+const encoder = new TextEncoder();
+const decoder = new TextDecoder();
 
 // === MODAL OVLÁDÁNÍ ===
 export function initFlashModal() {
     const closeBtn = document.getElementById('flashModalClose');
     const cancelBtn = document.getElementById('flashCancel');
     const startBtn = document.getElementById('flashStartBtn');
-    const refreshBtn = document.getElementById('refreshPorts');
+    const connectBtn = document.getElementById('flashConnectUsb');
+    const disconnectBtn = document.getElementById('flashDisconnectUsb');
     const uploadInput = document.getElementById('templateUpload');
     const deleteBtn = document.getElementById('deleteTemplate');
     const toggleNetwork = document.getElementById('toggleNetworkConfig');
@@ -16,7 +27,8 @@ export function initFlashModal() {
     if (closeBtn) closeBtn.addEventListener('click', closeFlashModal);
     if (cancelBtn) cancelBtn.addEventListener('click', closeFlashModal);
     if (startBtn) startBtn.addEventListener('click', startFlash);
-    if (refreshBtn) refreshBtn.addEventListener('click', loadPorts);
+    if (connectBtn) connectBtn.addEventListener('click', connectUsb);
+    if (disconnectBtn) disconnectBtn.addEventListener('click', disconnectUsb);
     if (uploadInput) uploadInput.addEventListener('change', handleTemplateUpload);
     if (deleteBtn) deleteBtn.addEventListener('click', handleDeleteTemplate);
     if (templateSelect) templateSelect.addEventListener('change', onTemplateSelected);
@@ -30,8 +42,11 @@ export function initFlashModal() {
         });
     }
 
-    // Socket.IO listener pro progress
-    initSocketListeners();
+    // Check Web Serial API support
+    if (!('serial' in navigator)) {
+        const warning = document.getElementById('webSerialWarning');
+        if (warning) warning.classList.remove('hidden');
+    }
 }
 
 export async function openFlashModal() {
@@ -40,53 +55,213 @@ export async function openFlashModal() {
 
     modal.classList.remove('hidden');
     resetProgress();
+    updatePortStatus();
 
-    // Načteme porty a šablony paralelně
-    await Promise.all([loadPorts(), loadTemplates()]);
+    await loadTemplates();
 }
 
 function closeFlashModal() {
-    if (isFlashing) return; // Nepovolíme zavřít během flashování
+    if (isFlashing) return;
     const modal = document.getElementById('flashModal');
     if (modal) modal.classList.add('hidden');
 }
 
-// === PORTY ===
-async function loadPorts() {
-    const select = document.getElementById('flashPort');
-    const warning = document.getElementById('mpremoteWarning');
-    select.innerHTML = '<option value="">Hledám porty...</option>';
-    warning.classList.add('hidden');
+// === WEB SERIAL API ===
+async function connectUsb() {
+    if (!('serial' in navigator)) {
+        showError('Web Serial API není podporováno. Použijte Chrome nebo Edge.');
+        return;
+    }
 
     try {
-        const res = await fetch('/mcu/serial-ports');
-        const data = await res.json();
-
-        if (!data.success) throw new Error(data.message);
-
-        // mpremote check
-        if (!data.mpremote.available) {
-            warning.classList.remove('hidden');
-        }
-
-        // Porty
-        if (data.ports.length === 0) {
-            select.innerHTML = '<option value="">Žádné USB zařízení nenalezeno</option>';
-            return;
-        }
-
-        select.innerHTML = '<option value="">-- Vyberte port --</option>';
-        data.ports.forEach(port => {
-            const opt = document.createElement('option');
-            opt.value = port.path;
-            const picoTag = port.isPico ? ' [Pico]' : '';
-            opt.textContent = `${port.path} — ${port.manufacturer}${picoTag}`;
-            if (port.isPico) opt.selected = true; // Auto-select Pico
-            select.appendChild(opt);
+        serialPort = await navigator.serial.requestPort({
+            filters: [{ usbVendorId: PICO_VENDOR_ID }]
         });
+
+        const info = serialPort.getInfo();
+        updatePortStatus(info);
+
+        if (window.openToast) window.openToast('USB zařízení připojeno.', true);
     } catch (e) {
-        select.innerHTML = '<option value="">Chyba při načítání portů</option>';
-        showError(e.message);
+        if (e.name === 'NotAllowedError') return; // User cancelled
+        showError('Nepodařilo se připojit: ' + e.message);
+    }
+}
+
+async function disconnectUsb() {
+    if (serialPort) {
+        try {
+            if (serialPort.readable || serialPort.writable) {
+                await serialPort.close();
+            }
+        } catch (_) {}
+        serialPort = null;
+    }
+    updatePortStatus();
+}
+
+function updatePortStatus(info) {
+    const statusEl = document.getElementById('flashPortStatus');
+    const connectBtn = document.getElementById('flashConnectUsb');
+    const disconnectBtn = document.getElementById('flashDisconnectUsb');
+
+    if (!statusEl) return;
+
+    if (serialPort) {
+        const vendorId = info?.usbVendorId ? `0x${info.usbVendorId.toString(16).toUpperCase()}` : '';
+        const productId = info?.usbProductId ? `0x${info.usbProductId.toString(16).toUpperCase()}` : '';
+        const label = vendorId === '0x2E8A' ? 'Raspberry Pi Pico' : `USB ${vendorId}`;
+        statusEl.innerHTML = `<i class="fas fa-check-circle text-green-500 mr-2"></i><span class="font-medium">${label}</span><span class="text-xs text-gray-400 ml-2">${vendorId}:${productId}</span>`;
+        statusEl.className = statusEl.className.replace('border-ash-grey-300 dark:border-midnight-violet-700', 'border-green-500 dark:border-green-600');
+        if (connectBtn) connectBtn.classList.add('hidden');
+        if (disconnectBtn) disconnectBtn.classList.remove('hidden');
+    } else {
+        statusEl.innerHTML = '<i class="fas fa-usb text-gray-400 mr-2"></i><span class="text-gray-500 dark:text-silver-400">Žádné zařízení připojeno</span>';
+        statusEl.className = statusEl.className.replace('border-green-500 dark:border-green-600', 'border-ash-grey-300 dark:border-midnight-violet-700');
+        if (connectBtn) connectBtn.classList.remove('hidden');
+        if (disconnectBtn) disconnectBtn.classList.add('hidden');
+    }
+}
+
+// === WEB SERIAL PROTOCOL ===
+async function writeSerial(writer, data) {
+    if (typeof data === 'string') {
+        await writer.write(encoder.encode(data));
+    } else {
+        await writer.write(data);
+    }
+}
+
+async function readUntil(reader, marker, timeoutMs = 10000) {
+    let buffer = '';
+    const start = Date.now();
+    while (!buffer.includes(marker)) {
+        if (Date.now() - start > timeoutMs) {
+            throw new Error(`Timeout čekání na odpověď zařízení.`);
+        }
+        const { value, done } = await reader.read();
+        if (done) throw new Error('Sériový port byl uzavřen.');
+        buffer += decoder.decode(value);
+    }
+    return buffer;
+}
+
+async function enterRawRepl(writer, reader) {
+    // Interrupt anything running
+    await writeSerial(writer, new Uint8Array([0x0D, CTRL_C]));
+    await new Promise(r => setTimeout(r, 200));
+    await writeSerial(writer, new Uint8Array([CTRL_C]));
+    await new Promise(r => setTimeout(r, 200));
+
+    // Enter raw REPL
+    await writeSerial(writer, new Uint8Array([0x0D, CTRL_A]));
+    await readUntil(reader, '>');
+}
+
+async function execRaw(writer, reader, code) {
+    await writeSerial(writer, code);
+    await writeSerial(writer, new Uint8Array([CTRL_D]));
+
+    // Read until OK + stdout \x04 + stderr \x04
+    let raw = '';
+    let okFound = false;
+    let stdoutDone = false;
+    let stdout = '';
+    let stderr = '';
+
+    const start = Date.now();
+    while (Date.now() - start < 15000) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        raw += decoder.decode(value);
+
+        if (!okFound) {
+            const okIdx = raw.indexOf('OK');
+            if (okIdx !== -1) {
+                okFound = true;
+                raw = raw.substring(okIdx + 2);
+            }
+        }
+
+        if (okFound && !stdoutDone) {
+            const eotIdx = raw.indexOf('\x04');
+            if (eotIdx !== -1) {
+                stdout = raw.substring(0, eotIdx);
+                raw = raw.substring(eotIdx + 1);
+                stdoutDone = true;
+            }
+        }
+
+        if (stdoutDone) {
+            const eotIdx = raw.indexOf('\x04');
+            if (eotIdx !== -1) {
+                stderr = raw.substring(0, eotIdx);
+                break;
+            }
+        }
+    }
+
+    if (stderr.trim()) {
+        throw new Error(`MicroPython chyba: ${stderr.trim()}`);
+    }
+
+    return stdout;
+}
+
+async function uploadFileToDevice(port, fileContent, destPath, onProgress) {
+    await port.open({ baudRate: 115200 });
+
+    const writer = port.writable.getWriter();
+    const reader = port.readable.getReader();
+
+    try {
+        onProgress(0, 100, 'Připojuji se k raw REPL...');
+        await enterRawRepl(writer, reader);
+
+        onProgress(10, 100, 'Otevírám soubor na zařízení...');
+        await execRaw(writer, reader, `f=open('${destPath}','wb')\nw=f.write`);
+
+        // Send in chunks
+        const CHUNK_SIZE = 256;
+        const data = encoder.encode(fileContent);
+        const totalChunks = Math.ceil(data.length / CHUNK_SIZE);
+
+        for (let i = 0; i < totalChunks; i++) {
+            const chunk = data.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+
+            // Convert chunk to Python bytes literal
+            let pyBytes = "w(b'";
+            for (const byte of chunk) {
+                if (byte === 0x27) pyBytes += "\\'";
+                else if (byte === 0x5C) pyBytes += '\\\\';
+                else if (byte >= 0x20 && byte <= 0x7E) {
+                    pyBytes += String.fromCharCode(byte);
+                } else {
+                    pyBytes += '\\x' + byte.toString(16).padStart(2, '0');
+                }
+            }
+            pyBytes += "')";
+
+            await execRaw(writer, reader, pyBytes);
+
+            const percent = 10 + Math.round(((i + 1) / totalChunks) * 75);
+            onProgress(percent, 100, `Nahrávám... ${Math.round(((i + 1) / totalChunks) * 100)}%`);
+        }
+
+        onProgress(90, 100, 'Zavírám soubor...');
+        await execRaw(writer, reader, 'f.close()');
+
+        onProgress(95, 100, 'Restartuji zařízení...');
+        // Exit raw REPL and soft reset
+        await writeSerial(writer, new Uint8Array([CTRL_B]));
+        await new Promise(r => setTimeout(r, 100));
+        await writeSerial(writer, new Uint8Array([CTRL_D]));
+
+        onProgress(100, 100, 'Flash dokončen!');
+    } finally {
+        reader.releaseLock();
+        writer.releaseLock();
+        try { await port.close(); } catch (_) {}
     }
 }
 
@@ -133,7 +308,6 @@ async function onTemplateSelected() {
 
     deleteBtn.classList.remove('hidden');
 
-    // Načti placeholdery
     try {
         const res = await fetch(`/mcu/templates/${select.value}`);
         const data = await res.json();
@@ -169,7 +343,6 @@ async function handleTemplateUpload(e) {
 
         if (window.openToast) window.openToast(data.message, true);
 
-        // Refresh šablon a vyber novou
         await loadTemplates();
         const select = document.getElementById('flashTemplate');
         select.value = data.filename;
@@ -178,7 +351,7 @@ async function handleTemplateUpload(e) {
         showError(err.message);
     }
 
-    e.target.value = ''; // Reset input
+    e.target.value = '';
 }
 
 async function handleDeleteTemplate() {
@@ -204,25 +377,22 @@ async function handleDeleteTemplate() {
 async function startFlash() {
     if (isFlashing) return;
 
-    const portPath = document.getElementById('flashPort').value;
+    if (!serialPort) return showError('Připojte USB zařízení.');
+
     const templateFilename = document.getElementById('flashTemplate').value;
     const wifiSsid = document.getElementById('flashWifiSsid').value.trim();
     const wifiPassword = document.getElementById('flashWifiPass').value.trim();
 
-    // Validace
-    if (!portPath) return showError('Vyberte USB port.');
     if (!templateFilename) return showError('Vyberte šablonu.');
     if (!wifiSsid) return showError('Zadejte WiFi SSID.');
     if (!wifiPassword) return showError('Zadejte WiFi heslo.');
 
-    // Extra config
     const extraConfig = {
         gateway: document.getElementById('flashGateway').value.trim() || '192.168.1.1',
         subnet: document.getElementById('flashSubnet').value.trim() || '255.255.255.0',
         dns: document.getElementById('flashDns').value.trim() || '192.168.1.1'
     };
 
-    // MCU ID z URL
     const mcuId = window.location.pathname.split('/').pop();
 
     isFlashing = true;
@@ -232,84 +402,77 @@ async function startFlash() {
     hideError();
 
     try {
-        const res = await fetch(`/mcu/${mcuId}/flash`, {
+        // 1. Get rendered template from server
+        addLog('Generuji kód ze šablony...', 'running');
+        const res = await fetch(`/mcu/${mcuId}/render-template`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ portPath, templateFilename, wifiSsid, wifiPassword, extraConfig })
+            body: JSON.stringify({ templateFilename, wifiSsid, wifiPassword, extraConfig })
         });
         const data = await res.json();
 
-        if (!data.success) {
-            throw new Error(data.message);
+        if (!data.success) throw new Error(data.message);
+
+        addLog('Kód vygenerován.', 'success');
+
+        // 2. Upload via Web Serial
+        await uploadFileToDevice(serialPort, data.code, 'main.py', (percent, total, message) => {
+            const bar = document.getElementById('flashProgressBar');
+            if (bar) bar.style.width = `${percent}%`;
+            addLog(message, percent >= 100 ? 'success' : 'running');
+        });
+
+        // Done
+        const bar = document.getElementById('flashProgressBar');
+        const spinner = document.getElementById('flashSpinner');
+        if (bar) {
+            bar.style.width = '100%';
+            bar.className = bar.className.replace('bg-vintage-grape-500', 'bg-green-500');
+            bar.classList.add('bg-green-500');
         }
-        // Progress přijde přes Socket.IO
+        if (spinner) spinner.className = 'fas fa-check-circle mr-1 text-green-500';
+
+        if (window.openToast) window.openToast('Kód byl úspěšně nahrán na zařízení!', true);
+
     } catch (err) {
-        isFlashing = false;
-        setFlashUI(false);
-        showError(err.message);
-    }
-}
+        addLog(`Chyba: ${err.message}`, 'error');
 
-// === SOCKET.IO PROGRESS ===
-let flashSocket = null;
-
-function initSocketListeners() {
-    const tryAttach = () => {
-        if (typeof io === 'undefined') {
-            setTimeout(tryAttach, 500);
-            return;
+        const bar = document.getElementById('flashProgressBar');
+        const spinner = document.getElementById('flashSpinner');
+        if (bar) {
+            bar.className = bar.className.replace('bg-vintage-grape-500', 'bg-red-500');
+            bar.classList.add('bg-red-500');
         }
-        flashSocket = io();
-        flashSocket.on('flash_progress', handleFlashProgress);
-    };
-    setTimeout(tryAttach, 1000);
+        if (spinner) spinner.className = 'fas fa-times-circle mr-1 text-red-500';
+
+        showError(err.message);
+    } finally {
+        isFlashing = false;
+        setFlashUI(false);
+        serialPort = null;
+        updatePortStatus();
+    }
 }
 
-function handleFlashProgress(data) {
+// === UTILITY ===
+function addLog(message, status) {
     const log = document.getElementById('flashLog');
-    const bar = document.getElementById('flashProgressBar');
-    const spinner = document.getElementById('flashSpinner');
+    if (!log) return;
 
-    if (!log || !bar) return;
-
-    showProgress();
-
-    // Progress bar
-    const percent = data.total > 0 ? (data.step / data.total) * 100 : 0;
-    bar.style.width = `${percent}%`;
-
-    // Barva podle stavu
-    if (data.status === 'success') {
-        bar.className = bar.className.replace('bg-vintage-grape-500', 'bg-green-500');
-        bar.classList.add('bg-green-500');
-        spinner.className = 'fas fa-check-circle mr-1 text-green-500';
-        isFlashing = false;
-        setFlashUI(false);
-    } else if (data.status === 'error') {
-        bar.className = bar.className.replace('bg-vintage-grape-500', 'bg-red-500');
-        bar.classList.add('bg-red-500');
-        spinner.className = 'fas fa-times-circle mr-1 text-red-500';
-        isFlashing = false;
-        setFlashUI(false);
-    }
-
-    // Log zpráva
-    const iconClass = data.status === 'success' ? 'text-green-500 fa-check'
-        : data.status === 'error' ? 'text-red-500 fa-times'
+    const iconClass = status === 'success' ? 'text-green-500 fa-check'
+        : status === 'error' ? 'text-red-500 fa-times'
         : 'text-vintage-grape-400 fa-circle-notch fa-spin';
 
     const entry = document.createElement('div');
     entry.className = 'flex items-center gap-2 text-gray-700 dark:text-silver-300';
     entry.innerHTML = `
         <i class="fas ${iconClass} text-xs w-4"></i>
-        <span class="text-xs">${data.message}</span>
-        <span class="text-xs text-gray-400 ml-auto">${data.step}/${data.total}</span>
+        <span class="text-xs">${message}</span>
     `;
     log.appendChild(entry);
     log.scrollTop = log.scrollHeight;
 }
 
-// === UTILITY ===
 function showError(msg) {
     const el = document.getElementById('flashError');
     if (!el) return;

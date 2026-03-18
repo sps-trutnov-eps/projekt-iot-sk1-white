@@ -20,12 +20,11 @@ router.post('/update', MCUController.updateMCU);
 router.post('/update-api-key', MCUController.updateApiKey);
 
 // Flash routes (BEFORE /:id catch-all)
-router.get('/serial-ports', flashController.getSerialPorts);
 router.get('/templates', flashController.getTemplates);
 router.post('/templates/upload', flashController.uploadTemplate);
 router.get('/templates/:filename', flashController.getTemplateContent);
 router.delete('/templates/:filename', flashController.deleteTemplate);
-router.post('/:id/flash', flashController.flashDevice);
+router.post('/:id/render-template', flashController.renderTemplate);
 
 // Deck assignment routes (BEFORE /:id catch-all)
 router.get('/deck/entities', DeckAssignmentController.getAvailableEntities);

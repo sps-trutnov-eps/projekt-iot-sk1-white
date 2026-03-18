@@ -22,23 +22,34 @@
                 <p class="text-sm font-medium"></p>
             </div>
 
-            <!-- mpremote warning -->
-            <div id="mpremoteWarning" class="hidden bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 text-yellow-700 dark:text-yellow-300 px-4 py-3 rounded-lg">
-                <p class="text-sm font-medium"><i class="fas fa-exclamation-triangle mr-2"></i>mpremote není nainstalován. Spusťte: <code class="bg-yellow-100 dark:bg-yellow-900 px-1 rounded">pip install mpremote</code></p>
+            <!-- Web Serial API warning -->
+            <div id="webSerialWarning" class="hidden bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 text-yellow-700 dark:text-yellow-300 px-4 py-3 rounded-lg">
+                <p class="text-sm font-medium"><i class="fas fa-exclamation-triangle mr-2"></i>Web Serial API není podporováno v tomto prohlížeči. Použijte <strong>Chrome</strong> nebo <strong>Edge</strong>.</p>
             </div>
 
-            <!-- Krok 1: Výběr portu -->
-            <div class="space-y-2">
+            <!-- Krok 1: USB připojení -->
+            <div class="space-y-3">
                 <label class="flex items-center gap-2 text-sm font-medium text-midnight-violet-900 dark:text-silver-200">
                     <i class="fas fa-usb text-vintage-grape-500"></i>
-                    USB Port <span class="text-red-500">*</span>
+                    USB zařízení <span class="text-red-500">*</span>
                 </label>
+
+                <!-- Port status -->
+                <div id="flashPortStatus" class="flex items-center px-4 py-3 bg-ash-grey-100 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-900 dark:text-silver-100 transition-all">
+                    <i class="fas fa-usb text-gray-400 mr-2"></i>
+                    <span class="text-gray-500 dark:text-silver-400">Žádné zařízení připojeno</span>
+                </div>
+
                 <div class="flex gap-2">
-                    <select id="flashPort" class="flex-1 px-4 py-3 bg-ash-grey-100 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-900 dark:text-silver-100 focus:outline-none focus:border-vintage-grape-500 transition-all">
-                        <option value="">Hledám porty...</option>
-                    </select>
-                    <button type="button" id="refreshPorts" class="px-4 py-3 bg-ash-grey-200 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-600 dark:text-silver-300 hover:bg-ash-grey-300 dark:hover:bg-midnight-violet-700 transition-colors" title="Obnovit porty">
-                        <i class="fas fa-sync-alt"></i>
+                    <button type="button" id="flashConnectUsb"
+                        class="flex items-center gap-2 px-4 py-2.5 bg-vintage-grape-600 text-white rounded-lg hover:bg-vintage-grape-700 transition-colors text-sm font-medium">
+                        <i class="fas fa-plug"></i>
+                        Připojit USB
+                    </button>
+                    <button type="button" id="flashDisconnectUsb"
+                        class="hidden flex items-center gap-2 px-4 py-2.5 bg-ash-grey-200 dark:bg-midnight-violet-800 text-gray-600 dark:text-silver-300 rounded-lg hover:bg-ash-grey-300 dark:hover:bg-midnight-violet-700 transition-colors text-sm">
+                        <i class="fas fa-unlink"></i>
+                        Odpojit
                     </button>
                 </div>
             </div>
@@ -70,7 +81,6 @@
                     </h3>
                 </div>
 
-                <!-- Výběr existující šablony -->
                 <div class="space-y-2">
                     <label class="text-sm font-medium text-gray-700 dark:text-silver-300">Vyberte šablonu <span class="text-red-500">*</span></label>
                     <select id="flashTemplate" class="w-full px-4 py-3 bg-ash-grey-100 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-900 dark:text-silver-100 focus:outline-none focus:border-vintage-grape-500 transition-all">
@@ -78,7 +88,6 @@
                     </select>
                 </div>
 
-                <!-- Upload nové šablony -->
                 <div class="flex items-center gap-3">
                     <label class="flex items-center gap-2 px-4 py-2.5 bg-ash-grey-200 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-600 dark:text-silver-300 hover:bg-ash-grey-300 dark:hover:bg-midnight-violet-700 transition-colors cursor-pointer text-sm">
                         <i class="fas fa-upload"></i>
@@ -90,7 +99,6 @@
                     </button>
                 </div>
 
-                <!-- Placeholder info -->
                 <div id="placeholderInfo" class="hidden">
                     <p class="text-xs text-gray-500 dark:text-silver-400 mb-2">Nalezené placeholdery v šabloně:</p>
                     <div id="placeholderList" class="flex flex-wrap gap-1.5"></div>
