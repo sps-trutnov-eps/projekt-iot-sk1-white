@@ -4,9 +4,11 @@ import { fetchMcuInfo, initApiKeyListeners } from './mcuManager.js';
 import { initModals, removeMetric } from './modalManager.js';
 import { initLiveData } from './liveData.js';
 import { initDeckConfig } from './deckManager.js';
+import { initFlashModal, openFlashModal } from './flashManager.js';
 import { getMcuId } from './utils.js';
 
 // 1. GLOBÁLNÍ BRIDGE (Nezbytné pro události onclick v HTML)
+window.openFlashModal = openFlashModal;
 window.updateChart = updateChart;
 window.updateChartMetric = updateChartMetric;
 window.removeMetric = removeMetric;
@@ -30,6 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Inicializace
     initApiKeyListeners();
     initModals();
+    initFlashModal();
 
     await window.updateView(false);
 
