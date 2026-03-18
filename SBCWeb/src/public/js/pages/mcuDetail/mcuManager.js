@@ -25,8 +25,18 @@ export async function fetchMcuInfo() {
             const apiKeyEl = document.getElementById('mcu-api-key');
             if (apiKeyEl && apiKeyEl.textContent !== mcu.apiKey) {
                 apiKeyEl.textContent = mcu.apiKey || 'Žádný klíč';
-                apiKeyEl.style.webkitTextSecurity = 'disc'; 
+                apiKeyEl.style.webkitTextSecurity = 'disc';
                 apiKeyEl.classList.add('blur-[4px]');
+            }
+
+            // Zobrazit/skrýt tlačítko Deck Konfigurace podle role
+            const deckBtn = document.getElementById('deckConfigBtn');
+            if (deckBtn) {
+                if (mcu.role === 'deck') {
+                    deckBtn.classList.remove('hidden');
+                } else {
+                    deckBtn.classList.add('hidden');
+                }
             }
 
             // OPRAVA: Už nepřevádíme na boolean. Necháme původní číslo.

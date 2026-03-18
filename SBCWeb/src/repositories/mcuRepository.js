@@ -5,10 +5,10 @@ class MCURepository{
     static create(mcuData) {
         // is_online se automaticky nastaví na 0 podle výchozí hodnoty v DB
         const query = `
-            INSERT INTO mcus (name, type_id, ip_address, mac_address, location, description, api_key)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO mcus (name, type_id, ip_address, mac_address, location, description, api_key, role)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         `;
-        
+
         const stmt = db.prepare(query);
         const result = stmt.run(
             mcuData.name,
@@ -17,9 +17,10 @@ class MCURepository{
             mcuData.mac_address,
             mcuData.location,
             mcuData.description,
-            mcuData.api_key
+            mcuData.api_key,
+            mcuData.role || 'sensor'
         );
-        
+
         return result.lastInsertRowid;
     }
     
@@ -39,15 +40,16 @@ class MCURepository{
 
         const mcu = new MCU({
             id: row.device_id,
-            type: row.type_id, 
+            type: row.type_id,
             name: row.name,
             ip_address: row.ip_address,
             mac_address: row.mac_address,
             description: row.description,
             location: row.location,
             last_seen: row.last_seen,
-            is_online: row.is_online, // NOVÉ: Mapování statusu
-            api_key: row.api_key
+            is_online: row.is_online,
+            api_key: row.api_key,
+            role: row.role
         });
 
         return mcu;
@@ -58,7 +60,7 @@ class MCURepository{
         const rows = db.prepare(query).all();
         return rows.map(row => new MCU({
             id: row.device_id,
-            type: row.type_id, 
+            type: row.type_id,
             name: row.name,
             ip_address: row.ip_address,
             mac_address: row.mac_address,
@@ -66,7 +68,8 @@ class MCURepository{
             location: row.location,
             last_seen: row.last_seen,
             is_online: row.is_online,
-            api_key: row.api_key
+            api_key: row.api_key,
+            role: row.role
         }));
     }
 
@@ -86,12 +89,12 @@ class MCURepository{
 
     static update(id, mcuData) {
         const query = `
-            UPDATE mcus 
-            SET name = ?, type_id = ?, ip_address = ?, mac_address = ?, 
-                location = ?, description = ?
+            UPDATE mcus
+            SET name = ?, type_id = ?, ip_address = ?, mac_address = ?,
+                location = ?, description = ?, role = ?
             WHERE device_id = ?
         `;
-        
+
         db.prepare(query).run(
             mcuData.name,
             mcuData.type,
@@ -99,6 +102,7 @@ class MCURepository{
             mcuData.mac_address,
             mcuData.location,
             mcuData.description,
+            mcuData.role || 'sensor',
             id
         );
         

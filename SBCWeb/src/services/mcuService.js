@@ -162,7 +162,8 @@ class MCUService {
             macAddress: data.macAddress || data.mac_address,
             location: data.location || data.mcuLocation,
             description: data.description,
-            apiKey: this.generateApiKey()
+            apiKey: this.generateApiKey(),
+            role: data.role || 'sensor'
         });
         
         const dbData = mcu.toDatabase();
@@ -201,7 +202,8 @@ class MCUService {
             ip_address: data.ipAddress ?? mcu.ipAddress,
             mac_address: data.macAddress ?? mcu.macAddress,
             location: data.location ?? mcu.location,
-            description: data.description ?? mcu.description
+            description: data.description ?? mcu.description,
+            role: data.role ?? mcu.role ?? 'sensor'
         }
 
         // SPRÁVNĚ ZAPOJENO

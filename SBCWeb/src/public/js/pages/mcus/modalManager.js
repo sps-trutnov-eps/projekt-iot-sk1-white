@@ -28,7 +28,8 @@ function initAddMcuModal() {
 
             const formData = {
                 name: document.getElementById('mcuName').value,
-                type: parseInt(document.getElementById('TypeSelectorMCUForm').value), // přidán parseInt pro jistotu
+                type: parseInt(document.getElementById('TypeSelectorMCUForm').value),
+                role: document.getElementById('mcuRole')?.value || 'sensor',
                 ipAddress: document.getElementById('mcuIP').value,
                 macAddress: document.getElementById('mcuMAC').value,
                 location: document.getElementById('mcuLocation').value,

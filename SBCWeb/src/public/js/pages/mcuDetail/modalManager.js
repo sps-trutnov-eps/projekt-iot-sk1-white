@@ -280,7 +280,8 @@ export function initModals() {
             const formData = {
                 id: document.getElementById('editMcuId').value,
                 name: document.getElementById('editMcuName').value,
-                type: parseInt(document.getElementById('editTypeSelector').value), 
+                type: parseInt(document.getElementById('editTypeSelector').value),
+                role: document.getElementById('editMcuRole')?.value || 'sensor',
                 location: document.getElementById('editMcuLocation').value,
                 ipAddress: document.getElementById('editMcuIP').value,
                 macAddress: document.getElementById('editMcuMAC').value,
@@ -444,6 +445,10 @@ window.openEditMCUModal = async function() {
             document.getElementById('editMcuIP').value = mcu.ipAddress || mcu.ip_address || '';
             document.getElementById('editMcuMAC').value = mcu.macAddress || mcu.mac_address || '';
             document.getElementById('editMcuDescription').value = mcu.description || '';
+
+            // Role selector
+            const roleEl = document.getElementById('editMcuRole');
+            if (roleEl) roleEl.value = mcu.role || 'sensor';
 
             try { modal.hideError(); } catch (e) {}
             modal.open();

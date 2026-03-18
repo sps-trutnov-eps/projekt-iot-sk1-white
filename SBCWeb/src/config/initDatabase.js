@@ -79,6 +79,25 @@ function initDB() {
     db.exec('ALTER TABLE event_logs ADD COLUMN is_read INTEGER DEFAULT 0');
   } catch (_) { /* sloupec již existuje */ }
 
+  // Migrace: přidání sloupce role do mcus (sensor / deck)
+  try {
+    db.exec("ALTER TABLE mcus ADD COLUMN role TEXT DEFAULT 'sensor'");
+    console.log('[DB] Migrace: přidán sloupec role do mcus.');
+  } catch (_) { /* sloupec již existuje */ }
+
+  // Tabulka pro přiřazení entit k decku (které servery/příkazy/MCU senzory deck zobrazuje)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS deck_assignments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      deck_id INTEGER NOT NULL,
+      entity_type TEXT NOT NULL CHECK(entity_type IN ('server', 'command', 'mcu')),
+      entity_id INTEGER NOT NULL,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (deck_id) REFERENCES mcus(device_id) ON DELETE CASCADE,
+      UNIQUE(deck_id, entity_type, entity_id)
+    )
+  `);
+
   // Migrace: ON DELETE SET NULL → ON DELETE CASCADE pro event_logs
   try {
     const fkInfo = db.prepare(`PRAGMA foreign_key_list(event_logs)`).all();
