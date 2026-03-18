@@ -1,6 +1,9 @@
 require('dotenv').config();
 const express = require('express');
 const http = require('http');
+const https = require('https');
+const fs = require('fs');
+const { execSync } = require('child_process');
 const socketIo = require('socket.io');
 const path = require('path');
 const session = require('express-session');
@@ -18,6 +21,29 @@ const MeasurementService = require('./src/services/MeasurementService');
 const MqttHandler = require('./src/sockets/mqttHandler');
 const WebSocketHandler = require('./src/sockets/webSocketHandler');
 const ServerChecker = require('./src/services/ServerChecker');
+
+// --- HTTPS (self-signed cert pro Web Serial API na LAN) ---
+const CERT_DIR = path.join(__dirname, 'data');
+const CERT_PATH = path.join(CERT_DIR, 'cert.pem');
+const KEY_PATH = path.join(CERT_DIR, 'key.pem');
+const HTTPS_PORT = parseInt(server_port) + 443; // default: 3443
+
+function ensureSslCert() {
+    if (fs.existsSync(CERT_PATH) && fs.existsSync(KEY_PATH)) return true;
+    try {
+        if (!fs.existsSync(CERT_DIR)) fs.mkdirSync(CERT_DIR, { recursive: true });
+        execSync(
+            `openssl req -x509 -newkey rsa:2048 -keyout "${KEY_PATH}" -out "${CERT_PATH}" -days 365 -nodes -subj "/CN=iot-server"`,
+            { stdio: 'pipe' }
+        );
+        console.log('[SSL] Self-signed certifikát vygenerován.');
+        return true;
+    } catch (e) {
+        console.warn('[SSL] Nelze vygenerovat certifikát (openssl není dostupný?):', e.message);
+        return false;
+    }
+}
+
 const server = http.createServer(app);
 const io = socketIo(server, { cors: { origin: "*" } });
 
@@ -30,7 +56,8 @@ app.use(session({
   secret: session_secret,
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false, httpOnly: true, maxAge: 8 * 60 * 60 * 1000 } // 8 hodin
+  cookie: { secure: false, httpOnly: true, maxAge: 8 * 60 * 60 * 1000 }, // 8 hodin
+  proxy: true
 }));
 app.use(express.static(path.join(__dirname, './src/public')));
 app.set('view engine', 'ejs');
@@ -82,6 +109,26 @@ app.use((req, res) => {
   res.status(404).render('404', { title: '404 - Stránka nenalezena' });
 });
 
-server.listen(server_port, server_host , () => {
-    console.log(`Server běží na http://localhost:${server_port}`);
+server.listen(server_port, server_host, () => {
+    console.log(`[HTTP] Server běží na http://localhost:${server_port}`);
 });
+
+// --- HTTPS server (pro Web Serial API na LAN) ---
+if (ensureSslCert()) {
+    try {
+        const sslOptions = {
+            key: fs.readFileSync(KEY_PATH),
+            cert: fs.readFileSync(CERT_PATH)
+        };
+        const httpsServer = https.createServer(sslOptions, app);
+        const ioHttps = socketIo(httpsServer, { cors: { origin: "*" } });
+        WebSocketHandler.init(ioHttps);
+
+        httpsServer.listen(HTTPS_PORT, server_host, () => {
+            console.log(`[HTTPS] Server běží na https://localhost:${HTTPS_PORT}`);
+            console.log(`[HTTPS] Pro Web Serial API na LAN použijte https://<ip>:${HTTPS_PORT}`);
+        });
+    } catch (e) {
+        console.warn('[HTTPS] Nelze spustit HTTPS server:', e.message);
+    }
+}
