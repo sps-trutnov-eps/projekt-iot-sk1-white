@@ -71,7 +71,15 @@ class MCUService {
                         const cleanIp = targetIp ? String(targetIp).trim() : null;
 
                         if (!cleanIp) {
-                            newStatus = 0; 
+                            newStatus = 0;
+                        } else if (mcu.role === 'deck') {
+                            // Deck nemá passive stav — pouze online/offline
+                            try {
+                                const pingRes = await ping.promise.probe(cleanIp, { timeout: 2 });
+                                newStatus = pingRes.alive ? 1 : 0;
+                            } catch (e) {
+                                newStatus = 0;
+                            }
                         } else {
                             try {
                                 const pingRes = await ping.promise.probe(cleanIp, { timeout: 2 });

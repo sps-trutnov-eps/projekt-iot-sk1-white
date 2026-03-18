@@ -29,14 +29,21 @@ export async function fetchMcuInfo() {
                 apiKeyEl.classList.add('blur-[4px]');
             }
 
-            // Zobrazit/skrýt tlačítko Deck Konfigurace podle role
-            const deckBtn = document.getElementById('deckConfigBtn');
-            if (deckBtn) {
-                if (mcu.role === 'deck') {
-                    deckBtn.classList.remove('hidden');
-                } else {
-                    deckBtn.classList.add('hidden');
-                }
+            // Zobrazit/skrýt prvky podle role (deck vs sensor)
+            const sensorDataSection = document.getElementById('sensorDataSection');
+            const sensorListSection = document.getElementById('sensorListSection');
+            const deckInlineSection = document.getElementById('deckInlineSection');
+
+            if (mcu.role === 'deck') {
+                if (sensorDataSection) sensorDataSection.classList.add('hidden');
+                if (sensorListSection) sensorListSection.classList.add('hidden');
+                if (deckInlineSection) deckInlineSection.classList.remove('hidden');
+                // Načtení deck konfigurace
+                if (window.loadDeckConfig) window.loadDeckConfig();
+            } else {
+                if (sensorDataSection) sensorDataSection.classList.remove('hidden');
+                if (sensorListSection) sensorListSection.classList.remove('hidden');
+                if (deckInlineSection) deckInlineSection.classList.add('hidden');
             }
 
             // OPRAVA: Už nepřevádíme na boolean. Necháme původní číslo.

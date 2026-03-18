@@ -53,13 +53,21 @@
                 <div class="xl:col-span-2 flex flex-col gap-6 w-full">
                     <%- include('partials/mcuDetail/mcu') %>
 
-                    <%- include('partials/mcuDetail/measurementsCards') %>
+                    <div id="sensorDataSection">
+                        <%- include('partials/mcuDetail/measurementsCards') %>
 
-                    <%- include('partials/mcuDetail/graph') %>
+                        <%- include('partials/mcuDetail/graph') %>
+                    </div>
+
+                    <div id="deckInlineSection" class="hidden">
+                        <%- include('partials/mcuDetail/deckInlineConfig') %>
+                    </div>
                 </div>
 
                 <div class="xl:col-span-1 flex flex-col gap-6 sticky top-[96px] h-[calc(100vh-120px)]">
-                    <%- include('partials/mcuDetail/sensors') %>
+                    <div id="sensorListSection">
+                        <%- include('partials/mcuDetail/sensors') %>
+                    </div>
                     <%- include('partials/mcuDetail/log') %>
                 </div>
             </div>
@@ -72,7 +80,6 @@
     <%- include('partials/mcuDetail/deleteChannelModal') %>
     <%- include('partials/mcuDetail/editMCUModal') %>
     <%- include('partials/mcuDetail/flashModal') %>
-    <%- include('partials/mcuDetail/deckConfigModal') %>
 
     <%- include('partials/mcuDetail/deleteSensorModal') %>
     <%- include('partials/mcuDetail/thresholdModal') %>

@@ -1,6 +1,6 @@
 import { getMcuId } from './utils.js';
 
-let deckData = null; // { available, assigned }
+let deckData = null;
 
 function createCheckbox(entity, type, isChecked) {
     const id = `deck-${type}-${entity.id}`;
@@ -34,7 +34,6 @@ function renderList(containerId, entities, type, assignedIds) {
         createCheckbox(e, type, assignedIds.includes(e.id))
     ).join('');
 
-    // Vizuální feedback při změně checkboxu
     container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
         cb.addEventListener('change', () => {
             const label = cb.closest('label');
@@ -54,10 +53,9 @@ function getCheckedIds(type) {
     return Array.from(checkboxes).map(cb => parseInt(cb.value));
 }
 
-function toggleAll(containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+function toggleAllInContainer(type) {
+    // Hledá v inline i v modalu
+    const checkboxes = document.querySelectorAll(`input[data-type="${type}"]`);
     const allChecked = Array.from(checkboxes).every(cb => cb.checked);
     checkboxes.forEach(cb => {
         cb.checked = !allChecked;
@@ -65,7 +63,8 @@ function toggleAll(containerId) {
     });
 }
 
-async function loadDeckConfig() {
+// ── Načtení dat (sdílené pro inline i modal) ──
+export async function loadDeckConfig() {
     const mcuId = getMcuId();
     try {
         const res = await fetch(`/mcu/${mcuId}/deck-config/available`);
@@ -73,13 +72,16 @@ async function loadDeckConfig() {
         if (!data.success) throw new Error(data.message);
 
         deckData = data;
+        const assigned = data.assigned || {};
 
-        renderList('deckServersList', data.available.servers, 'server', data.assigned.servers || []);
-        renderList('deckCommandsList', data.available.commands, 'command', data.assigned.commands || []);
-        renderList('deckMcusList', data.available.mcus, 'mcu', data.assigned.mcus || []);
+        // Inline sekce
+        renderList('deckInlineServers', data.available.servers, 'server', assigned.servers || []);
+        renderList('deckInlineCommands', data.available.commands, 'command', assigned.commands || []);
+        renderList('deckInlineMcus', data.available.mcus, 'mcu', assigned.mcus || []);
+
     } catch (e) {
         console.error('[Deck] Chyba při načítání konfigurace:', e);
-        const errorEl = document.getElementById('deckConfigError');
+        const errorEl = document.getElementById('deckInlineError');
         if (errorEl) {
             errorEl.querySelector('p').textContent = e.message || 'Nepodařilo se načíst konfiguraci.';
             errorEl.classList.remove('hidden');
@@ -89,8 +91,8 @@ async function loadDeckConfig() {
 
 async function saveDeckConfig() {
     const mcuId = getMcuId();
-    const saveBtn = document.getElementById('deckConfigSave');
-    const errorEl = document.getElementById('deckConfigError');
+    const saveBtn = document.getElementById('deckInlineSave');
+    const errorEl = document.getElementById('deckInlineError');
 
     const config = {
         servers: getCheckedIds('server'),
@@ -98,7 +100,7 @@ async function saveDeckConfig() {
         mcus: getCheckedIds('mcu')
     };
 
-    saveBtn.disabled = true;
+    if (saveBtn) saveBtn.disabled = true;
     errorEl?.classList.add('hidden');
 
     try {
@@ -110,7 +112,6 @@ async function saveDeckConfig() {
         const data = await res.json();
         if (!data.success) throw new Error(data.message);
 
-        closeDeckModal();
         if (window.openToast) {
             window.openToast('Konfigurace decku uložena a odeslána.', true);
         }
@@ -120,14 +121,14 @@ async function saveDeckConfig() {
             errorEl.classList.remove('hidden');
         }
     } finally {
-        saveBtn.disabled = false;
+        if (saveBtn) saveBtn.disabled = false;
     }
 }
 
 async function pushDeckConfig() {
     const mcuId = getMcuId();
-    const pushBtn = document.getElementById('deckPushConfig');
-    pushBtn.disabled = true;
+    const pushBtn = document.getElementById('deckInlinePush');
+    if (pushBtn) pushBtn.disabled = true;
 
     try {
         const res = await fetch(`/mcu/${mcuId}/deck-push`, { method: 'POST' });
@@ -138,38 +139,20 @@ async function pushDeckConfig() {
     } catch (e) {
         console.error('[Deck] Push chyba:', e);
     } finally {
-        pushBtn.disabled = false;
+        if (pushBtn) pushBtn.disabled = false;
     }
 }
 
-function closeDeckModal() {
-    document.getElementById('deckConfigModal')?.classList.add('hidden');
-}
-
-export function openDeckModal() {
-    const modal = document.getElementById('deckConfigModal');
-    if (!modal) return;
-    modal.classList.remove('hidden');
-    document.getElementById('deckConfigError')?.classList.add('hidden');
-    loadDeckConfig();
-}
-
 export function initDeckManager() {
-    const modal = document.getElementById('deckConfigModal');
-    if (!modal) return; // Deck modal neexistuje na stránce
+    // Inline tlačítka
+    document.getElementById('deckInlineSave')?.addEventListener('click', saveDeckConfig);
+    document.getElementById('deckInlinePush')?.addEventListener('click', pushDeckConfig);
 
-    document.getElementById('deckConfigClose')?.addEventListener('click', closeDeckModal);
-    document.getElementById('deckConfigCancel')?.addEventListener('click', closeDeckModal);
-    document.getElementById('deckConfigSave')?.addEventListener('click', saveDeckConfig);
-    document.getElementById('deckPushConfig')?.addEventListener('click', pushDeckConfig);
-
-    // Select all buttons
-    document.getElementById('deckSelectAllServers')?.addEventListener('click', () => toggleAll('deckServersList'));
-    document.getElementById('deckSelectAllCommands')?.addEventListener('click', () => toggleAll('deckCommandsList'));
-    document.getElementById('deckSelectAllMcus')?.addEventListener('click', () => toggleAll('deckMcusList'));
-
-    // Close on backdrop click
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) closeDeckModal();
+    // Toggle all tlačítka (inline)
+    document.querySelectorAll('.deck-toggle-all').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const type = btn.dataset.toggle;
+            if (type) toggleAllInContainer(type);
+        });
     });
 }
