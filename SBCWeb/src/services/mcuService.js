@@ -134,7 +134,9 @@ class MCUService {
             
             if (previousState === 0) {
                 EventService.logEvent(id, 'info', `Zařízení se připojilo k síti a odesílá data.`);
-            } 
+            } else if (previousState === 2) {
+                EventService.logEvent(id, 'info', `Zařízení přešlo z pasivního do aktivního režimu.`);
+            }
         }
         return true;
     }
