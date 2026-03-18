@@ -55,9 +55,11 @@ class EventRepository {
     static getRecent(limit = 20) {
         return db.prepare(`
             SELECT e.*,
-                COALESCE(m.name, s.name) AS entity_name
+                COALESCE(m.name, s.name) AS entity_name,
+                COALESCE(t.type, s.type) AS entity_type
             FROM event_logs e
             LEFT JOIN mcus m ON e.mcu_id = m.device_id
+            LEFT JOIN types t ON m.type_id = t.id
             LEFT JOIN servers s ON e.server_id = s.id
             ORDER BY e.timestamp DESC LIMIT ?
         `).all(limit);

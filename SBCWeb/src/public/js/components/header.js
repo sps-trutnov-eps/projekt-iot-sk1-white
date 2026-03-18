@@ -141,14 +141,24 @@ function initNotifications() {
         const item = document.createElement('div');
         item.className = `p-3 border-b border-ash-grey-100 dark:border-midnight-violet-700 last:border-0 rounded-lg mb-1 transition-colors ${bgClass} hover:brightness-95 cursor-default relative pr-6`;
         
+        const typeTag = payload.entityType
+            ? `<span class="text-[9px] text-silver-500 dark:text-silver-400 font-medium">${payload.entityType}</span>`
+            : '';
+        const nameTag = payload.entityName
+            ? `<div class="flex items-center gap-2 mb-0.5">`
+              + `<span class="text-[10px] font-bold text-vintage-grape-600 dark:text-vintage-grape-400">${payload.entityName}</span>`
+              + typeTag
+              + `</div>`
+            : '';
+
         item.innerHTML = `
             <div class="flex gap-3 items-start">
                 <i class="fas ${iconClass} ${colorClass} mt-0.5 text-sm shrink-0"></i>
                 <div class="flex-1 min-w-0">
+                    ${nameTag}
                     <p class="text-xs text-midnight-violet-900 dark:text-silver-100 font-medium leading-relaxed">${payload.message}</p>
                     <div class="flex justify-between items-center mt-1.5">
                         <span class="local-time text-[10px] text-silver-400 font-medium" data-timestamp="${payload.timestamp}">${time}</span>
-                        ${payload.mcuId ? `<span class="text-[9px] uppercase tracking-wider bg-white dark:bg-midnight-violet-800 px-1.5 py-0.5 rounded text-silver-500 dark:text-silver-400 border border-silver-200 dark:border-midnight-violet-700 shadow-sm">ID: ${payload.mcuId}</span>` : ''}
                     </div>
                 </div>
             </div>
@@ -178,14 +188,17 @@ function initNotifications() {
 
             if (data.success && data.events && data.events.length > 0) {
                 if (emptyState) emptyState.classList.add('hidden');
-                
+
                 data.events.forEach(evt => {
                     const payload = {
                         id: evt.id,
-                        mcuId: evt.mcu_id, 
+                        mcuId: evt.mcu_id,
+                        serverId: evt.server_id,
                         type: evt.type,
                         message: evt.message,
-                        timestamp: evt.timestamp
+                        timestamp: evt.timestamp,
+                        entityName: evt.entity_name || null,
+                        entityType: evt.entity_type || null
                     };
                     addNotification(payload, false);
                 });
