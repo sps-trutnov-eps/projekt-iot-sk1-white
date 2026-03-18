@@ -1,0 +1,153 @@
+<div id="flashModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-midnight-violet-950/40 backdrop-blur-sm">
+    <div class="relative w-full max-w-2xl flex flex-col bg-silver-50 dark:bg-[#150f18] rounded-xl shadow-2xl overflow-hidden max-h-[90vh] transition-colors duration-300">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between p-6 border-b border-ash-grey-200 dark:border-midnight-violet-800 bg-white dark:bg-midnight-violet-900 shrink-0">
+            <div class="flex flex-col gap-1">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-bolt text-yellow-500 text-xl"></i>
+                    <h2 class="text-2xl font-bold tracking-tight text-midnight-violet-900 dark:text-silver-50">Flash MCU</h2>
+                </div>
+                <p class="text-sm text-gray-500 dark:text-silver-400">Nahrajte MicroPython kód na zařízení přes USB.</p>
+            </div>
+            <button type="button" id="flashModalClose" class="text-gray-400 dark:text-silver-400 hover:text-gray-600 dark:hover:text-silver-100 transition-colors p-2 rounded-lg hover:bg-ash-grey-100 dark:hover:bg-midnight-violet-800">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-8 space-y-6 bg-silver-50 dark:bg-[#150f18]">
+
+            <!-- Chybový banner -->
+            <div id="flashError" class="hidden bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg">
+                <p class="text-sm font-medium"></p>
+            </div>
+
+            <!-- mpremote warning -->
+            <div id="mpremoteWarning" class="hidden bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 text-yellow-700 dark:text-yellow-300 px-4 py-3 rounded-lg">
+                <p class="text-sm font-medium"><i class="fas fa-exclamation-triangle mr-2"></i>mpremote není nainstalován. Spusťte: <code class="bg-yellow-100 dark:bg-yellow-900 px-1 rounded">pip install mpremote</code></p>
+            </div>
+
+            <!-- Krok 1: Výběr portu -->
+            <div class="space-y-2">
+                <label class="flex items-center gap-2 text-sm font-medium text-midnight-violet-900 dark:text-silver-200">
+                    <i class="fas fa-usb text-vintage-grape-500"></i>
+                    USB Port <span class="text-red-500">*</span>
+                </label>
+                <div class="flex gap-2">
+                    <select id="flashPort" class="flex-1 px-4 py-3 bg-ash-grey-100 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-900 dark:text-silver-100 focus:outline-none focus:border-vintage-grape-500 transition-all">
+                        <option value="">Hledám porty...</option>
+                    </select>
+                    <button type="button" id="refreshPorts" class="px-4 py-3 bg-ash-grey-200 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-600 dark:text-silver-300 hover:bg-ash-grey-300 dark:hover:bg-midnight-violet-700 transition-colors" title="Obnovit porty">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Krok 2: WiFi credentials -->
+            <div class="space-y-4 pt-4 border-t border-ash-grey-200 dark:border-midnight-violet-800">
+                <h3 class="text-sm font-bold text-midnight-violet-900 dark:text-silver-200 uppercase tracking-widest">
+                    <i class="fas fa-wifi mr-1"></i> WiFi konfigurace
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="space-y-2">
+                        <label for="flashWifiSsid" class="text-sm font-medium text-gray-700 dark:text-silver-300">SSID <span class="text-red-500">*</span></label>
+                        <input id="flashWifiSsid" type="text" placeholder="Název WiFi sítě"
+                            class="w-full px-4 py-3 bg-ash-grey-100 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-900 dark:text-silver-100 focus:outline-none focus:border-vintage-grape-500 transition-all" />
+                    </div>
+                    <div class="space-y-2">
+                        <label for="flashWifiPass" class="text-sm font-medium text-gray-700 dark:text-silver-300">Heslo <span class="text-red-500">*</span></label>
+                        <input id="flashWifiPass" type="password" placeholder="Heslo WiFi sítě"
+                            class="w-full px-4 py-3 bg-ash-grey-100 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-900 dark:text-silver-100 focus:outline-none focus:border-vintage-grape-500 transition-all" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Krok 3: Šablona -->
+            <div class="space-y-4 pt-4 border-t border-ash-grey-200 dark:border-midnight-violet-800">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-bold text-midnight-violet-900 dark:text-silver-200 uppercase tracking-widest">
+                        <i class="fas fa-file-code mr-1"></i> MicroPython šablona
+                    </h3>
+                </div>
+
+                <!-- Výběr existující šablony -->
+                <div class="space-y-2">
+                    <label class="text-sm font-medium text-gray-700 dark:text-silver-300">Vyberte šablonu <span class="text-red-500">*</span></label>
+                    <select id="flashTemplate" class="w-full px-4 py-3 bg-ash-grey-100 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-900 dark:text-silver-100 focus:outline-none focus:border-vintage-grape-500 transition-all">
+                        <option value="">Načítám šablony...</option>
+                    </select>
+                </div>
+
+                <!-- Upload nové šablony -->
+                <div class="flex items-center gap-3">
+                    <label class="flex items-center gap-2 px-4 py-2.5 bg-ash-grey-200 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-600 dark:text-silver-300 hover:bg-ash-grey-300 dark:hover:bg-midnight-violet-700 transition-colors cursor-pointer text-sm">
+                        <i class="fas fa-upload"></i>
+                        <span>Nahrát novou šablonu (.py)</span>
+                        <input type="file" id="templateUpload" accept=".py" class="hidden" />
+                    </label>
+                    <button type="button" id="deleteTemplate" class="hidden px-3 py-2.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors text-sm" title="Smazat vybranou šablonu">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+
+                <!-- Placeholder info -->
+                <div id="placeholderInfo" class="hidden">
+                    <p class="text-xs text-gray-500 dark:text-silver-400 mb-2">Nalezené placeholdery v šabloně:</p>
+                    <div id="placeholderList" class="flex flex-wrap gap-1.5"></div>
+                </div>
+            </div>
+
+            <!-- Síťová konfigurace (rozšířená) -->
+            <div class="space-y-4 pt-4 border-t border-ash-grey-200 dark:border-midnight-violet-800">
+                <button type="button" id="toggleNetworkConfig" class="flex items-center gap-2 text-sm font-bold text-midnight-violet-900 dark:text-silver-200 uppercase tracking-widest hover:text-vintage-grape-500 transition-colors">
+                    <i class="fas fa-chevron-right text-xs transition-transform" id="networkConfigArrow"></i>
+                    <i class="fas fa-network-wired mr-1"></i> Síťová konfigurace (volitelné)
+                </button>
+                <div id="networkConfig" class="hidden space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-gray-700 dark:text-silver-300">Gateway</label>
+                            <input id="flashGateway" type="text" placeholder="192.168.1.1" value="192.168.1.1"
+                                class="w-full px-4 py-3 bg-ash-grey-100 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-900 dark:text-silver-100 font-mono text-sm focus:outline-none focus:border-vintage-grape-500 transition-all" />
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-gray-700 dark:text-silver-300">Subnet</label>
+                            <input id="flashSubnet" type="text" placeholder="255.255.255.0" value="255.255.255.0"
+                                class="w-full px-4 py-3 bg-ash-grey-100 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-900 dark:text-silver-100 font-mono text-sm focus:outline-none focus:border-vintage-grape-500 transition-all" />
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-gray-700 dark:text-silver-300">DNS</label>
+                            <input id="flashDns" type="text" placeholder="192.168.1.1" value="192.168.1.1"
+                                class="w-full px-4 py-3 bg-ash-grey-100 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-900 dark:text-silver-100 font-mono text-sm focus:outline-none focus:border-vintage-grape-500 transition-all" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress sekce -->
+            <div id="flashProgress" class="hidden space-y-4 pt-4 border-t border-ash-grey-200 dark:border-midnight-violet-800">
+                <h3 class="text-sm font-bold text-midnight-violet-900 dark:text-silver-200 uppercase tracking-widest">
+                    <i class="fas fa-spinner fa-spin mr-1" id="flashSpinner"></i> Průběh
+                </h3>
+                <div class="w-full bg-ash-grey-200 dark:bg-midnight-violet-800 rounded-full h-3 overflow-hidden">
+                    <div id="flashProgressBar" class="bg-vintage-grape-500 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <div id="flashLog" class="space-y-1 max-h-32 overflow-y-auto custom-scrollbar text-sm"></div>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="p-6 border-t border-ash-grey-200 dark:border-midnight-violet-800 bg-white dark:bg-midnight-violet-900 flex justify-end gap-3 shrink-0">
+            <button type="button" id="flashCancel"
+                class="px-6 py-2.5 rounded-lg bg-ash-grey-200 dark:bg-midnight-violet-800 text-ash-grey-800 dark:text-silver-300 font-medium hover:bg-ash-grey-300 dark:hover:bg-midnight-violet-700 transition-colors">
+                Zavřít
+            </button>
+            <button type="button" id="flashStartBtn"
+                class="px-6 py-2.5 rounded-lg bg-yellow-500 text-white font-medium hover:bg-yellow-600 transition-colors flex items-center gap-2">
+                <i class="fas fa-bolt"></i>
+                Flashnout
+            </button>
+        </div>
+    </div>
+</div>

@@ -44,7 +44,10 @@ const seedDB = () => {
     { key: 'mcu_ping_interval', value: '30000', desc: 'Interval pingu pro MCU (v ms)' },
     { key: 'server_ping_interval', value: '60000', desc: 'Interval pingu pro servery (v ms)' },
     { key: 'command_timeout', value: '30000', desc: 'Timeout pro shell příkazy (v ms)' },
-    { key: 'server_checker_ping_timeout', value: '2', desc: 'Timeout pro ping serverů (v sekundách)' }
+    { key: 'server_checker_ping_timeout', value: '2', desc: 'Timeout pro ping serverů (v sekundách)' },
+    { key: 'network_gateway', value: '192.168.1.1', desc: 'Výchozí brána sítě' },
+    { key: 'network_subnet', value: '255.255.255.0', desc: 'Maska podsítě' },
+    { key: 'network_dns', value: '192.168.1.1', desc: 'DNS server' }
   ];
 
   // 3. Příprava SQL dotazů

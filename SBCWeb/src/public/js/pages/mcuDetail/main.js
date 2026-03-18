@@ -3,12 +3,14 @@ import { loadSensors } from './sensorManager.js';
 import { fetchMcuInfo, initApiKeyListeners } from './mcuManager.js';
 import { initModals, removeMetric } from './modalManager.js';
 import { initLiveData } from './liveData.js';
+import { initFlashModal, openFlashModal } from './flashManager.js';
 
 // 1. GLOBÁLNÍ BRIDGE (Nezbytné pro události onclick v HTML)
 window.updateChart = updateChart;
 window.updateChartMetric = updateChartMetric;
 window.removeMetric = removeMetric;
 window.refreshSensors = loadSensors;
+window.openFlashModal = openFlashModal;
 
 // Centrální funkce pro překreslení dat (volá se např. po přidání/smazání senzoru)
 window.updateView = async function(isBackground = false) {
@@ -28,6 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Inicializace
     initApiKeyListeners(); // Přidáno pro klíč
     initModals();
+    initFlashModal();
     initChart();
 
     await window.updateView(false); // Načtení dat (MCU info + Seznam senzorů)

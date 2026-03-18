@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const MCUController = require('../controllers/MCUController.js');
+const flashController = require('../controllers/flashController.js');
 
 // Hlavní stránka
 router.post('/add', MCUController.createMCU);
@@ -16,6 +17,14 @@ router.post('/get', MCUController.getMCU);
 router.post('/update', MCUController.updateMCU);
 
 router.post('/update-api-key', MCUController.updateApiKey);
+
+// Flash & šablony (MUSÍ být PŘED /:id catch-all)
+router.get('/serial-ports', flashController.getSerialPorts);
+router.get('/templates', flashController.getTemplates);
+router.post('/templates/upload', flashController.uploadTemplate);
+router.get('/templates/:filename', flashController.getTemplateContent);
+router.delete('/templates/:filename', flashController.deleteTemplate);
+router.post('/:id/flash', flashController.flashDevice);
 
 router.get('/:id', MCUController.renderMCUDetail)
 
