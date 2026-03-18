@@ -18,14 +18,26 @@ class EventRepository {
 
     // Načtení historie pro MCU
     static getByMcuId(mcuId, limit = 50) {
-        const query = `SELECT * FROM event_logs WHERE mcu_id = ? ORDER BY timestamp DESC LIMIT ?`;
+        const query = `
+            SELECT e.*, m.name AS entity_name
+            FROM event_logs e
+            LEFT JOIN mcus m ON e.mcu_id = m.device_id
+            WHERE e.mcu_id = ?
+            ORDER BY e.timestamp DESC LIMIT ?
+        `;
         const rows = db.prepare(query).all(mcuId, limit);
         return rows.map(row => new Event(row));
     }
 
     // PŘIDÁNO: Načtení historie pro Server
     static getByServerId(serverId, limit = 50) {
-        const query = `SELECT * FROM event_logs WHERE server_id = ? ORDER BY timestamp DESC LIMIT ?`;
+        const query = `
+            SELECT e.*, s.name AS entity_name
+            FROM event_logs e
+            LEFT JOIN servers s ON e.server_id = s.id
+            WHERE e.server_id = ?
+            ORDER BY e.timestamp DESC LIMIT ?
+        `;
         const rows = db.prepare(query).all(serverId, limit);
         return rows.map(row => new Event(row));
     }
@@ -41,8 +53,14 @@ class EventRepository {
 
     // Přidej do EventRepository.js
     static getRecent(limit = 20) {
-        // Vytáhneme posledních X záznamů od nejnovějšího
-        return db.prepare(`SELECT * FROM event_logs ORDER BY timestamp DESC LIMIT ?`).all(limit);
+        return db.prepare(`
+            SELECT e.*,
+                COALESCE(m.name, s.name) AS entity_name
+            FROM event_logs e
+            LEFT JOIN mcus m ON e.mcu_id = m.device_id
+            LEFT JOIN servers s ON e.server_id = s.id
+            ORDER BY e.timestamp DESC LIMIT ?
+        `).all(limit);
     }
 
     // PŘIDÁNO: Počet nepřečtených notifikací

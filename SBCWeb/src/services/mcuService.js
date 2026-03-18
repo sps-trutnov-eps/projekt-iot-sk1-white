@@ -103,7 +103,7 @@ class MCUService {
                         else if (newStatus === 2) { statusText = 'Passive'; type = 'warning'; }
                         else { statusText = 'Offline'; type = 'alert'; }
 
-                        EventService.logEvent(mcu.id, type, `Zařízení přešlo do stavu ${statusText}.`);
+                        EventService.logEvent(mcu.id, type, `Přešlo do stavu ${statusText}.`);
                     }
                 }
             } catch (error) {
@@ -133,9 +133,9 @@ class MCUService {
             const previousState = mcuBefore.is_online !== undefined ? mcuBefore.is_online : (mcuBefore.isOnline || 0);
             
             if (previousState === 0) {
-                EventService.logEvent(id, 'info', `Zařízení se připojilo k síti a odesílá data.`);
+                EventService.logEvent(id, 'info', `Připojilo se k síti a odesílá data.`);
             } else if (previousState === 2) {
-                EventService.logEvent(id, 'info', `Zařízení přešlo z pasivního do aktivního režimu.`);
+                EventService.logEvent(id, 'info', `Přešlo z pasivního do aktivního režimu.`);
             }
         }
         return true;

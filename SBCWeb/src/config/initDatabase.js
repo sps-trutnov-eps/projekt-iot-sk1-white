@@ -79,6 +79,33 @@ function initDB() {
     db.exec('ALTER TABLE event_logs ADD COLUMN is_read INTEGER DEFAULT 0');
   } catch (_) { /* sloupec již existuje */ }
 
+  // Migrace: ON DELETE SET NULL → ON DELETE CASCADE pro event_logs
+  try {
+    const fkInfo = db.prepare(`PRAGMA foreign_key_list(event_logs)`).all();
+    const needsMigration = fkInfo.some(fk => fk.on_delete === 'SET NULL');
+    if (needsMigration) {
+      db.exec(`
+        BEGIN TRANSACTION;
+        CREATE TABLE event_logs_new (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          mcu_id INTEGER,
+          server_id INTEGER,
+          type TEXT NOT NULL,
+          message TEXT NOT NULL,
+          timestamp TEXT DEFAULT (datetime('now')),
+          is_read INTEGER DEFAULT 0,
+          FOREIGN KEY (mcu_id) REFERENCES mcus(device_id) ON DELETE CASCADE,
+          FOREIGN KEY (server_id) REFERENCES servers(id) ON DELETE CASCADE
+        );
+        INSERT INTO event_logs_new SELECT * FROM event_logs;
+        DROP TABLE event_logs;
+        ALTER TABLE event_logs_new RENAME TO event_logs;
+        COMMIT;
+      `);
+      console.log('[DB] Migrace event_logs: ON DELETE SET NULL → CASCADE dokončena.');
+    }
+  } catch (e) { console.error('[DB] Migrace event_logs selhala:', e); }
+
   db.exec(`
     CREATE TABLE IF NOT EXISTS channel_thresholds (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
