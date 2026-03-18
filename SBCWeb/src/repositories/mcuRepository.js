@@ -20,7 +20,7 @@ class MCURepository{
             mcuData.api_key,
             mcuData.role || 'sensor'
         );
-
+        
         return result.lastInsertRowid;
     }
     

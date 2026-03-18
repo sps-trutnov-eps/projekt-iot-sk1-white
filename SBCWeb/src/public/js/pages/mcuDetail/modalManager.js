@@ -281,7 +281,7 @@ export function initModals() {
                 id: document.getElementById('editMcuId').value,
                 name: document.getElementById('editMcuName').value,
                 type: parseInt(document.getElementById('editTypeSelector').value),
-                role: document.getElementById('editMcuRole')?.value || 'sensor',
+                role: document.getElementById('editMcuRole').value,
                 location: document.getElementById('editMcuLocation').value,
                 ipAddress: document.getElementById('editMcuIP').value,
                 macAddress: document.getElementById('editMcuMAC').value,
@@ -446,9 +446,8 @@ window.openEditMCUModal = async function() {
             document.getElementById('editMcuMAC').value = mcu.macAddress || mcu.mac_address || '';
             document.getElementById('editMcuDescription').value = mcu.description || '';
 
-            // Role selector
-            const roleEl = document.getElementById('editMcuRole');
-            if (roleEl) roleEl.value = mcu.role || 'sensor';
+            const roleSelect = document.getElementById('editMcuRole');
+            if (roleSelect) roleSelect.value = mcu.role || 'sensor';
 
             try { modal.hideError(); } catch (e) {}
             modal.open();

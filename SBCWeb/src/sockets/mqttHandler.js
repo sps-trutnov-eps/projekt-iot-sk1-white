@@ -2,7 +2,6 @@
 const mqtt = require('mqtt');
 const MeasurementService = require('../services/MeasurementService');
 const SettingService = require('../services/SettingsService');
-const DeckService = require('../services/DeckService');
 const config = require('../config/config');
 
 class MqttHandler {
@@ -37,7 +36,7 @@ class MqttHandler {
             // Odběr pro výsledky spuštěných příkazů
             this.client.subscribe('server/+/status');
 
-            // Odběr pro dashboard config request (individuální per-deck: dashboard/{apiKey}/request/config)
+            // Odběr pro dashboard config request (wildcard pro individuální decky)
             this.client.subscribe('dashboard/+/request/config');
             console.log('[MQTT] Subscribováno na dashboard/+/request/config');
 
@@ -61,12 +60,12 @@ class MqttHandler {
             }
 
             // 2. Požadavek o konfiguraci od Dashboard MCU (per-deck)
-            //    Topic format: dashboard/{apiKey}/request/config
+            //    Topic: dashboard/{apiKey}/request/config
             if (topic.startsWith('dashboard/') && topic.endsWith('/request/config')) {
                 const parts = topic.split('/');
                 if (parts.length === 4) {
                     const apiKey = parts[1];
-                    this.handleDeckConfigRequest(apiKey);
+                    this.pushDeckConfigByApiKey(apiKey);
                 }
             }
 
@@ -122,65 +121,63 @@ class MqttHandler {
     }
 
     /**
-     * Pushne konfiguraci pro VŠECHNY decky (volá se při změně serverů/příkazů/MCU)
+     * Pushne konfiguraci na všechny deck MCU (individuálně podle apiKey).
      */
     static pushDashboardConfig() {
         try {
-            const DeckAssignmentRepository = require('../repositories/DeckAssignmentRepository');
-            const decks = DeckAssignmentRepository.getAllDecks();
+            const MCUService = require('../services/mcuService');
+            const allMcus = MCUService.getAllMCUs();
+            const decks = allMcus.filter(m => m.role === 'deck' && m.apiKey);
 
             for (const deck of decks) {
-                if (!deck.api_key) continue;
-                try {
-                    const payload = DeckService.buildDeckConfigPayload(deck.device_id);
-                    const topic = `dashboard/${deck.api_key}/config`;
-                    this.publishConfig(topic, payload);
-                    console.log(`[MQTT] Konfigurace odeslána na deck "${deck.name}" (${topic})`);
-                } catch (e) {
-                    console.error(`[MQTT] Chyba při sestavení config pro deck ${deck.device_id}:`, e.message);
-                }
+                this.pushDeckConfig(deck.id);
+            }
+
+            if (decks.length === 0) {
+                console.log('[MQTT] Žádné deck MCU pro push konfigurace.');
             }
         } catch (error) {
-            console.error('[MQTT] Chyba při sestavení dashboard config:', error.message);
+            console.error('[MQTT] Chyba při push dashboard config:', error.message);
         }
     }
 
     /**
-     * Pushne konfiguraci pro konkrétní deck (podle ID)
+     * Pushne filtrovanou konfiguraci na konkrétní deck (podle MCU ID).
      */
     static pushDeckConfig(deckId) {
         try {
+            const DeckAssignmentService = require('../services/DeckAssignmentService');
             const MCURepository = require('../repositories/MCURepository');
-            const deck = MCURepository.findById(deckId);
-            if (!deck || deck.role !== 'deck' || !deck.apiKey) {
-                console.warn(`[MQTT] pushDeckConfig: Deck ${deckId} nenalezen nebo nemá API klíč.`);
-                return;
-            }
 
-            const payload = DeckService.buildDeckConfigPayload(deckId);
+            const deck = MCURepository.findById(deckId);
+            if (!deck || !deck.apiKey) return;
+
+            const configPayload = DeckAssignmentService.getFilteredConfig(deckId);
             const topic = `dashboard/${deck.apiKey}/config`;
-            this.publishConfig(topic, payload);
-            console.log(`[MQTT] Konfigurace odeslána na deck "${deck.name}" (${topic})`);
+            this.publishConfig(topic, configPayload);
+            console.log(`[MQTT] Konfigurace odeslána na ${topic}`);
         } catch (error) {
-            console.error(`[MQTT] Chyba při push config pro deck ${deckId}:`, error.message);
+            console.error(`[MQTT] Chyba při push deck config (ID ${deckId}):`, error.message);
         }
     }
 
     /**
-     * Zpracuje požadavek o konfiguraci od konkrétního decku (identifikovaného přes API klíč)
+     * Pushne konfiguraci na deck identifikovaný API klíčem (voláno z MQTT request).
      */
-    static handleDeckConfigRequest(apiKey) {
+    static pushDeckConfigByApiKey(apiKey) {
         try {
             const MCURepository = require('../repositories/MCURepository');
             const deck = MCURepository.findByApiKey(apiKey);
-            if (!deck || deck.role !== 'deck') {
-                console.warn(`[MQTT] Config request od neznámého decku (apiKey: ${apiKey.substring(0, 8)}...)`);
+
+            if (!deck) {
+                console.warn(`[MQTT] Neznámý API klíč pro deck request: ${apiKey}`);
                 return;
             }
 
-            this.pushDeckConfig(deck.id);
+            const deckId = deck.id || deck.device_id;
+            this.pushDeckConfig(deckId);
         } catch (error) {
-            console.error(`[MQTT] Chyba při handleDeckConfigRequest:`, error.message);
+            console.error(`[MQTT] Chyba při push deck config by API key:`, error.message);
         }
     }
 

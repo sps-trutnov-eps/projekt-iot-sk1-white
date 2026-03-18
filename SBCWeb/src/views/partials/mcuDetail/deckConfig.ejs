@@ -1,0 +1,44 @@
+<div id="deckConfigSection" class="hidden flex flex-col gap-6 w-full">
+    <!-- Servery & Příkazy -->
+    <div class="bg-white dark:bg-midnight-violet-900 rounded-xl border border-ash-grey-200 dark:border-midnight-violet-800 shadow-sm transition-colors duration-300">
+        <div class="p-4 border-b border-ash-grey-100 dark:border-midnight-violet-800 bg-ash-grey-50 dark:bg-midnight-violet-900/50 flex items-center gap-2">
+            <i class="fas fa-server text-vintage-grape-500 text-sm"></i>
+            <h3 class="font-bold text-midnight-violet-900 dark:text-silver-200 text-sm uppercase tracking-wider">Servery & Příkazy</h3>
+        </div>
+        <div id="deckServersList" class="p-4 space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar">
+            <div class="text-center text-silver-400 text-xs py-4">
+                <i class="fas fa-spinner fa-spin mr-1"></i> Načítám...
+            </div>
+        </div>
+    </div>
+
+    <!-- MCU Senzory -->
+    <div class="bg-white dark:bg-midnight-violet-900 rounded-xl border border-ash-grey-200 dark:border-midnight-violet-800 shadow-sm transition-colors duration-300">
+        <div class="p-4 border-b border-ash-grey-100 dark:border-midnight-violet-800 bg-ash-grey-50 dark:bg-midnight-violet-900/50 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-microchip text-vintage-grape-500 text-sm"></i>
+                <h3 class="font-bold text-midnight-violet-900 dark:text-silver-200 text-sm uppercase tracking-wider">MCU Senzory</h3>
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="deckCheckAllMcus" class="px-3 py-1 text-[10px] font-bold uppercase rounded bg-vintage-grape-100 dark:bg-vintage-grape-900/30 text-vintage-grape-600 dark:text-vintage-grape-300 hover:bg-vintage-grape-200 dark:hover:bg-vintage-grape-900/50 transition-colors">
+                    Check All
+                </button>
+                <button id="deckUncheckAllMcus" class="px-3 py-1 text-[10px] font-bold uppercase rounded bg-ash-grey-100 dark:bg-midnight-violet-800 text-silver-500 hover:bg-ash-grey-200 dark:hover:bg-midnight-violet-700 transition-colors">
+                    Uncheck All
+                </button>
+            </div>
+        </div>
+        <div id="deckMcusList" class="p-4 space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar">
+            <div class="text-center text-silver-400 text-xs py-4">
+                <i class="fas fa-spinner fa-spin mr-1"></i> Načítám...
+            </div>
+        </div>
+    </div>
+
+    <!-- Uložit tlačítko -->
+    <div class="flex justify-end">
+        <button id="deckSaveBtn" class="px-6 py-2.5 bg-vintage-grape-600 hover:bg-vintage-grape-700 text-white font-semibold rounded-lg shadow-sm transition-colors flex items-center gap-2">
+            <i class="fas fa-save"></i> Uložit konfiguraci
+        </button>
+    </div>
+</div>

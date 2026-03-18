@@ -15,6 +15,7 @@ WIFI_PASSWORD  = "{{WIFI_PASS}}"
 MQTT_BROKER   = "{{MQTT_BROKER}}"
 MQTT_PORT     = {{MQTT_PORT}}
 CLIENT_ID     = "{{DEVICE_NAME}}"
+API_KEY       = "{{API_KEY}}"
 
 # --- STATICKA IP ---
 STATIC_IP = "{{STATIC_IP}}"
@@ -373,7 +374,7 @@ def mqtt_callback(topic, msg):
     global config, live_value, live_min, live_max, live_unit, live_channel_name, live_mcu_name
     topic_str = topic.decode() if isinstance(topic, bytes) else topic
 
-    if topic_str == "dashboard/config":
+    if topic_str == f"dashboard/{API_KEY}/config":
         try: config = json.loads(msg.decode())
         except Exception: pass
         return
@@ -398,7 +399,7 @@ def connect_mqtt():
         mqtt_client = MQTTClient(CLIENT_ID, MQTT_BROKER, port=MQTT_PORT)
         mqtt_client.set_callback(mqtt_callback)
         mqtt_client.connect()
-        mqtt_client.subscribe(b"dashboard/config")
+        mqtt_client.subscribe(f"dashboard/{API_KEY}/config".encode())
         request_config()
         return True
     except Exception as e:
@@ -409,7 +410,7 @@ def connect_mqtt():
 def request_config():
     if mqtt_client:
         try:
-            mqtt_client.publish(b"dashboard/request/config", b"1")
+            mqtt_client.publish(f"dashboard/{API_KEY}/request/config".encode(), b"1")
         except: pass
 
 # ─────────────────────────────────────────────

@@ -79,51 +79,22 @@ function initDB() {
     db.exec('ALTER TABLE event_logs ADD COLUMN is_read INTEGER DEFAULT 0');
   } catch (_) { /* sloupec již existuje */ }
 
-  // Migrace: přidání sloupce role do mcus (sensor / deck)
+  // Migrace: přidání sloupce role do mcus (sensor | deck)
   try {
     db.exec("ALTER TABLE mcus ADD COLUMN role TEXT DEFAULT 'sensor'");
-    console.log('[DB] Migrace: přidán sloupec role do mcus.');
   } catch (_) { /* sloupec již existuje */ }
 
-  // Tabulka pro přiřazení entit k decku (které servery/příkazy/MCU senzory deck zobrazuje)
+  // Tabulka pro přiřazení entit k deck MCU
   db.exec(`
     CREATE TABLE IF NOT EXISTS deck_assignments (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       deck_id INTEGER NOT NULL,
-      entity_type TEXT NOT NULL CHECK(entity_type IN ('server', 'command', 'mcu')),
+      entity_type TEXT NOT NULL,
       entity_id INTEGER NOT NULL,
-      created_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (deck_id) REFERENCES mcus(device_id) ON DELETE CASCADE,
       UNIQUE(deck_id, entity_type, entity_id)
     )
   `);
-
-  // Migrace: ON DELETE SET NULL → ON DELETE CASCADE pro event_logs
-  try {
-    const fkInfo = db.prepare(`PRAGMA foreign_key_list(event_logs)`).all();
-    const needsMigration = fkInfo.some(fk => fk.on_delete === 'SET NULL');
-    if (needsMigration) {
-      db.exec(`
-        BEGIN TRANSACTION;
-        CREATE TABLE event_logs_new (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          mcu_id INTEGER,
-          server_id INTEGER,
-          type TEXT NOT NULL,
-          message TEXT NOT NULL,
-          timestamp TEXT DEFAULT (datetime('now')),
-          is_read INTEGER DEFAULT 0,
-          FOREIGN KEY (mcu_id) REFERENCES mcus(device_id) ON DELETE CASCADE,
-          FOREIGN KEY (server_id) REFERENCES servers(id) ON DELETE CASCADE
-        );
-        INSERT INTO event_logs_new SELECT * FROM event_logs;
-        DROP TABLE event_logs;
-        ALTER TABLE event_logs_new RENAME TO event_logs;
-        COMMIT;
-      `);
-      console.log('[DB] Migrace event_logs: ON DELETE SET NULL → CASCADE dokončena.');
-    }
-  } catch (e) { console.error('[DB] Migrace event_logs selhala:', e); }
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS channel_thresholds (

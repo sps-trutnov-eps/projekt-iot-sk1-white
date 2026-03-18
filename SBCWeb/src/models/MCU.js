@@ -9,13 +9,13 @@ class MCU {
     this.location = data.location || null;
     this.lastSeen = data.last_seen || data.lastSeen;
     this.apiKey = data.api_key || data.apiKey || null;
-    this.role = data.role || 'sensor'; // 'sensor' | 'deck'
+    this.role = data.role || 'sensor';
 
     // Uložíme jako číslo (0, 1, 2)
-    this.is_online = data.is_online !== undefined ? Number(data.is_online) : 0;
+    this.is_online = data.is_online !== undefined ? Number(data.is_online) : 0;   
   }
 
-  // Převod pro DB
+  // Převod pro DB (zůstává stejné)
   toDatabase() {
     return {
       type: this.type,
@@ -25,13 +25,13 @@ class MCU {
       location: this.location,
       description: this.description,
       api_key: this.apiKey,
+      role: this.role,
       last_seen: this.lastSeen,
-      is_online: this.is_online,
-      role: this.role
+      is_online: this.is_online 
     };
   }
 
-  // Převod pro frontend
+  // Převod pro frontend - TADY JE OPRAVA
   toJSON() {
     return {
       id: this.id,
@@ -42,10 +42,10 @@ class MCU {
       location: this.location,
       description: this.description,
       apiKey: this.apiKey,
-      lastSeen: this.lastSeen,
       role: this.role,
+      lastSeen: this.lastSeen,
       // POSÍLÁME ČÍSLO, NE BOOLEAN
-      isOnline: Number(this.is_online)
+      isOnline: Number(this.is_online) 
     };
   }
 }

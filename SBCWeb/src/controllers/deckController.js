@@ -48,19 +48,17 @@ const getAvailableEntities = (req, res) => {
         const CommandService = require('../services/commandService');
         const MCUService = require('../services/mcuService');
 
+        const allCommands = CommandService.getAllCommands();
+
+        // Servery s vnořenými příkazy
         const servers = ServerService.getAllServersWithCommands().map(s => ({
             id: s.id,
             name: s.name,
             ip: s.ip,
-            type: s.type
-        }));
-
-        const commands = CommandService.getAllCommands().map(c => ({
-            id: c.id,
-            name: c.name,
-            type: c.type,
-            serverId: c.server_id || c.serverId,
-            serverName: servers.find(s => s.id === (c.server_id || c.serverId))?.name || ''
+            type: s.type,
+            commands: allCommands
+                .filter(c => (c.server_id || c.serverId) === s.id)
+                .map(c => ({ id: c.id, name: c.name, type: c.type }))
         }));
 
         // Pouze senzory (ne decky, ne tento deck)
@@ -78,7 +76,7 @@ const getAvailableEntities = (req, res) => {
 
         res.json({
             success: true,
-            available: { servers, commands, mcus },
+            available: { servers, mcus },
             assigned
         });
     } catch (error) {

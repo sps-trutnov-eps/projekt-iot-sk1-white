@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const MCUController = require('../controllers/MCUController.js');
-const flashController = require('../controllers/flashController.js');
-const deckController = require('../controllers/deckController.js');
+const DeckAssignmentController = require('../controllers/DeckAssignmentController.js');
 
 // Hlavní stránka
 router.post('/add', MCUController.createMCU);
@@ -19,19 +18,10 @@ router.post('/update', MCUController.updateMCU);
 
 router.post('/update-api-key', MCUController.updateApiKey);
 
-// Flash & šablony (MUSÍ být PŘED /:id catch-all)
-router.get('/serial-ports', flashController.getSerialPorts);
-router.get('/templates', flashController.getTemplates);
-router.post('/templates/upload', flashController.uploadTemplate);
-router.get('/templates/:filename', flashController.getTemplateContent);
-router.delete('/templates/:filename', flashController.deleteTemplate);
-router.post('/:id/flash', flashController.flashDevice);
-
-// Deck konfigurace (MUSÍ být PŘED /:id catch-all)
-router.get('/:id/deck-config', deckController.getDeckConfig);
-router.post('/:id/deck-config', deckController.saveDeckConfig);
-router.get('/:id/deck-config/available', deckController.getAvailableEntities);
-router.post('/:id/deck-push', deckController.pushDeckConfig);
+// Deck assignment routes (BEFORE /:id catch-all)
+router.get('/deck/entities', DeckAssignmentController.getAvailableEntities);
+router.get('/:id/deck-assignments', DeckAssignmentController.getAssignments);
+router.post('/:id/deck-assignments', DeckAssignmentController.saveAssignments);
 
 router.get('/:id', MCUController.renderMCUDetail)
 

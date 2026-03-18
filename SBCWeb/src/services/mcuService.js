@@ -72,19 +72,12 @@ class MCUService {
 
                         if (!cleanIp) {
                             newStatus = 0;
-                        } else if (mcu.role === 'deck') {
-                            // Deck nemá passive stav — pouze online/offline
-                            try {
-                                const pingRes = await ping.promise.probe(cleanIp, { timeout: 2 });
-                                newStatus = pingRes.alive ? 1 : 0;
-                            } catch (e) {
-                                newStatus = 0;
-                            }
                         } else {
                             try {
                                 const pingRes = await ping.promise.probe(cleanIp, { timeout: 2 });
                                 if (pingRes.alive) {
-                                    newStatus = 2; // Passive
+                                    // Deck MCU nemá passive stav — buď online nebo offline
+                                    newStatus = (mcu.role === 'deck') ? 1 : 2;
                                 } else {
                                     newStatus = 0; // Offline
                                 }
@@ -111,7 +104,7 @@ class MCUService {
                         else if (newStatus === 2) { statusText = 'Passive'; type = 'warning'; }
                         else { statusText = 'Offline'; type = 'alert'; }
 
-                        EventService.logEvent(mcu.id, type, `Přešlo do stavu ${statusText}.`);
+                        EventService.logEvent(mcu.id, type, `Zařízení přešlo do stavu ${statusText}.`);
                     }
                 }
             } catch (error) {
@@ -141,10 +134,8 @@ class MCUService {
             const previousState = mcuBefore.is_online !== undefined ? mcuBefore.is_online : (mcuBefore.isOnline || 0);
             
             if (previousState === 0) {
-                EventService.logEvent(id, 'info', `Připojilo se k síti a odesílá data.`);
-            } else if (previousState === 2) {
-                EventService.logEvent(id, 'info', `Přešlo z pasivního do aktivního režimu.`);
-            }
+                EventService.logEvent(id, 'info', `Zařízení se připojilo k síti a odesílá data.`);
+            } 
         }
         return true;
     }
@@ -170,8 +161,8 @@ class MCUService {
             macAddress: data.macAddress || data.mac_address,
             location: data.location || data.mcuLocation,
             description: data.description,
-            apiKey: this.generateApiKey(),
-            role: data.role || 'sensor'
+            role: data.role || 'sensor',
+            apiKey: this.generateApiKey()
         });
         
         const dbData = mcu.toDatabase();
