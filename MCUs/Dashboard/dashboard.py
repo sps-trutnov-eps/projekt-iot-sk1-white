@@ -23,6 +23,8 @@ CLIENT_ID     = "dashboard_mcu"
 # ─────────────────────────────────────────────
 i2c  = I2C(0, sda=Pin(0), scl=Pin(1), freq=400000)
 oled = ssd1306.SSD1306_I2C(128, 64, i2c)
+oled.write_cmd(0xA1)  # otočení 180° — segment remap
+oled.write_cmd(0xC8)  # otočení 180° — COM scan reverse
 
 clk = Pin(2, Pin.IN, Pin.PULL_UP)
 dt  = Pin(3, Pin.IN, Pin.PULL_UP)
