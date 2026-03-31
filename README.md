@@ -55,6 +55,18 @@ Pomocí rotačního enkodéru si uživatel může vybrat, které funkce se zobra
 
 ---
 
+## Jak funguje autentizace zařízení
+
+Každé MCU má přiřazený unikátní **API klíč** a **MAC adresu** uloženou v databázi. Server přijímá zprávy ze všech MQTT topiců, ale každou zprávu filtruje podle těchto dvou identifikátorů:
+
+- `sensor/data` — payload musí obsahovat `apiKey` odpovídající záznamu v DB; server spáruje data se správným kanálem a zařízením
+- `dashboard/.../config` — topicy jsou adresovány přímo přes API klíč zařízení (`dashboard/{apiKey}/...`)
+- Při registraci MCU se MAC adresa ověří oproti DB záznamu; nespárované zprávy jsou ignorovány
+
+Díky tomu může na jedné MQTT síti běžet libovolný počet MCU bez toho, aby si navzájem přepisovala data.
+
+---
+
 ## Instalace
 
 ### Požadavky
