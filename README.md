@@ -1,100 +1,102 @@
-# Server Deck: Fyzické rozhraní pro správu serveru
+# Server Deck: Physical Interface for Server Management
 
-Ovládací panel, který slouží jako fyzické rozhraní pro správu a zobrazení stavu serveru.
-Systém propojuje webový dashboard s fyzickými ovládacími prvky pomocí mikrokontrolerů, které zajišťují uživatelský vstup, sběr dat a měření.
+A physical control panel for managing and monitoring a server's state.
+The system connects a web dashboard with physical controls via microcontrollers that handle user input, data collection, and measurements.
 
----
-
-## Hlavní funkce
-
-### 1. Spouštěč příkazů
-Uživatel může přímo z fyzického panelu resetovat síťové rozhraní, bezpečně vypnout systém nebo spustit diagnostický skript. Displej poskytuje okamžitou zpětnou vazbu o výsledku akce.
-
-### 2. Monitorování a analýza dat
-MCU měří teplotu a vlhkost vzduchu a odesílá data na server přes MQTT. Uživatel může na webovém dashboardu nastavit prahové hodnoty (např. "Teplota > 40°C") a sledovat trendy.
-
-### 3. Editace panelu
-Pomocí rotačního enkodéru si uživatel může vybrat, které funkce se zobrazí na OLED displeji, a zobrazit aktuální data naměřená senzorem.
-
-### Stretch goaly
-- **Wake-on-LAN** — vzdálené zapnutí zařízení odesláním Magic Packet na nastavenou MAC adresu
-- **Prevence náhodného stisknutí** — potvrzovací sekvence pro nebezpečné akce (např. shutdown)
+> Czech version: [README.cs.md](README.cs.md)
 
 ---
 
-## Použité technologie
+## Features
+
+### 1. Command Launcher
+Trigger server scripts directly from the physical panel — reset the network interface, safely shut down the system, or run a diagnostic script. The OLED display gives immediate feedback on the result.
+
+### 2. Data Monitoring
+The MCU measures temperature and humidity and publishes data to the server via MQTT. Users can set threshold values (e.g. "Temperature > 40°C") on the web dashboard and track trends over time.
+
+### 3. Panel Customization
+Using the rotary encoder, users can choose which functions appear on the OLED display and view live sensor readings.
+
+### Stretch Goals
+- **Wake-on-LAN** — remotely power on a device by sending a Magic Packet to a configured MAC address
+- **Accidental press prevention** — confirmation sequence required for destructive actions (e.g. shutdown)
+
+---
+
+## How Device Authentication Works
+
+Each MCU is assigned a unique **API key** and **MAC address** stored in the database. The server accepts messages from all MQTT topics but filters each message by these two identifiers:
+
+- `sensor/data` — payload must contain an `apiKey` matching a DB record; the server routes data to the correct channel and device
+- `dashboard/.../config` — topics are addressed directly via the device's API key (`dashboard/{apiKey}/...`)
+- On MCU registration, the MAC address is verified against the DB record; unmatched messages are ignored
+
+This allows any number of MCUs to run on the same MQTT network without overwriting each other's data.
+
+---
+
+## Tech Stack
 
 ### Server (SBC)
-| Technologie | Účel |
+| Technology | Purpose |
 |---|---|
-| Node.js + Express | Webový server a REST API |
-| EJS | Server-side šablony |
-| SQLite (better-sqlite3) | Databáze (zařízení, telemetrie, nastavení) |
-| MQTT (mqtt.js) | Komunikace se zařízeními |
-| Socket.io | Real-time aktualizace v prohlížeči |
-| Tailwind CSS | Stylování UI |
-| Web Serial API | Flashování MCU přes USB přímo z prohlížeče |
+| Node.js + Express | Web server and REST API |
+| EJS | Server-side templating |
+| SQLite (better-sqlite3) | Database (devices, telemetry, settings) |
+| MQTT (mqtt.js) | Communication with devices |
+| Socket.io | Real-time browser updates |
+| Tailwind CSS | UI styling |
+| Web Serial API | Flash MCU over USB directly from the browser |
 
 ### MCU
-| Technologie | Účel |
+| Technology | Purpose |
 |---|---|
-| MicroPython | Firmware pro Raspberry Pi Pico / Pico W |
-| umqtt.simple | MQTT klient na MCU |
-| ssd1306 | Ovladač OLED displeje |
+| MicroPython | Firmware for Raspberry Pi Pico / Pico W |
+| umqtt.simple | MQTT client on MCU |
+| ssd1306 | OLED display driver |
 
 ### Hardware
-| Součástka | Počet | Funkce |
+| Component | Qty | Role |
 |---|---|---|
-| Raspberry Pi 4 Model B | 1x | SBC — server, databáze, webserver |
-| Raspberry Pi Pico W | 1x | Dashboard panel (OLED, enkodér, tlačítka) |
-| Raspberry Pi Pico | 1x | Senzorový uzel (DHT11) |
-| OLED displej 0.96" (128×64, I2C) | 1x | Zobrazení dat a menu |
-| Rotační enkodér | 1x | Navigace v menu |
-| DHT11 | 1x | Měření teploty a vlhkosti |
-| Tlačítka | 3x | Hardwarové zkratky |
+| Raspberry Pi 4 Model B | 1x | SBC — server, database, webserver |
+| Raspberry Pi Pico W | 1x | Dashboard panel (OLED, encoder, buttons) |
+| Raspberry Pi Pico | 1x | Sensor node (DHT11) |
+| OLED display 0.96" (128×64, I2C) | 1x | Display data and menu |
+| Rotary encoder | 1x | Menu navigation |
+| DHT11 | 1x | Temperature and humidity sensor |
+| Push buttons | 3x | Hardware shortcuts |
 
 ---
 
-## Jak funguje autentizace zařízení
+## Installation
 
-Každé MCU má přiřazený unikátní **API klíč** a **MAC adresu** uloženou v databázi. Server přijímá zprávy ze všech MQTT topiců, ale každou zprávu filtruje podle těchto dvou identifikátorů:
-
-- `sensor/data` — payload musí obsahovat `apiKey` odpovídající záznamu v DB; server spáruje data se správným kanálem a zařízením
-- `dashboard/.../config` — topicy jsou adresovány přímo přes API klíč zařízení (`dashboard/{apiKey}/...`)
-- Při registraci MCU se MAC adresa ověří oproti DB záznamu; nespárované zprávy jsou ignorovány
-
-Díky tomu může na jedné MQTT síti běžet libovolný počet MCU bez toho, aby si navzájem přepisovala data.
-
----
-
-## Instalace
-
-### Požadavky
+### Requirements
 - Node.js v16+
 - npm v7+
 - Mosquitto (MQTT broker)
-- Chrome nebo Edge (pro flashování MCU přes Web Serial API)
+- Chrome or Edge (for MCU flashing via Web Serial API)
 
-### 1. Klonování repozitáře
+### 1. Clone the repository
 
 ```bash
 git clone <repository-url>
 cd projekt-iot-sk1-white/SBCWeb
 ```
 
-### 2. Instalace závislostí
+### 2. Install dependencies
 
 ```bash
 npm install
 ```
 
-### 3. Konfigurace prostředí
+### 3. Configure environment
 
 ```bash
 cp .env.example .env
 ```
 
-Uprav `.env` dle svého prostředí — klíčové hodnoty:
+Edit `.env` for your environment — key values:
 
 ```env
 SERVER_PORT=3000
@@ -102,39 +104,39 @@ MQTT_BROKER_IP=127.0.0.1
 MQTT_BROKER_PORT=1883
 ```
 
-### 4. Spuštění MQTT brokeru
+### 4. Start MQTT broker
 
 ```bash
 mosquitto
 ```
 
-Pokud Mosquitto naslouchá jen na localhostu, přidej do `/etc/mosquitto/mosquitto.conf`:
+If Mosquitto only listens on localhost, add to `/etc/mosquitto/mosquitto.conf`:
 ```
 listener 1883 0.0.0.0
 allow_anonymous true
 ```
 
-### 5. Spuštění serveru
+### 5. Start the server
 
 ```bash
 npm start
 ```
 
-Server se spustí na `http://localhost:3000`.
-Výchozí přihlášení: `admin` / `admin` — systém při prvním přihlášení vyzve ke změně hesla.
+Server starts at `http://localhost:3000`.
+Default login: `admin` / `admin` — you'll be prompted to change the password on first login.
 
 ---
 
-## Flashování MCU
+## Flashing MCU
 
-Webové rozhraní umožňuje nahrát MicroPython kód přímo na Pico přes USB bez jakékoli instalace.
+The web interface lets you upload MicroPython code directly to a Pico over USB — no additional software needed.
 
-1. V **detailu MCU** klikni na ⚡ (Flash)
-2. Připoj Pico přes USB a klikni **Připojit USB**
-3. Zadej **WiFi SSID a heslo**
-4. Vyber **šablonu** nebo nahraj vlastní `.py` soubor
-5. Klikni **Flashnout**
+1. Open the **MCU detail** page and click ⚡ (Flash)
+2. Connect the Pico via USB and click **Connect USB**
+3. Enter your **WiFi SSID and password**
+4. Select a **template** or upload your own `.py` file
+5. Click **Flash**
 
-Šablony jsou MicroPython `.py` soubory s placeholdery ve formátu `{{NAZEV}}` (např. `{{WIFI_SSID}}`, `{{API_KEY}}`), které se automaticky vyplní při flashování.
+Templates are MicroPython `.py` files with placeholders in `{{NAME}}` format (e.g. `{{WIFI_SSID}}`, `{{API_KEY}}`), automatically filled in during flashing.
 
-Připravené šablony jsou v adresáři `MCUs/` nebo je nahraj přes tlačítko "Nahrát novou šablonu" v UI.
+Pre-built templates are in the `MCUs/` directory, or upload your own via the "Upload new template" button in the UI.
