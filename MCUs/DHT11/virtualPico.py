@@ -4,81 +4,76 @@ import random
 import paho.mqtt.client as mqtt
 
 # ==========================================================
-#                  KONFIGURACE SIMULÁTORU
+#   SIMULATOR CONFIGURATION
+#   Set MQTT_BROKER to the IP of the machine running Mosquitto.
+#   Set API_KEY and DEVICE_MAC to match the MCU record in the dashboard.
 # ==========================================================
-MQTT_BROKER = "loopback"  # IP adresa počítače s Mosquitto
+MQTT_BROKER = "localhost"
 MQTT_PORT = 1883
 MQTT_TOPIC = "sensor/data"
-MQTT_CLIENT_ID = "PC_Simulator_01"
+MQTT_CLIENT_ID = "VirtualPico_01"
 
-API_KEY = "api_qhh53nmaijhuccqtkscene"
-DEVICE_MAC = "DE:AD:BE:EF:FE:ED"
+API_KEY = "your_api_key_here"   # copy from MCU detail in the dashboard
+DEVICE_MAC = "DE:AD:BE:EF:FE:ED"  # must match the MAC set in the dashboard
+
+PUBLISH_INTERVAL = 5  # seconds between messages
 
 # ==========================================================
-#                  FUNKCE PRO MQTT
+#   MQTT
 # ==========================================================
 def on_connect(client, userdata, flags, rc, properties=None):
-    """Callback při pokusu o připojení k brokeru"""
     if rc == 0:
-        print(f"✅ Úspěšně připojeno k MQTT brokeru {MQTT_BROKER}")
+        print(f"[OK] Connected to MQTT broker at {MQTT_BROKER}:{MQTT_PORT}")
     else:
-        print(f"❌ Chyba připojení! Kód: {rc}")
+        print(f"[ERROR] Connection failed, code: {rc}")
 
 def get_data():
-    """Generuje náhodná data pro teplotu a vlhkost"""
-    t = random.randint(18, 30)
-    h = random.randint(30, 80)
-    return t, h
+    temp = round(random.uniform(18.0, 35.0), 1)
+    hum = round(random.uniform(30.0, 80.0), 1)
+    return temp, hum
 
 # ==========================================================
-#                  HLAVNÍ BĚH PROGRAMU
+#   MAIN
 # ==========================================================
 def main():
-    print("--- Spouštím reálnou MQTT Simulaci ---")
-    
-    # Inicializace MQTT klienta (paho-mqtt)
-    # Pro novější verze paho-mqtt přidáváme CallbackAPIVersion, aby kód neházel varování
+    print("=== Virtual Pico — MQTT Simulator ===")
+    print(f"Broker : {MQTT_BROKER}:{MQTT_PORT}")
+    print(f"Topic  : {MQTT_TOPIC}")
+    print(f"API key: {API_KEY}\n")
+
     try:
         client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, MQTT_CLIENT_ID)
     except AttributeError:
-        # Fallback pro starší verze paho-mqtt
         client = mqtt.Client(MQTT_CLIENT_ID)
-        
+
     client.on_connect = on_connect
 
-    # Pokus o připojení
-    print(f"Připojuji se k {MQTT_BROKER}:{MQTT_PORT}...")
+    print(f"Connecting to {MQTT_BROKER}:{MQTT_PORT}...")
     try:
         client.connect(MQTT_BROKER, MQTT_PORT, 60)
     except Exception as e:
-        print(f"CRITICAL ERROR: Nelze se připojit k brokeru. Je Mosquitto spuštěné? ({e})")
+        print(f"[CRITICAL] Cannot connect to broker. Is Mosquitto running? ({e})")
         return
 
-    # Spustí síťovou komunikaci na pozadí
     client.loop_start()
 
-    print("▶️ Odesílám data každých 5 vteřin. Pro ukončení stiskněte Ctrl+C\n")
-    
+    print(f"Sending data every {PUBLISH_INTERVAL}s. Press Ctrl+C to stop.\n")
+
     try:
         while True:
             temp, hum = get_data()
-            
-            # Sestavení JSONu
             payload = json.dumps({
                 "apiKey": API_KEY,
                 "temp": temp,
                 "hum": hum,
                 "mac": DEVICE_MAC
             })
-            
-            # REÁLNÉ odeslání dat na Broker
             client.publish(MQTT_TOPIC, payload)
-            print(f"📡 Odesláno: {payload}")
-            
-            time.sleep(5)
-            
+            print(f"[SENT] {payload}")
+            time.sleep(PUBLISH_INTERVAL)
+
     except KeyboardInterrupt:
-        print("\n🛑 Zastaveno uživatelem. Odpojuji...")
+        print("\n[STOP] Disconnecting...")
         client.loop_stop()
         client.disconnect()
 
