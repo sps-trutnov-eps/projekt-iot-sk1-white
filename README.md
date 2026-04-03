@@ -1,16 +1,27 @@
 # Server Deck: Physical Interface for Server Management
 
-A physical control panel for managing and monitoring a server's state.
+A web application and physical control panel for managing and monitoring a server's state.
 The system connects a web dashboard with physical controls via microcontrollers that handle user input, data collection, and measurements.
 
 > Czech version: [README.cs.md](README.cs.md)
 
 ---
 
+## ⚠️ Reviewer Notes
+
+Setup instructions are below. Without physical hardware:
+- **Data monitoring** works fully via the virtual MCU simulator (`StartVirtualPico.bat` / `StartVirtualPico.sh`)
+- **Command Launcher** can be tested from the web dashboard; server-side execution requires a Debian VM running `ServerScript/server_script.py`
+- **Wake-on-LAN** can be verified via Wireshark — the magic packet is correctly sent
+- **OLED deck + rotary encoder** require physical hardware
+- **MCU flashing** requires physical hardware with MicroPython pre-installed
+
+---
+
 ## Features
 
 ### 1. Command Launcher
-Trigger server scripts directly from the physical panel — reset the network interface, safely shut down the system, or run a diagnostic script. The OLED display gives immediate feedback on the result.
+Trigger server scripts directly from the web dashboard or physical panel — reset the network interface, safely shut down the system, or run a diagnostic script. The OLED display gives immediate feedback on the result.
 
 ### 2. Data Monitoring
 The MCU measures temperature and humidity and publishes data to the server via MQTT. Users can set threshold values (e.g. "Temperature > 40°C") on the web dashboard and track trends over time.
@@ -21,6 +32,40 @@ Using the rotary encoder, users can choose which functions appear on the OLED di
 ### Stretch Goals
 - **Wake-on-LAN** — remotely power on a device by sending a Magic Packet to a configured MAC address
 - **Accidental press prevention** — confirmation sequence required for destructive actions (e.g. shutdown)
+
+---
+
+## Quick Start
+
+### Windows
+
+**Start the dashboard:**
+```bat
+StartWebServer.bat
+```
+
+**Start the virtual MCU simulator** (no hardware needed):
+```bat
+StartVirtualPico.bat
+```
+
+Configure the simulator by editing `MCUs/DHT11/.env` (created automatically on first run).
+
+### Linux / Debian
+
+**Start the dashboard:**
+```bash
+./StartWebServer.sh
+```
+
+**Start the virtual MCU simulator:**
+```bash
+./StartVirtualPico.sh
+```
+
+Dashboard starts at `http://localhost:3000` — default login: `admin` / `admin`
+
+> If the virtual Pico runs on a **different machine** than the server, set `BROKER_IP` in `MCUs/DHT11/.env` to the server's IP address, and ensure Mosquitto is configured to accept external connections (see [Mosquitto setup](#4-start-mqtt-broker)).
 
 ---
 
@@ -59,8 +104,8 @@ This allows any number of MCUs to run on the same MQTT network without overwriti
 ### Hardware
 | Component | Qty | Role |
 |---|---|---|
-| Raspberry Pi 4 Model B | 1x | SBC — server, database, webserver |
-| Raspberry Pi Pico W | 1x | Dashboard panel (OLED, encoder, buttons) |
+| Server / SBC | 1x | Server, database, webserver |
+| Raspberry Pi Pico 2W | 1x | Dashboard panel (OLED, encoder, buttons) |
 | Raspberry Pi Pico | 1x | Sensor node (DHT11) |
 | OLED display 0.96" (128×64, I2C) | 1x | Display data and menu |
 | Rotary encoder | 1x | Menu navigation |
@@ -69,7 +114,7 @@ This allows any number of MCUs to run on the same MQTT network without overwriti
 
 ---
 
-## Installation
+## Manual Installation
 
 ### Requirements
 - Node.js v16+
@@ -124,6 +169,32 @@ npm start
 
 Server starts at `http://localhost:3000`.
 Default login: `admin` / `admin` — you'll be prompted to change the password on first login.
+
+---
+
+## Virtual MCU Simulator
+
+To simulate sensor data without physical hardware:
+
+### Windows
+```bat
+StartVirtualPico.bat
+```
+
+### Linux
+```bash
+./StartVirtualPico.sh
+```
+
+Configure `MCUs/DHT11/.env`:
+```env
+BROKER_IP=127.0.0.1
+BROKER_PORT=1883
+API_KEY=your_api_key_here
+MAC=AA:AA:AA:AA:AA:AA
+```
+
+Get the API key from the dashboard after creating an MCU entry.
 
 ---
 
