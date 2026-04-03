@@ -2,19 +2,23 @@ import time
 import json
 import random
 import paho.mqtt.client as mqtt
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 # ==========================================================
 #   SIMULATOR CONFIGURATION
 #   Set MQTT_BROKER to the IP of the machine running Mosquitto.
 #   Set API_KEY and DEVICE_MAC to match the MCU record in the dashboard.
 # ==========================================================
-MQTT_BROKER = "localhost"
-MQTT_PORT = 1883
+MQTT_BROKER = os.getenv("BROKER_IP", "127.0.0.1")
+MQTT_PORT = int(os.getenv("BROKER_PORT", 1883))
 MQTT_TOPIC = "sensor/data"
 MQTT_CLIENT_ID = "VirtualPico_01"
 
-API_KEY = "your_api_key_here"   # copy from MCU detail in the dashboard
-DEVICE_MAC = "DE:AD:BE:EF:FE:ED"  # must match the MAC set in the dashboard
+API_KEY = os.getenv("API_KEY", "")   # copy from MCU detail in the dashboard or edit it in the mcu detail
+DEVICE_MAC = os.getenv("MAC", "")  # must match the MAC set in the dashboard
 
 PUBLISH_INTERVAL = 5  # seconds between messages
 
