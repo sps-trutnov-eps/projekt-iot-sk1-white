@@ -11,7 +11,7 @@ The system connects a web dashboard with physical controls via microcontrollers 
 
 Setup instructions are below. Without physical hardware:
 - **Data monitoring** works fully via the virtual MCU simulator (`StartVirtualPico.bat` / `StartVirtualPico.sh`)
-- **Command Launcher** can be tested from the web dashboard; server-side execution requires a Debian VM running `ServerScript/server_script.py`
+- **Command Launcher** can be tested from the web dashboard; server-side execution requires a Linux machine running `ServerScript/debian_executor.py` (use `StartLinuxScript.sh`)
 - **Wake-on-LAN** can be verified via Wireshark — the magic packet is correctly sent
 - **OLED deck + rotary encoder** require physical hardware
 - **MCU flashing** requires physical hardware with MicroPython pre-installed
@@ -23,11 +23,16 @@ Setup instructions are below. Without physical hardware:
 ### 1. Command Launcher
 Trigger server scripts directly from the web dashboard or physical panel — reset the network interface, safely shut down the system, or run a diagnostic script. The OLED display gives immediate feedback on the result.
 
+Commands are executed by a lightweight Python agent (`debian_executor.py`) running on the target Linux machine. The agent communicates with the dashboard via MQTT, receives whitelisted commands, executes them via bash, and reports the result back in real time.
+
 ### 2. Data Monitoring
 The MCU measures temperature and humidity and publishes data to the server via MQTT. Users can set threshold values (e.g. "Temperature > 40°C") on the web dashboard and track trends over time.
 
 ### 3. Panel Customization
 Using the rotary encoder, users can choose which functions appear on the OLED display and view live sensor readings.
+
+### 4. Multilingual UI
+The dashboard supports **Czech and English**. Language can be switched in the settings — all UI elements, event logs, and server messages are translated dynamically.
 
 ### Stretch Goals
 - **Wake-on-LAN** — remotely power on a device by sending a Magic Packet to a configured MAC address
@@ -63,6 +68,11 @@ Configure the simulator by editing `MCUs/DHT11/.env` (created automatically on f
 ./StartVirtualPico.sh
 ```
 
+**Start the server agent** (on the machine you want to control):
+```bash
+./StartLinuxScript.sh
+```
+
 Dashboard starts at `http://localhost:3000` — default login: `admin` / `admin`
 
 > If the virtual Pico runs on a **different machine** than the server, set `BROKER_IP` in `MCUs/DHT11/.env` to the server's IP address, and ensure Mosquitto is configured to accept external connections (see [Mosquitto setup](#4-start-mqtt-broker)).
@@ -93,6 +103,14 @@ This allows any number of MCUs to run on the same MQTT network without overwriti
 | Socket.io | Real-time browser updates |
 | Tailwind CSS | UI styling |
 | Web Serial API | Flash MCU over USB directly from the browser |
+| i18next | Multilingual UI (Czech / English) |
+
+### Server Agent
+| Technology | Purpose |
+|---|---|
+| Python 3 | Runtime |
+| paho-mqtt | MQTT client |
+| subprocess + bash | Command execution |
 
 ### MCU
 | Technology | Purpose |
@@ -121,6 +139,7 @@ This allows any number of MCUs to run on the same MQTT network without overwriti
 - npm v7+
 - Mosquitto (MQTT broker)
 - Chrome or Edge (for MCU flashing via Web Serial API)
+- Python 3 + python3-venv (for the server agent)
 
 ### 1. Clone the repository
 
@@ -169,6 +188,38 @@ npm start
 
 Server starts at `http://localhost:3000`.
 Default login: `admin` / `admin` — you'll be prompted to change the password on first login.
+
+---
+
+## Server Agent Setup
+
+The server agent (`debian_executor.py`) runs on the Linux machine you want to control via the Command Launcher. It connects to the MQTT broker, receives whitelisted commands from the dashboard, executes them, and reports results back.
+
+### 1. Configure broker IP
+
+Edit `ServerScript/debian_executor.py`:
+```python
+MQTT_BROKER = "192.168.x.x"  # IP of the machine running Mosquitto
+SERVER_ID = "1"               # Must match the server ID in the dashboard DB
+```
+
+### 2. Run the agent
+
+```bash
+./StartLinuxScript.sh
+```
+
+The script will:
+1. Install `python3-venv` if missing (requires `sudo`)
+2. Create a Python virtual environment in `ServerScript/.venv`
+3. Install `paho-mqtt` from `ServerScript/requirements.txt`
+4. Start `debian_executor.py`
+
+The agent automatically reconnects if the broker becomes unavailable.
+
+### 3. Sync commands from the dashboard
+
+In the dashboard, go to **Server detail → Commands** and click **Sync**. This sends the whitelisted command map to the agent via MQTT.
 
 ---
 

@@ -10,7 +10,9 @@ Systém propojuje webový dashboard s fyzickými ovládacími prvky pomocí mikr
 ## Hlavní funkce
 
 ### 1. Spouštěč příkazů
-Uživatel může přímo z fyzického panelu resetovat síťové rozhraní, bezpečně vypnout systém nebo spustit diagnostický skript. Displej poskytuje okamžitou zpětnou vazbu o výsledku akce.
+Uživatel může přímo z webového dashboardu nebo fyzického panelu resetovat síťové rozhraní, bezpečně vypnout systém nebo spustit diagnostický skript. Displej poskytuje okamžitou zpětnou vazbu o výsledku akce.
+
+Příkazy vykonává lehký Python agent (`debian_executor.py`) běžící na cílovém Linuxovém stroji. Agent komunikuje s dashboardem přes MQTT, přijímá příkazy z whitelistu, spouští je přes bash a výsledek odesílá zpět v reálném čase.
 
 ### 2. Monitorování a analýza dat
 MCU měří teplotu a vlhkost vzduchu a odesílá data na server přes MQTT. Uživatel může na webovém dashboardu nastavit prahové hodnoty (např. "Teplota > 40°C") a sledovat trendy.
@@ -18,9 +20,63 @@ MCU měří teplotu a vlhkost vzduchu a odesílá data na server přes MQTT. Už
 ### 3. Editace panelu
 Pomocí rotačního enkodéru si uživatel může vybrat, které funkce se zobrazí na OLED displeji, a zobrazit aktuální data naměřená senzorem.
 
+### 4. Vícejazyčné UI
+Dashboard podporuje **češtinu a angličtinu**. Jazyk lze přepnout v nastavení — všechny prvky UI, logy událostí i serverové zprávy se překládají dynamicky.
+
 ### Stretch goaly
 - **Wake-on-LAN** — vzdálené zapnutí zařízení odesláním Magic Packet na nastavenou MAC adresu
 - **Prevence náhodného stisknutí** — potvrzovací sekvence pro nebezpečné akce (např. shutdown)
+
+---
+
+## Rychlý start
+
+### Windows
+
+**Spuštění dashboardu:**
+```bat
+StartWebServer.bat
+```
+
+**Spuštění virtuálního MCU simulátoru** (bez hardwaru):
+```bat
+StartVirtualPico.bat
+```
+
+Simulátor se konfiguruje úpravou `MCUs/DHT11/.env` (vytvoří se automaticky při prvním spuštění).
+
+### Linux / Debian
+
+**Spuštění dashboardu:**
+```bash
+./StartWebServer.sh
+```
+
+**Spuštění virtuálního MCU simulátoru:**
+```bash
+./StartVirtualPico.sh
+```
+
+**Spuštění server agenta** (na stroji, který chceš ovládat):
+```bash
+./StartLinuxScript.sh
+```
+
+Dashboard běží na `http://localhost:3000` — výchozí přihlášení: `admin` / `admin`
+
+> Pokud virtuální Pico běží na **jiném stroji** než server, nastav `BROKER_IP` v `MCUs/DHT11/.env` na IP adresu serveru a zajisti, že Mosquitto přijímá externí připojení (viz [Mosquitto setup](#4-spuštění-mqtt-brokeru)).
+
+---
+
+## Jak funguje autentizace zařízení
+
+Každé MCU má přiřazený unikátní **API klíč** a **MAC adresu** uloženou v databázi. Server přijímá zprávy ze všech MQTT topiců, ale každou zprávu filtruje podle těchto dvou identifikátorů:
+
+- `sensor/data` — payload musí obsahovat `apiKey` odpovídající záznamu v DB; server spáruje data se správným kanálem a zařízením
+- `dashboard/.../config` — topicy jsou adresovány přímo přes API klíč zařízení (`dashboard/{apiKey}/...`)
+- Při registraci MCU se MAC adresa ověří oproti DB záznamu; nespárované zprávy jsou ignorovány
+
+Díky tomu může na jedné MQTT síti běžet libovolný počet MCU bez toho, aby si navzájem přepisovala data.
 
 ---
 
@@ -36,6 +92,14 @@ Pomocí rotačního enkodéru si uživatel může vybrat, které funkce se zobra
 | Socket.io | Real-time aktualizace v prohlížeči |
 | Tailwind CSS | Stylování UI |
 | Web Serial API | Flashování MCU přes USB přímo z prohlížeče |
+| i18next | Vícejazyčné UI (čeština / angličtina) |
+
+### Server Agent
+| Technologie | Účel |
+|---|---|
+| Python 3 | Runtime |
+| paho-mqtt | MQTT klient |
+| subprocess + bash | Spouštění příkazů |
 
 ### MCU
 | Technologie | Účel |
@@ -57,18 +121,6 @@ Pomocí rotačního enkodéru si uživatel může vybrat, které funkce se zobra
 
 ---
 
-## Jak funguje autentizace zařízení
-
-Každé MCU má přiřazený unikátní **API klíč** a **MAC adresu** uloženou v databázi. Server přijímá zprávy ze všech MQTT topiců, ale každou zprávu filtruje podle těchto dvou identifikátorů:
-
-- `sensor/data` — payload musí obsahovat `apiKey` odpovídající záznamu v DB; server spáruje data se správným kanálem a zařízením
-- `dashboard/.../config` — topicy jsou adresovány přímo přes API klíč zařízení (`dashboard/{apiKey}/...`)
-- Při registraci MCU se MAC adresa ověří oproti DB záznamu; nespárované zprávy jsou ignorovány
-
-Díky tomu může na jedné MQTT síti běžet libovolný počet MCU bez toho, aby si navzájem přepisovala data.
-
----
-
 ## Instalace
 
 ### Požadavky
@@ -76,6 +128,7 @@ Díky tomu může na jedné MQTT síti běžet libovolný počet MCU bez toho, a
 - npm v7+
 - Mosquitto (MQTT broker)
 - Chrome nebo Edge (pro flashování MCU přes Web Serial API)
+- Python 3 + python3-venv (pro server agenta)
 
 ### 1. Klonování repozitáře
 
@@ -124,6 +177,64 @@ npm start
 
 Server se spustí na `http://localhost:3000`.
 Výchozí přihlášení: `admin` / `admin` — systém při prvním přihlášení vyzve ke změně hesla.
+
+---
+
+## Nastavení server agenta
+
+Server agent (`debian_executor.py`) běží na Linuxovém stroji, který chceš ovládat přes Spouštěč příkazů. Připojí se k MQTT brokeru, přijímá příkazy z whitelistu z dashboardu, spouští je a výsledky odesílá zpět.
+
+### 1. Konfigurace IP brokeru
+
+Uprav `ServerScript/debian_executor.py`:
+```python
+MQTT_BROKER = "192.168.x.x"  # IP stroje s Mosquitto
+SERVER_ID = "1"               # Musí odpovídat ID serveru v DB dashboardu
+```
+
+### 2. Spuštění agenta
+
+```bash
+./StartLinuxScript.sh
+```
+
+Skript automaticky:
+1. Nainstaluje `python3-venv` pokud chybí (vyžaduje `sudo`)
+2. Vytvoří Python virtuální prostředí v `ServerScript/.venv`
+3. Nainstaluje `paho-mqtt` ze `ServerScript/requirements.txt`
+4. Spustí `debian_executor.py`
+
+Agent se automaticky reconnectuje pokud broker není dostupný.
+
+### 3. Synchronizace příkazů z dashboardu
+
+V dashboardu přejdi na **Detail serveru → Příkazy** a klikni **Synchronizovat**. Tím se whitelist příkazů odešle agentovi přes MQTT.
+
+---
+
+## Virtuální MCU simulátor
+
+Pro simulaci dat senzorů bez fyzického hardwaru:
+
+### Windows
+```bat
+StartVirtualPico.bat
+```
+
+### Linux
+```bash
+./StartVirtualPico.sh
+```
+
+Nakonfiguruj `MCUs/DHT11/.env`:
+```env
+BROKER_IP=127.0.0.1
+BROKER_PORT=1883
+API_KEY=your_api_key_here
+MAC=AA:AA:AA:AA:AA:AA
+```
+
+API klíč získáš z dashboardu po vytvoření záznamu MCU.
 
 ---
 
