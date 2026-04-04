@@ -2,10 +2,12 @@ import json
 import subprocess
 import threading
 import logging
+import time
 import paho.mqtt.client as mqtt
+from paho.mqtt.enums import CallbackAPIVersion
 
 # --- Konfigurace ---
-MQTT_BROKER = "192.168.1.100"  # IP adresa brokera
+MQTT_BROKER = "10.10.10.100"  # IP adresa brokera
 MQTT_PORT = 1883
 SERVER_ID = "1" # Mělo by odpovídat ID serveru ve tvé SQLite databázi
 
@@ -55,15 +57,23 @@ def execute_command(client, payload):
         send_status(client, history_id, "error", exit_code=1, log_msg=f"Zakázaný nebo neznámý command_id: {cmd_id}")
         return
 
-    real_command = COMMAND_MAP[cmd_id]
-    send_status(client, history_id, "running", log_msg=f"Spouštím: {' '.join(real_command)}")
+    raw = COMMAND_MAP[cmd_id]
+    # Podporuje string i list
+    if isinstance(raw, list):
+        shell_command = " ".join(raw)
+    else:
+        shell_command = str(raw)
+
+    send_status(client, history_id, "running", log_msg=f"Spouštím: {shell_command}")
 
     try:
         process = subprocess.Popen(
-            real_command,
+            shell_command,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=True
+            text=True,
+            shell=True,
+            executable="/bin/bash"
         )
         stdout, stderr = process.communicate()
         exit_code = process.returncode
@@ -78,11 +88,17 @@ def execute_command(client, payload):
     except Exception as e:
         send_status(client, history_id, "error", exit_code=-1, log_msg=f"Kritická chyba: {str(e)}")
 
-def on_connect(client, userdata, flags, rc):
-    logging.info(f"Připojeno k MQTT (Kód: {rc})")
-    # Zaregistrujeme se k odběru pro EXECUTE i CONFIG
-    client.subscribe([(TOPIC_EXECUTE, 0), (TOPIC_CONFIG, 0)])
-    logging.info(f"Naslouchám na:\n - {TOPIC_EXECUTE}\n - {TOPIC_CONFIG}")
+def on_connect(client, userdata, flags, reason_code, properties):
+    if reason_code == 0:
+        logging.info("Připojeno k MQTT brokeru.")
+        client.subscribe([(TOPIC_EXECUTE, 0), (TOPIC_CONFIG, 0)])
+        logging.info(f"Naslouchám na:\n - {TOPIC_EXECUTE}\n - {TOPIC_CONFIG}")
+    else:
+        logging.error(f"Připojení selhalo, kód: {reason_code}")
+
+def on_disconnect(client, userdata, flags, reason_code, properties):
+    if reason_code != 0:
+        logging.warning(f"Odpojeno od brokera (kód: {reason_code}), čekám na reconnect...")
 
 def on_message(client, userdata, msg):
     """Rozcestník podle toho, do jakého topicu zpráva přišla."""
@@ -111,13 +127,24 @@ def on_message(client, userdata, msg):
     except Exception as e:
         logging.error(f"Neočekávaná chyba: {e}")
 
-if __name__ == "__main__":
-    client = mqtt.Client()
-    client.on_connect = on_connect
-    client.on_message = on_message
+RETRY_DELAY = 10  # sekund mezi pokusy o připojení
 
-    try:
-        client.connect(MQTT_BROKER, MQTT_PORT, 60)
-        client.loop_forever()
-    except KeyboardInterrupt:
-        logging.info("Ukončeno uživatelem.")
+if __name__ == "__main__":
+    client = mqtt.Client(CallbackAPIVersion.VERSION2)
+    client.on_connect = on_connect
+    client.on_disconnect = on_disconnect
+    client.on_message = on_message
+    client.reconnect_delay_set(min_delay=5, max_delay=60)
+
+    while True:
+        try:
+            logging.info(f"Připojuji se k brokeru {MQTT_BROKER}:{MQTT_PORT}...")
+            client.connect(MQTT_BROKER, MQTT_PORT, 60)
+            client.loop_forever()
+        except KeyboardInterrupt:
+            logging.info("Ukončeno uživatelem.")
+            break
+        except Exception as e:
+            logging.error(f"Nelze se připojit k brokeru: {e}")
+            logging.info(f"Zkouším znovu za {RETRY_DELAY} sekund...")
+            time.sleep(RETRY_DELAY)
