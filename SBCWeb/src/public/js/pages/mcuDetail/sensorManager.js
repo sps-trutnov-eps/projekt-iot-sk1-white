@@ -74,14 +74,14 @@ export async function loadSensors(isBackground = false) {
                             </div>
                             <div class="flex flex-col">
                                 <p class="text-[11px] font-bold text-midnight-violet-900 dark:text-silver-100 leading-tight uppercase">${sensor.model}</p>
-                                <p class="text-[9px] text-silver-400 font-medium">Počet kanálů: ${sensor.channels ? sensor.channels.length : 0}</p>
+                                <p class="text-[9px] text-silver-400 font-medium">${window.i18n?.channelCount ?? "Channels:"} ${sensor.channels ? sensor.channels.length : 0}</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-1">
-                            <button onclick="window.openAddChannelModal('${sensor.id}', '${sensor.model}')" title="Přidat kanál" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-emerald-500 hover:bg-emerald-50 transition-all">
+                            <button onclick="window.openAddChannelModal('${sensor.id}', '${sensor.model}')" title="${window.i18n?.addChannelBtn ?? \"Add channel\"}" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-emerald-500 hover:bg-emerald-50 transition-all">
                                 <i class="fas fa-plus text-[10px]"></i>
                             </button>
-                            <button onclick="window.openDeleteSensorModal('${sensor.id}')" title="Smazat senzor" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-red-500 hover:bg-red-50 transition-all">
+                            <button onclick="window.openDeleteSensorModal('${sensor.id}')" title="${window.i18n?.deleteSensorBtn ?? \"Delete sensor\"}" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-red-500 hover:bg-red-50 transition-all">
                                 <i class="fas fa-trash-alt text-[10px]"></i>
                             </button>
                         </div>
@@ -113,13 +113,13 @@ export async function loadSensors(isBackground = false) {
                                         </div>
                                     </div>
                                     <div class="flex gap-2">
-                                        <button onclick="window.openThresholdModal('${channel.id}', '${translated}')" title="Nastavit limity" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-yellow-500 hover:bg-yellow-50 transition-all">
+                                        <button onclick="window.openThresholdModal('${channel.id}', '${translated}')" title="Set limits" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-yellow-500 hover:bg-yellow-50 transition-all">
                                             <i class="fas fa-sliders-h text-xs"></i>
                                         </button>
-                                        <button onclick="window.updateChart(null, '${channel.id}', '${channel.unit}', '${sensor.model}', '${translated}')" title="Zobrazit graf" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-midnight-violet-500 hover:bg-midnight-violet-50 transition-all">
+                                        <button onclick="window.updateChart(null, '${channel.id}', '${channel.unit}', '${sensor.model}', '${translated}')" title="View chart" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-midnight-violet-500 hover:bg-midnight-violet-50 transition-all">
                                             <i class="fas fa-chart-line text-xs"></i>
                                         </button>
-                                        <button onclick="window.openDeleteChannelModal('${channel.id}')" title="Smazat kanál" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-red-500 hover:bg-red-50 transition-all">
+                                        <button onclick="window.openDeleteChannelModal('${channel.id}')" title="${window.i18n?.deleteChannelBtn ?? \"Delete channel\"}" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-red-500 hover:bg-red-50 transition-all">
                                             <i class="fas fa-trash-alt text-xs"></i>
                                         </button>
                                     </div>
@@ -142,7 +142,7 @@ export async function loadSensors(isBackground = false) {
             if (!hasAnyChannels) {
                 cardsContainer.innerHTML = `
                     <div class="col-span-full flex items-center justify-center p-6 border-2 border-dashed border-ash-grey-200 dark:border-midnight-violet-800 rounded-xl text-ash-grey-400 dark:text-silver-500 bg-white/50 dark:bg-midnight-violet-900/30 min-h-[160px]">
-                        <span class="text-xs font-semibold">U senzorů zatím nebyly vytvořeny žádné kanály.</span>
+                        <span class="text-xs font-semibold">${window.i18n?.noChannels ?? "No channels have been created for the sensors yet."}</span>
                     </div>`;
             }
 
@@ -151,7 +151,7 @@ export async function loadSensors(isBackground = false) {
             listContainer.innerHTML = `
                 <div class="p-8 flex flex-col items-center justify-center text-silver-400">
                     <i class="fas fa-microchip mb-2 text-xl opacity-50"></i>
-                    <p class="text-[10px] italic">Zatím bez senzorů</p>
+                    <p class="text-[10px] italic">${window.i18n?.noSensorsShort ?? "No sensors yet"}</p>
                 </div>`;
             
             cardsContainer.innerHTML = `
@@ -159,16 +159,16 @@ export async function loadSensors(isBackground = false) {
                     <div class="w-16 h-16 bg-ash-grey-100 dark:bg-midnight-violet-800 rounded-full flex items-center justify-center mb-4 text-ash-grey-300 dark:text-silver-500">
                         <i class="fas fa-inbox text-2xl"></i>
                     </div>
-                    <p class="text-sm font-bold text-ash-grey-500 dark:text-silver-400">Senzory nenalezeny</p>
-                    <p class="text-xs text-ash-grey-400 dark:text-silver-500 mt-1">Zaregistrujte do tohoto zařízení první senzor.</p>
+                    <p class="text-sm font-bold text-ash-grey-500 dark:text-silver-400">${window.i18n?.noSensors ?? "No sensors found"}</p>
+                    <p class="text-xs text-ash-grey-400 dark:text-silver-500 mt-1">${window.i18n?.noSensorsDesc ?? "Register the first sensor for this device."}</p>
                 </div>`;
         }
     } catch (e) { 
         console.error("Chyba loadSensors:", e);
-        listContainer.innerHTML = '<div class="p-4 text-center text-red-500 text-[10px] font-medium">Chyba načítání</div>';
+        listContainer.innerHTML = '<div class="p-4 text-center text-red-500 text-[10px] font-medium">${window.i18n?.loadError ?? "Loading error"}</div>';
         cardsContainer.innerHTML = `
             <div class="col-span-full py-10 text-center">
-                <p class="text-red-400 text-sm font-medium"><i class="fas fa-exclamation-triangle mr-2"></i>Chyba při stahování dat senzorů</p>
+                <p class="text-red-400 text-sm font-medium"><i class="fas fa-exclamation-triangle mr-2"></i>${window.i18n?.sensorLoadError ?? "Error downloading sensor data"}</p>
             </div>`;
     }
 }

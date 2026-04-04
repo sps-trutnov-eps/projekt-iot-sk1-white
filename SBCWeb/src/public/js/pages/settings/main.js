@@ -39,7 +39,7 @@ async function loadSettings() {
         }
     } catch (error) {
         console.error('Chyba při načítání nastavení z DB:', error);
-        showToast('error', 'Nepodařilo se načíst data ze serveru.');
+        showToast('error', window.i18n?.errorLoadSettings ?? 'Failed to load data from server.');
     }
 
     const savedTheme = localStorage.getItem('ui_theme') || 'light';
@@ -58,7 +58,7 @@ async function saveSettings() {
     const saveBtn = document.getElementById('saveSettingsBtn');
     const originalBtnText = saveBtn.innerHTML;
     
-    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
+    saveBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${window.i18n?.saving ?? "Saving..."}`;
     saveBtn.disabled = true;
 
     const theme = document.querySelector('input[name="ui_theme"]:checked').value;
@@ -92,13 +92,13 @@ async function saveSettings() {
         const result = await response.json();
 
         if (result.success) {
-            showToast('success', 'Nastavení bylo úspěšně uloženo.');
+            showToast('success', window.i18n?.successSettingsSaved ?? 'Settings saved successfully.');
         } else {
-            showToast('error', result.message || 'Chyba při ukládání nastavení.');
+            showToast('error', result.message || window.i18n?.errorSavingSettings ?? 'Error saving settings.');
         }
     } catch (error) {
         console.error('Chyba při ukládání nastavení:', error);
-        showToast('error', 'Chyba při komunikaci se serverem.');
+        showToast('error', window.i18n?.errorComm ?? 'Communication error.');
     } finally {
         saveBtn.innerHTML = originalBtnText;
         saveBtn.disabled = false;
@@ -110,7 +110,7 @@ async function saveSettings() {
 async function saveUsername() {
     const btn = document.getElementById('saveUsernameBtn');
     const username = document.getElementById('account_new_username').value.trim();
-    if (!username) { showToast('error', 'Zadejte nové uživatelské jméno.'); return; }
+    if (!username) { showToast('error', window.i18n?.errorEnterUsername ?? 'Enter a new username.'); return; }
 
     btn.disabled = true;
     try {
@@ -140,10 +140,10 @@ async function savePassword() {
     const confirmPassword = document.getElementById('account_confirm_password').value;
 
     if (!currentPassword || !newPassword || !confirmPassword) {
-        showToast('error', 'Vyplňte všechna pole hesla.'); return;
+        showToast('error', window.i18n?.errorFillPassword ?? 'Fill in all password fields.'); return;
     }
     if (newPassword !== confirmPassword) {
-        showToast('error', 'Nová hesla se neshodují.'); return;
+        showToast('error', window.i18n?.errorPasswordMatch ?? 'New passwords do not match.'); return;
     }
 
     btn.disabled = true;

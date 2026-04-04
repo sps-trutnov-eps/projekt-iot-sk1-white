@@ -7,6 +7,9 @@ const { execSync } = require('child_process');
 const socketIo = require('socket.io');
 const path = require('path');
 const session = require('express-session');
+const i18next = require('i18next');
+const i18nextMiddleware = require('i18next-http-middleware');
+const Backend = require('i18next-fs-backend');
 const app = express();
 const config = require('./src/config/config');
 const { server_port, server_host, session_secret } = config;
@@ -44,12 +47,26 @@ function ensureSslCert() {
     }
 }
 
+// --- i18n ---
+i18next
+  .use(Backend)
+  .use(i18nextMiddleware.LanguageDetector)
+  .init({
+    backend: { loadPath: path.join(__dirname, './src/locales/{{lng}}/{{ns}}.json') },
+    detection: { order: ['cookie', 'querystring', 'header'], caches: ['cookie'], cookieName: 'i18next' },
+    fallbackLng: 'en',
+    preload: ['en', 'cs'],
+    ns: ['translation'],
+    defaultNS: 'translation'
+  });
+
 const server = http.createServer(app);
 const io = socketIo(server, { cors: { origin: "*" } });
 
 initDB();
 seedDB();
 
+app.use(i18nextMiddleware.handle(i18next));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(session({
@@ -63,10 +80,26 @@ app.use(express.static(path.join(__dirname, './src/public')));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, './src/views'));
 
-// --- Middleware pro předání přihlášeného uživatele do všech views ---
+// --- Middleware pro předání přihlášeného uživatele a t() do všech views ---
 app.use((req, res, next) => {
   res.locals.currentUser = req.session.username || null;
+  res.locals.t = req.t;
+  res.locals.lng = req.language;
   next();
+});
+
+// --- Language switch ---
+app.get('/lang/:lng', (req, res) => {
+  const { lng } = req.params;
+  if (['en', 'cs'].includes(lng)) {
+    res.cookie('i18next', lng, { maxAge: 365 * 24 * 60 * 60 * 1000 });
+  }
+  const referer = req.get('Referer');
+  if (referer && !referer.includes('/lang/')) {
+    res.redirect(referer);
+  } else {
+    res.redirect('/dashboard');
+  }
 });
 
 const authRoutes = require('./src/routes/authRouter');

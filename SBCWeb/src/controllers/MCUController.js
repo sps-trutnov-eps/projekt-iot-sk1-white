@@ -50,7 +50,7 @@ const createMCU = (req, res) => {
     const newMCU = MCUService.createMCU(req.body);
     res.status(201).json({
         success: true,
-        message: "MCU bylo úspěšně vytvořeno",
+        message: "MCU created successfully.",
         data: newMCU
     });
   } catch (error) {
@@ -62,7 +62,7 @@ const getMCU = (req, res) => {
   try {
     const id = req.body.id; 
     if (!id) {
-      return res.status(400).json({ success: false, message: "ID nebylo zasláno" });
+      return res.status(400).json({ success: false, message: "ID not provided." });
     }
 
     const mcu = MCUService.findById(id);
@@ -98,7 +98,7 @@ const deleteMCU = (req, res) => {
   try {
     const id = req.body.id;
     if (!id) {
-      return res.status(400).json({ message: "Id je povinné k vyhledání." });
+      return res.status(400).json({ message: "ID is required." });
     }
     const result = MCUService.deleteMCU(id);
     if (!result || result.changes === 0) {
@@ -106,7 +106,7 @@ const deleteMCU = (req, res) => {
     }
     res.json({ 
       success: true,
-      message: "MCU bylo úspěšně smazáno." });
+      message: "MCU deleted successfully." });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: error.message });
@@ -121,13 +121,13 @@ const updateMCU = (req,res) => {
     const id =MCUdata.id;
     
     if (!id) {
-        return res.status(400).json({ success: false, message: "Chybí ID pro aktualizaci." });
+        return res.status(400).json({ success: false, message: "Missing ID for update." });
     }
 
     MCUService.updateMCU(id, MCUdata);
     res.json({
       success: true,
-      message: "MCU bylo úspěšně upraveno."
+      message: "MCU updated successfully."
     })
   }
   catch(error){
@@ -139,7 +139,7 @@ const updateMCU = (req,res) => {
 const updateApiKey = (req, res) => {
   try {
     const { id, apiKey } = req.body;
-    if (!id) return res.status(400).json({ success: false, message: 'Chybí ID.' });
+    if (!id) return res.status(400).json({ success: false, message: 'Missing ID.' });
 
     // Pokud přijde prázdný řetězec, vygenerujeme nový klíč
     const newKey = (apiKey && apiKey.trim()) ? apiKey.trim() : generateApiKey();
@@ -149,7 +149,7 @@ const updateApiKey = (req, res) => {
     if (!result || result.changes === 0) {
       return res.status(404).json({ success: false, message: 'MCU nenalezeno.' });
     }
-    res.json({ success: true, message: 'API klíč byl aktualizován.', apiKey: newKey });
+    res.json({ success: true, message: 'API key updated.', apiKey: newKey });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

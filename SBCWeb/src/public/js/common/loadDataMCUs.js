@@ -13,7 +13,7 @@ export async function fetchMcu(mcuId) {
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.message || 'Server vrátil chybu');
+            throw new Error(errorData.message || 'Server returned error');
         }
 
         return await response.json();

@@ -69,7 +69,7 @@ function closeFlashModal() {
 // === WEB SERIAL API ===
 async function connectUsb() {
     if (!('serial' in navigator)) {
-        showError('Web Serial API není podporováno. Použijte Chrome nebo Edge.');
+        showError((window.i18n?.errorWebSerial ?? 'Web Serial API is not supported. Please use Chrome or Edge.'));
         return;
     }
 
@@ -81,10 +81,10 @@ async function connectUsb() {
         const info = serialPort.getInfo();
         updatePortStatus(info);
 
-        if (window.openToast) window.openToast('USB zařízení připojeno.', true);
+        if (window.openToast) window.openToast((window.i18n?.usbConnected ?? 'USB device connected.'), true);
     } catch (e) {
         if (e.name === 'NotAllowedError') return; // User cancelled
-        showError('Nepodařilo se připojit: ' + e.message);
+        showError((window.i18n?.errorConnect ?? 'Failed to connect: ') + e.message);
     }
 }
 
@@ -116,7 +116,7 @@ function updatePortStatus(info) {
         if (connectBtn) connectBtn.classList.add('hidden');
         if (disconnectBtn) disconnectBtn.classList.remove('hidden');
     } else {
-        statusEl.innerHTML = '<i class="fas fa-usb text-gray-400 mr-2"></i><span class="text-gray-500 dark:text-silver-400">Žádné zařízení připojeno</span>';
+        statusEl.innerHTML = '<i class="fas fa-usb text-gray-400 mr-2"></i><span class="text-gray-500 dark:text-silver-400">${window.i18n?.noDevice ?? 'No device connected'}</span>';
         statusEl.className = statusEl.className.replace('border-green-500 dark:border-green-600', 'border-ash-grey-300 dark:border-midnight-violet-700');
         if (connectBtn) connectBtn.classList.remove('hidden');
         if (disconnectBtn) disconnectBtn.classList.add('hidden');
@@ -137,10 +137,10 @@ async function readUntil(reader, marker, timeoutMs = 10000) {
     const start = Date.now();
     while (!buffer.includes(marker)) {
         if (Date.now() - start > timeoutMs) {
-            throw new Error(`Timeout čekání na odpověď zařízení.`);
+            throw new Error(`Device response timeout.`);
         }
         const { value, done } = await reader.read();
-        if (done) throw new Error('Sériový port byl uzavřen.');
+        if (done) throw new Error('Serial port was closed.');
         buffer += decoder.decode(value);
     }
     return buffer;
@@ -215,10 +215,10 @@ async function uploadFileToDevice(port, fileContent, destPath, onProgress) {
     const reader = port.readable.getReader();
 
     try {
-        onProgress(0, 100, 'Připojuji se k raw REPL...');
+        onProgress(0, 100, 'Connecting to raw REPL...');
         await enterRawRepl(writer, reader);
 
-        onProgress(10, 100, 'Otevírám soubor na zařízení...');
+        onProgress(10, 100, 'Opening file on device...');
         await execRaw(writer, reader, `f=open('${destPath}','wb')\nw=f.write`);
 
         // Send in chunks
@@ -248,16 +248,16 @@ async function uploadFileToDevice(port, fileContent, destPath, onProgress) {
             onProgress(percent, 100, `Nahrávám... ${Math.round(((i + 1) / totalChunks) * 100)}%`);
         }
 
-        onProgress(90, 100, 'Zavírám soubor...');
+        onProgress(90, 100, 'Closing file...');
         await execRaw(writer, reader, 'f.close()');
 
-        onProgress(95, 100, 'Restartuji zařízení...');
+        onProgress(95, 100, 'Restarting device...');
         // Exit raw REPL and soft reset
         await writeSerial(writer, new Uint8Array([CTRL_B]));
         await new Promise(r => setTimeout(r, 100));
         await writeSerial(writer, new Uint8Array([CTRL_D]));
 
-        onProgress(100, 100, 'Flash dokončen!');
+        onProgress(100, 100, 'Flash complete!');
     } finally {
         reader.releaseLock();
         writer.releaseLock();
@@ -268,7 +268,7 @@ async function uploadFileToDevice(port, fileContent, destPath, onProgress) {
 // === ŠABLONY ===
 async function loadTemplates() {
     const select = document.getElementById('flashTemplate');
-    select.innerHTML = '<option value="">Načítám šablony...</option>';
+    select.innerHTML = `<option value="">${window.i18n?.loadingTemplates ?? 'Loading templates...'}</option>`;
 
     try {
         const res = await fetch('/mcu/templates');
@@ -277,11 +277,11 @@ async function loadTemplates() {
         if (!data.success) throw new Error(data.message);
 
         if (data.templates.length === 0) {
-            select.innerHTML = '<option value="">Žádné šablony — nahrajte .py soubor</option>';
+            select.innerHTML = `<option value="">${window.i18n?.noTemplates ?? 'No templates — upload a .py file'}</option>`;
             return;
         }
 
-        select.innerHTML = '<option value="">-- Vyberte šablonu --</option>';
+        select.innerHTML = `<option value="">${window.i18n?.selectTemplate ?? '-- Select template --'}</option>`;
         data.templates.forEach(tpl => {
             const opt = document.createElement('option');
             opt.value = tpl.filename;
@@ -290,7 +290,7 @@ async function loadTemplates() {
             select.appendChild(opt);
         });
     } catch (e) {
-        select.innerHTML = '<option value="">Chyba při načítání šablon</option>';
+        select.innerHTML = `<option value="">${window.i18n?.templateLoadError ?? 'Error loading templates'}</option>`;
     }
 }
 
@@ -359,14 +359,14 @@ async function handleDeleteTemplate() {
     if (!select.value) return;
 
     const name = select.value;
-    if (!confirm(`Opravdu smazat šablonu "${name}"?`)) return;
+    if (!confirm(`Really delete template "${name}"?`)) return;
 
     try {
         const res = await fetch(`/mcu/templates/${name}`, { method: 'DELETE' });
         const data = await res.json();
         if (!data.success) throw new Error(data.message);
 
-        if (window.openToast) window.openToast('Šablona smazána.', true);
+        if (window.openToast) window.openToast((window.i18n?.successTemplateDel ?? 'Template deleted.'), true);
         await loadTemplates();
     } catch (err) {
         showError(err.message);
@@ -377,13 +377,13 @@ async function handleDeleteTemplate() {
 async function startFlash() {
     if (isFlashing) return;
 
-    if (!serialPort) return showError('Připojte USB zařízení.');
+    if (!serialPort) return showError((window.i18n?.errorConnectUsb ?? 'Connect USB device.'));
 
     const templateFilename = document.getElementById('flashTemplate').value;
     const wifiSsid = document.getElementById('flashWifiSsid').value.trim();
     const wifiPassword = document.getElementById('flashWifiPass').value.trim();
 
-    if (!templateFilename) return showError('Vyberte šablonu.');
+    if (!templateFilename) return showError((window.i18n?.errorSelectTemplate ?? 'Select a template.'));
     if (!wifiSsid) return showError('Zadejte WiFi SSID.');
     if (!wifiPassword) return showError('Zadejte WiFi heslo.');
 
@@ -403,7 +403,7 @@ async function startFlash() {
 
     try {
         // 1. Get rendered template from server
-        addLog('Generuji kód ze šablony...', 'running');
+        addLog(window.i18n?.generatingCode ?? 'Generating code from template...', 'running');
         const res = await fetch(`/mcu/${mcuId}/render-template`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -413,7 +413,7 @@ async function startFlash() {
 
         if (!data.success) throw new Error(data.message);
 
-        addLog('Kód vygenerován.', 'success');
+        addLog(window.i18n?.successCodeGenerated ?? 'Code generated.', 'success');
 
         // 2. Upload via Web Serial
         await uploadFileToDevice(serialPort, data.code, 'main.py', (percent, total, message) => {
@@ -432,7 +432,7 @@ async function startFlash() {
         }
         if (spinner) spinner.className = 'fas fa-check-circle mr-1 text-green-500';
 
-        if (window.openToast) window.openToast('Kód byl úspěšně nahrán na zařízení!', true);
+        if (window.openToast) window.openToast(window.i18n?.successFlashed ?? 'Code uploaded to device successfully!', true);
 
     } catch (err) {
         addLog(`Chyba: ${err.message}`, 'error');

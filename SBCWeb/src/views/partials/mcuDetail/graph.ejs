@@ -2,8 +2,8 @@
     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
         
         <div>
-            <h3 id="chartTitle" class="font-bold text-midnight-violet-900 dark:text-silver-50 text-lg">Analýza dat</h3>
-            <p class="text-xs text-silver-500">Vývoj hodnot v čase</p>
+            <h3 id="chartTitle" class="font-bold text-midnight-violet-900 dark:text-silver-50 text-lg"><%= t('mcuDetail.dataAnalysis') %></h3>
+            <p class="text-xs text-silver-500"><%= t('mcuDetail.valueTrend') %></p>
         </div>
         
         <div class="flex flex-wrap items-center gap-4 sm:gap-6">
@@ -28,7 +28,7 @@
 
                 <label class="flex items-center gap-1 cursor-pointer">
                     <input type="radio" name="chartMetric" value="all" onchange="updateChartMetric()" class="accent-vintage-grape-600 w-3 h-3">
-                    <span class="text-xs text-gray-900 dark:text-silver-100 font-bold">Vše</span>
+                    <span class="text-xs text-gray-900 dark:text-silver-100 font-bold"><%= t('deck.selectAll') %></span>
                 </label>
             </div>
 

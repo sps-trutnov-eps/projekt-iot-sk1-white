@@ -12,8 +12,8 @@ export const CommandManager = {
             grid.innerHTML = `
                 <div class="col-span-full flex flex-col items-center justify-center p-8 border-2 border-dashed border-ash-grey-200 dark:border-midnight-violet-800 rounded-xl text-ash-grey-400 dark:text-silver-500 min-h-[150px]">
                     <i class="far fa-star text-3xl mb-3 text-ash-grey-300 dark:text-silver-600"></i>
-                    <span class="text-sm font-medium">Zatím nemáš žádné oblíbené zkratky.</span>
-                    <span class="text-xs mt-1 text-ash-grey-400 dark:text-silver-500">Přidej si je pomocí hvězdičky v sekci Serverů.</span>
+                    <span class="text-sm font-medium">${window.i18n?.noFavorites ?? 'No favorite shortcuts yet.'}</span>
+                    <span class="text-xs mt-1 text-ash-grey-400 dark:text-silver-500">${window.i18n?.addFavorites ?? 'Add them using the star icon in the Servers section.'}</span>
                 </div>
             `;
             return;
@@ -22,7 +22,7 @@ export const CommandManager = {
         grid.innerHTML = commands.map(item => {
             const safeName = window.DashboardManager.escapeQuotes(item.name);
             const iconClass = item.type === 'wol' ? 'fa-power-off' : (item.icon || 'fa-terminal');
-            const serverNameText = item.server_name || "Neznámý server";
+            const serverNameText = item.server_name || window.i18n?.unknownServer ?? "Unknown server";
             const cmdValue = item.value || item.command;
             
             return `
@@ -86,7 +86,7 @@ window.runCommand = async (id, btnElement) => {
 
         // WOL — okamžitě ukončit
         if (data.type === 'wol') {
-            window.openToast?.('WOL paket byl úspěšně odeslán!', true);
+            window.openToast?.(window.i18n?.successWol ?? 'WOL packet sent successfully!', true);
             if (btnElement) btnElement.innerHTML = '<i class="fas fa-paper-plane text-green-500 text-[10px] ml-0.5"></i>';
             return;
         }
@@ -106,11 +106,11 @@ window.runCommand = async (id, btnElement) => {
                 finalStatus = statusData.status;
 
                 if (finalStatus === 'success') {
-                    window.openToast?.('Příkaz úspěšně dokončen!', true);
+                    window.openToast?.(window.i18n?.successCommandDone ?? 'Command completed successfully!', true);
                     if (btnElement) btnElement.innerHTML = '<i class="fas fa-check text-green-500 text-[10px] ml-0.5"></i>';
                     break;
                 } else if (finalStatus === 'error') {
-                    window.openToast?.(`Příkaz selhal: ${statusData.error_output || 'Neznámá chyba'}`, false);
+                    window.openToast?.(`${window.i18n?.errorCommandFailed ?? 'Command failed: '}${statusData.error_output || window.i18n?.errorUnknown ?? 'Unknown error'}`, false);
                     if (btnElement) btnElement.innerHTML = '<i class="fas fa-times text-red-500 text-[10px] ml-0.5"></i>';
                     break;
                 }
@@ -118,12 +118,12 @@ window.runCommand = async (id, btnElement) => {
         }
 
         if (finalStatus === 'pending') {
-            window.openToast?.('Vypršel časový limit.', false);
+            window.openToast?.(window.i18n?.errorTimeout ?? 'Request timed out.', false);
             if (btnElement) btnElement.innerHTML = '<i class="fas fa-times text-red-500 text-[10px] ml-0.5"></i>';
         }
 
     } catch (error) {
-        window.openToast?.(error.message || 'Chyba komunikace se serverem.', false);
+        window.openToast?.(error.message || window.i18n?.errorComm ?? 'Communication error.', false);
         if (btnElement) btnElement.innerHTML = '<i class="fas fa-exclamation-triangle text-red-500 text-[10px] ml-0.5"></i>';
     } finally {
         if (btnElement) {

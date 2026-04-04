@@ -38,7 +38,7 @@ function initAddMcuModal() {
 
             try {
                 mcuModal.submitBtn.disabled = true;
-                mcuModal.submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Přidávám...';
+                mcuModal.submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${window.i18n?.adding ?? 'Adding...'}`;
                 
                 const response = await fetch('/mcu/add', {
                     method: 'POST',
@@ -62,14 +62,14 @@ function initAddMcuModal() {
                     // 4. Vyčistit, zavřít a oznámit
                     mcuModal.clear();
                     mcuModal.close(); 
-                    window.openToast?.("Zařízení bylo úspěšně přidáno!", true);
+                    window.openToast?.((window.i18n?.successAdded ?? "Device added successfully!"), true);
                 } else {
-                    mcuModal.showError(data.message || "Neznámá chyba při ukládání.");
+                    mcuModal.showError((data.message || window.i18n?.errorSaving ?? "Error saving."));
                 }
                 
             } catch (error) {
                 console.error("Chyba při přidávání MCU:", error);
-                mcuModal.showError("Nelze navázat spojení se serverem.");
+                mcuModal.showError((window.i18n?.errorServer ?? "Cannot connect to server."));
             } finally {
                 // Vrácení tlačítka do původního stavu
                 mcuModal.submitBtn.disabled = false;
@@ -91,7 +91,7 @@ function initDeleteMcuModal() {
 
         mcuIdToDelete = btn.dataset.id;
         if (!mcuIdToDelete) {
-            window.openToast?.('Chybí ID MCU.', false);
+            window.openToast?.((window.i18n?.errorMissingId ?? 'Missing MCU ID.'), false);
             return;
         }
 
@@ -120,13 +120,13 @@ function initDeleteMcuModal() {
                     refreshTypeStats();
                     applyFilters();
                     
-                    window.openToast?.("Zařízení bylo úspěšně smazáno!", true);
+                    window.openToast?.(window.i18n?.successDeleted ?? "Device deleted successfully!", true);
                     deleteMcuModal.close(); 
                 } else {
-                    deleteMcuModal.showError(data.message || 'Chyba při mazání.');
+                    deleteMcuModal.showError(data.message || (data.message || window.i18n?.errorSaving ?? 'Error saving.'));
                 }
             } catch (error) {
-                deleteMcuModal.showError('Server neodpovídá.');
+                deleteMcuModal.showError(window.i18n?.errorServer ?? 'Cannot connect to server.');
                 console.error(error);
             } finally {
                 deleteMcuModal.submitBtn.disabled = false;
@@ -147,7 +147,7 @@ function initDeleteTypeModal() {
 
         typeIdToDelete = btn.dataset.id;
         if (!typeIdToDelete) {
-            window.openToast?.('Chybí ID Typu.', false);
+            window.openToast?.((window.i18n?.errorMissingTypeId ?? 'Missing Type ID.'), false);
             return;
         }
 
@@ -178,7 +178,7 @@ function initDeleteTypeModal() {
                     window.openToast?.(data.message, false);
                 }
             } catch (error) {
-                deleteTypeModal.showError('Server neodpovídá.');
+                deleteTypeModal.showError(window.i18n?.errorServer ?? 'Cannot connect to server.');
                 console.error(error);
             } finally {
                 deleteTypeModal.submitBtn.disabled = false;
@@ -208,7 +208,7 @@ function initAddTypeModal() {
 
             try {
                 typeModal.submitBtn.disabled = true;
-                typeModal.submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Přidávám...';
+                typeModal.submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${window.i18n?.adding ?? 'Adding...'}`;
                 
                 const response = await fetch('/type/add', {
                     method: 'POST',
@@ -220,7 +220,7 @@ function initAddTypeModal() {
                 
                 if (data.success) {
                     await refreshTypes();
-                    window.openToast?.("Typ byl úspěšně přidán!", true);
+                    window.openToast?.(window.i18n?.successTypeAdded ?? "Type added successfully!", true);
                     typeModal.clear();
                     
                     const result = await fetchData('/type/types');
@@ -234,7 +234,7 @@ function initAddTypeModal() {
                 }
             } catch (error) {
                 console.error(error);
-                typeModal.showError("Chyba při komunikaci se serverem.");
+                typeModal.showError(window.i18n?.errorComm ?? "Communication error.");
             } finally {
                 typeModal.submitBtn.disabled = false;
                 typeModal.submitBtn.innerHTML = '<i class="fas fa-plus"></i> Add Type';
@@ -276,7 +276,7 @@ function initEditMcuModal() {
                 editModal.open();
             } else {
                 console.error("Server vrátil success, ale chybí data 'mcu':", result);
-                window.openToast?.('Data zařízení nebyla nalezena.', false);
+                window.openToast?.((window.i18n?.errorDeviceNotFound ?? 'Device data not found.'), false);
             }
         } catch(error) {
             console.error("Chyba při otevírání modalu:", error);
@@ -320,11 +320,11 @@ function initEditMcuModal() {
 
                     editModal.close();
                 } else {
-                    editModal.showError(result.message || 'Chyba při ukládání.');
+                    editModal.showError(result.message || window.i18n?.errorSaving ?? 'Error saving.');
                 }
             } catch (error) {
                 console.error("Fetch error:", error);
-                editModal.showError('Nelze navázat spojení se serverem.');
+                editModal.showError((window.i18n?.errorServer ?? 'Cannot connect to server.'));
             } finally {
                 editModal.submitBtn.disabled = false;
             }

@@ -59,14 +59,14 @@ export function initModals() {
         sensorModal.submitBtn.addEventListener('click', async (e) => {
             e.preventDefault();
             const sensorName = document.getElementById('sensorNameInput').value;
-            if (!sensorName) return sensorModal.showError("Vyplňte název senzoru.");
-            if (tempMetrics.length === 0) return sensorModal.showError("Přidejte alespoň jednu veličinu.");
+            if (!sensorName) return sensorModal.showError(window.i18n?.errorFillName ?? "Fill in sensor name.");
+            if (tempMetrics.length === 0) return sensorModal.showError(window.i18n?.errorAddMetric ?? "Add at least one measurement.");
 
             const formData = { deviceId: getMcuId(), model: sensorName, channels: tempMetrics };
 
             try {
                 sensorModal.submitBtn.disabled = true;
-                sensorModal.submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
+                sensorModal.submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${window.i18n?.saving ?? "Saving..."}`;
                 
                 const response = await fetch('/sensor/', {
                     method: 'POST',
@@ -76,17 +76,17 @@ export function initModals() {
                 const data = await response.json();
                 
                 if (response.ok) {
-                    if(window.openToast) window.openToast(data.message || "Senzor přidán", true);
+                    if(window.openToast) window.openToast(data.message || window.i18n?.successSensorAdded ?? "Sensor added", true);
                     sensorModal.close();
                     if(window.updateView) window.updateView(false); 
                 } else {
-                    sensorModal.showError(data.error || "Chyba při ukládání.");
+                    sensorModal.showError(data.error || window.i18n?.errorSaving ?? "Error saving.");
                 }
             } catch (error) {
-                sensorModal.showError("Chyba při komunikaci se serverem.");
+                sensorModal.showError(window.i18n?.errorComm ?? "Communication error.");
             } finally {
                 sensorModal.submitBtn.disabled = false;
-                sensorModal.submitBtn.innerHTML = 'Uložit senzor';
+                sensorModal.submitBtn.innerHTML = window.i18n?.saveSensorBtn ?? "Save sensor";
             }
         });
     }
@@ -108,7 +108,7 @@ export function initModals() {
             const typeVal = document.getElementById('metricTypeInput').value;
             const unitVal = document.getElementById('metricUnitInput').value;
 
-            if (!nameVal || !unitVal) return metricModal.showError("Vyplňte název a jednotku.");
+            if (!nameVal || !unitVal) return metricModal.showError(window.i18n?.errorFillNameUnit ?? "Fill in name and unit.");
             tempMetrics.push({ name: nameVal, type: typeVal, unit: unitVal });
             renderMetricsList();
             metricModal.close();
@@ -122,28 +122,28 @@ export function initModals() {
             const sensorId = document.getElementById('deleteSensorIdInput').value;
             
             if (!sensorId) {
-                return deleteSensorModal.showError("Nebylo nalezeno ID senzoru.");
+                return deleteSensorModal.showError(window.i18n?.errorMissingSensorId ?? "Sensor ID not found.");
             }
 
             try {
                 deleteSensorModal.submitBtn.disabled = true;
-                deleteSensorModal.submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Mažu...';
+                deleteSensorModal.submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> ${window.i18n?.deleting ?? "Deleting..."}`;
 
                 const response = await fetch(`/sensor/${sensorId}`, { method: 'DELETE' });
                 const data = await response.json();
 
                 if (response.ok && data.success !== false) {
-                    if (window.openToast) window.openToast("Senzor byl úspěšně odstraněn", true);
+                    if (window.openToast) window.openToast(window.i18n?.successSensorDeleted ?? "Sensor removed successfully", true);
                     deleteSensorModal.close();
                     if (window.updateView) window.updateView(false);
                 } else {
-                    deleteSensorModal.showError(data.message || data.error || "Chyba při mazání senzoru.");
+                    deleteSensorModal.showError(data.message || data.error || window.i18n?.errorDeletingSensor ?? "Error deleting sensor.");
                 }
             } catch (error) {
-                deleteSensorModal.showError("Chyba při komunikaci se serverem.");
+                deleteSensorModal.showError(window.i18n?.errorComm ?? "Communication error.");
             } finally {
                 deleteSensorModal.submitBtn.disabled = false;
-                deleteSensorModal.submitBtn.innerHTML = 'Smazat senzor';
+                deleteSensorModal.submitBtn.innerHTML = window.i18n?.deleteSensorBtn ?? "Delete sensor";
             }
         });
     }
@@ -157,7 +157,7 @@ export function initModals() {
             const maxInput = document.getElementById('thresholdMaxInput').value;
 
             if (!channelId) {
-                return thresholdModal.showError("Chyba: Neznámý kanál.");
+                return thresholdModal.showError(window.i18n?.errorUnknownChannel ?? "Error: Unknown channel.");
             }
 
             const formData = {
@@ -168,7 +168,7 @@ export function initModals() {
 
             try {
                 thresholdModal.submitBtn.disabled = true;
-                thresholdModal.submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Ukládám...';
+                thresholdModal.submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> ${window.i18n?.saving ?? "Saving..."}`;
 
                 const response = await fetch('/sensor/threshold', {
                     method: 'POST',
@@ -179,16 +179,16 @@ export function initModals() {
                 const data = await response.json();
 
                 if (response.ok) {
-                    if (window.openToast) window.openToast(data.message || "Limity byly uloženy", true);
+                    if (window.openToast) window.openToast(data.message || window.i18n?.successLimitsSaved ?? "Limits saved", true);
                     thresholdModal.close(); 
                 } else {
-                    thresholdModal.showError(data.error || data.message || "Chyba při ukládání limitů.");
+                    thresholdModal.showError(data.error || data.message || window.i18n?.errorSavingLimits ?? "Error saving limits.");
                 }
             } catch (error) {
-                thresholdModal.showError("Chyba při komunikaci se serverem.");
+                thresholdModal.showError(window.i18n?.errorComm ?? "Communication error.");
             } finally {
                 thresholdModal.submitBtn.disabled = false;
-                thresholdModal.submitBtn.innerHTML = 'Uložit limity';
+                thresholdModal.submitBtn.innerHTML = window.i18n?.saveLimitsBtn ?? "Save limits";
             }
         });
     }
@@ -202,8 +202,8 @@ export function initModals() {
             const typeVal = document.getElementById('addChannelTypeInput').value;
             const unitVal = document.getElementById('addChannelUnitInput').value;
 
-            if (!sensorId) return addChannelModal.showError("Nebylo nalezeno ID senzoru.");
-            if (!typeVal || !unitVal) return addChannelModal.showError("Vyplňte typ a jednotku.");
+            if (!sensorId) return addChannelModal.showError(window.i18n?.errorMissingSensorId ?? "Sensor ID not found.");
+            if (!typeVal || !unitVal) return addChannelModal.showError(window.i18n?.errorFillTypeUnit ?? "Fill in type and unit.");
 
             const formData = {
                 type: typeVal,
@@ -212,7 +212,7 @@ export function initModals() {
 
             try {
                 addChannelModal.submitBtn.disabled = true;
-                addChannelModal.submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Ukládám...';
+                addChannelModal.submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> ${window.i18n?.saving ?? "Saving..."}`;
 
                 const response = await fetch(`/sensor/${sensorId}/channels`, {
                     method: 'POST',
@@ -223,17 +223,17 @@ export function initModals() {
                 const data = await response.json();
 
                 if (response.ok) {
-                    if (window.openToast) window.openToast(data.message || "Kanál byl přidán", true);
+                    if (window.openToast) window.openToast(data.message || window.i18n?.successChannelAdded ?? "Channel added", true);
                     addChannelModal.close();
                     if (window.updateView) window.updateView(false);
                 } else {
-                    addChannelModal.showError(data.error || data.message || "Chyba při ukládání kanálu.");
+                    addChannelModal.showError(data.error || data.message || window.i18n?.errorSavingChannel ?? "Error saving channel.");
                 }
             } catch (error) {
-                addChannelModal.showError("Chyba při komunikaci se serverem.");
+                addChannelModal.showError(window.i18n?.errorComm ?? "Communication error.");
             } finally {
                 addChannelModal.submitBtn.disabled = false;
-                addChannelModal.submitBtn.innerHTML = 'Přidat kanál';
+                addChannelModal.submitBtn.innerHTML = window.i18n?.addChannelBtn ?? "Add channel";
             }
         });
     }
@@ -245,28 +245,28 @@ export function initModals() {
             const channelId = document.getElementById('deleteChannelIdInput').value;
             
             if (!channelId) {
-                return deleteChannelModal.showError("Nebylo nalezeno ID kanálu.");
+                return deleteChannelModal.showError(window.i18n?.errorMissingChannelId ?? "Channel ID not found.");
             }
 
             try {
                 deleteChannelModal.submitBtn.disabled = true;
-                deleteChannelModal.submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Mažu...';
+                deleteChannelModal.submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> ${window.i18n?.deleting ?? "Deleting..."}`;
 
                 const response = await fetch(`/sensor/channel/${channelId}`, { method: 'DELETE' });
                 const data = await response.json();
 
                 if (response.ok && data.success !== false) {
-                    if (window.openToast) window.openToast("Kanál byl úspěšně odstraněn", true);
+                    if (window.openToast) window.openToast(window.i18n?.successChannelDeleted ?? "Channel removed successfully", true);
                     deleteChannelModal.close();
                     if (window.updateView) window.updateView(false);
                 } else {
-                    deleteChannelModal.showError(data.message || data.error || "Chyba při mazání kanálu.");
+                    deleteChannelModal.showError(data.message || data.error || window.i18n?.errorDeletingChannel ?? "Error deleting channel.");
                 }
             } catch (error) {
-                deleteChannelModal.showError("Chyba při komunikaci se serverem.");
+                deleteChannelModal.showError(window.i18n?.errorComm ?? "Communication error.");
             } finally {
                 deleteChannelModal.submitBtn.disabled = false;
-                deleteChannelModal.submitBtn.innerHTML = 'Smazat kanál';
+                deleteChannelModal.submitBtn.innerHTML = window.i18n?.deleteChannelBtn ?? "Delete channel";
             }
         });
     }
@@ -290,7 +290,7 @@ export function initModals() {
             
             try {
                 editMCUModal.submitBtn.disabled = true;
-                editMCUModal.submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Ukládám...';
+                editMCUModal.submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> ${window.i18n?.saving ?? "Saving..."}`;
 
                 const response = await fetch('/mcu/update', {
                     method: 'POST',
@@ -307,11 +307,11 @@ export function initModals() {
                     // Po editaci načteme znovu aktuální info do hlavičky (funkce v main.js)
                     if (window.updateView) await window.updateView(false); 
                 } else {
-                    editMCUModal.showError(result.message || 'Chyba při ukládání.');
+                    editMCUModal.showError(result.message || window.i18n?.errorSaving ?? "Error saving.");
                 }
             } catch (error) {
                 console.error("Fetch error:", error);
-                editMCUModal.showError('Nelze navázat spojení se serverem.');
+                editMCUModal.showError(window.i18n?.errorServer ?? "Cannot connect to server.");
             } finally {
                 editMCUModal.submitBtn.disabled = false;
                 editMCUModal.submitBtn.innerHTML = '<i class="fas fa-save"></i> Update MCU';
@@ -452,10 +452,10 @@ window.openEditMCUModal = async function() {
             try { modal.hideError(); } catch (e) {}
             modal.open();
         } else {
-            if (window.openToast) window.openToast('Data zařízení nebyla nalezena.', false);
+            if (window.openToast) window.openToast(window.i18n?.errorDeviceNotFound ?? 'Device data not found.', false);
         }
     } catch(error) {
         console.error("Chyba při otevírání modalu pro editaci:", error);
-        if (window.openToast) window.openToast('Chyba komunikace se serverem.', false);
+        if (window.openToast) window.openToast(window.i18n?.errorComm ?? "Communication error.", false);
     }
 };

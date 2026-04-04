@@ -30,7 +30,7 @@
 
                 try {
                     submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Přidávám...';
+                    submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${window.i18n?.adding ?? "Adding..."}`;
                     
                     const response = await fetch('/mcu/add', {
                         method: 'POST',
@@ -66,15 +66,15 @@ if (data.success) {
     mcuModal.clear();
     mcuModal.close(); // Tohle ti tam pravděpodobně chybělo!
 
-    window.openToast && window.openToast("Zařízení bylo úspěšně přidáno!", true);
+    window.openToast && window.openToast(window.i18n?.successAdded ?? "Device added successfully!", true);
 
 } else {
-    mcuModal.showError(data.message || "Neznámá chyba při ukládání.");
+    mcuModal.showError(data.message || window.i18n?.errorSaving ?? "Error saving.");
 }
                         try {
-                            window.openToast("Zařízení bylo úspěšně přidáno!", true);
+                            window.openToast(window.i18n?.successAdded ?? "Device added successfully!", true);
                         } catch (error) {
-                            window.openToast("Chyba při ukládání: " + error.message, false);
+                            window.openToast((window.i18n?.errorSaving ?? "Error saving: ") + error.message, false);
                         }
                         mcuModal.clear();
                         submitBtn.disabled = false;

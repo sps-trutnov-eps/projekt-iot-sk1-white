@@ -4,19 +4,19 @@
       <div class="w-10 h-10 bg-vintage-grape-100 dark:bg-vintage-grape-900/30 rounded-lg flex items-center justify-center">
         <i class="fas fa-terminal text-vintage-grape-600 dark:text-vintage-grape-400"></i>
       </div>
-      <h2 class="text-xl font-bold text-midnight-violet-900 dark:text-silver-50">Rychlé akce (Debian Server)</h2>
+      <h2 class="text-xl font-bold text-midnight-violet-900 dark:text-silver-50"><%= t('dashboard.quickActions') %></h2>
     </div>
     <button id="addCommandOpen" onclick="window.handleAddCommandClick()" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-vintage-grape-600 hover:bg-vintage-grape-50 rounded-lg transition-colors border border-dashed border-vintage-grape-300">
-      <i class="fas fa-plus"></i> Nový příkaz
+      <i class="fas fa-plus"></i> <%= t('dashboard.newCommand') %>
     </button>
   </div>
 
   <div id="commandsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    
+
     <div class="col-span-full flex flex-col items-center justify-center p-8 border-2 border-dashed border-ash-grey-200 dark:border-midnight-violet-700 rounded-xl text-ash-grey-400 dark:text-silver-500 min-h-[150px]">
       <i class="far fa-star text-3xl mb-3 text-ash-grey-300"></i>
-      <span class="text-sm font-medium">Zatím nemáš žádné oblíbené zkratky.</span>
-      <span class="text-xs mt-1 text-ash-grey-400">Přidej si je pomocí hvězdičky v sekci Serverů.</span>
+      <span class="text-sm font-medium"><%= t('dashboard.noFavorites') %></span>
+      <span class="text-xs mt-1 text-ash-grey-400"><%= t('dashboard.addFavorites') %></span>
   </div>
   </div>
 </div>

@@ -9,7 +9,7 @@ const createType = (req,res) =>{
         const newType = TypeService.createType({ type: typeName });
         res.json({
             success: true,
-            message: "Nový typ MCU byl úspěšně vytvořen.",
+            message: "MCU type created successfully.",
             data: newType
         });
     } catch (error) {
@@ -34,13 +34,13 @@ const deleteType = (req,res) =>{
         TypeService.deleteType(id);
         res.status(200).json({ 
             success: true,
-            message: "Typ byl úspěšně smazán."
+            message: "Type deleted successfully."
         });
     } catch (error) {
         console.log(error);
         res.status(404).json({ 
             success: false,
-            message: "Typ se nepodařilo úspěšně smazat."
+            message: "Failed to delete type."
         });
     }
 }

@@ -1,4 +1,4 @@
-<!-- Inline Deck Konfigurace (nahrazuje senzory/graf u deck MCU) -->
+<!-- Inline Deck Configuration -->
 <div class="bg-white dark:bg-midnight-violet-900 rounded-xl border border-ash-grey-200 dark:border-midnight-violet-800 shadow-sm overflow-hidden transition-colors duration-300">
 
     <!-- Header -->
@@ -7,16 +7,16 @@
             <div class="w-8 h-8 rounded-lg bg-vintage-grape-100 dark:bg-vintage-grape-900/50 text-vintage-grape-600 dark:text-vintage-grape-400 flex items-center justify-center">
                 <i class="fas fa-tv"></i>
             </div>
-            <h2 class="text-lg font-bold text-midnight-violet-900 dark:text-silver-100">Deck Konfigurace</h2>
+            <h2 class="text-lg font-bold text-midnight-violet-900 dark:text-silver-100"><%= t('deck.title') %></h2>
         </div>
         <div class="flex items-center gap-2">
-            <button id="deckInlinePush" title="Odeslat konfiguraci na deck"
+            <button id="deckInlinePush" title="<%= t('deck.push') %>"
                 class="px-3 py-1.5 rounded-lg text-xs font-medium bg-ash-grey-200 dark:bg-midnight-violet-800 text-ash-grey-700 dark:text-silver-300 hover:bg-ash-grey-300 dark:hover:bg-midnight-violet-700 transition-colors flex items-center gap-1.5">
-                <i class="fas fa-satellite-dish"></i> Push
+                <i class="fas fa-satellite-dish"></i> <%= t('deck.push') %>
             </button>
-            <button id="deckInlineSave" title="Uložit konfiguraci"
+            <button id="deckInlineSave" title="<%= t('deck.save') %>"
                 class="px-3 py-1.5 rounded-lg text-xs font-medium bg-vintage-grape-600 text-white hover:bg-vintage-grape-700 transition-colors flex items-center gap-1.5">
-                <i class="fas fa-save"></i> Uložit
+                <i class="fas fa-save"></i> <%= t('deck.save') %>
             </button>
         </div>
     </div>
@@ -27,41 +27,41 @@
             <p class="text-sm font-medium"></p>
         </div>
 
-        <!-- Servery & Příkazy (strom) -->
+        <!-- Servers & Commands (tree) -->
         <div class="space-y-3">
             <div class="flex items-center gap-2">
                 <i class="fas fa-server text-sm text-vintage-grape-500"></i>
-                <h3 class="text-xs font-bold text-midnight-violet-900 dark:text-silver-200 uppercase tracking-widest">Servery & Příkazy</h3>
+                <h3 class="text-xs font-bold text-midnight-violet-900 dark:text-silver-200 uppercase tracking-widest"><%= t('deck.serversAndCommands') %></h3>
                 <div class="ml-auto flex items-center gap-1.5">
                     <button type="button" data-check="server" class="deck-check-all px-2 py-1 rounded text-[10px] font-medium bg-vintage-grape-100 dark:bg-vintage-grape-900/30 text-vintage-grape-600 dark:text-vintage-grape-400 hover:bg-vintage-grape-200 dark:hover:bg-vintage-grape-800/40 transition">
-                        <i class="fas fa-check-double mr-0.5"></i> Check
+                        <i class="fas fa-check-double mr-0.5"></i> <%= t('deck.checkAll') %>
                     </button>
                     <button type="button" data-uncheck="server" class="deck-uncheck-all px-2 py-1 rounded text-[10px] font-medium bg-ash-grey-100 dark:bg-midnight-violet-800 text-ash-grey-600 dark:text-silver-400 hover:bg-ash-grey-200 dark:hover:bg-midnight-violet-700 transition">
-                        <i class="fas fa-times mr-0.5"></i> Uncheck
+                        <i class="fas fa-times mr-0.5"></i> <%= t('deck.uncheckAll') %>
                     </button>
                 </div>
             </div>
             <div id="deckInlineServers" class="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar">
-                <p class="text-sm text-silver-400 italic">Načítání...</p>
+                <p class="text-sm text-silver-400 italic"><%= t('deck.loading') %></p>
             </div>
         </div>
 
-        <!-- MCU Senzory -->
+        <!-- MCU Sensors -->
         <div class="space-y-3">
             <div class="flex items-center gap-2">
                 <i class="fas fa-microchip text-sm text-vintage-grape-500"></i>
-                <h3 class="text-xs font-bold text-midnight-violet-900 dark:text-silver-200 uppercase tracking-widest">MCU Senzory</h3>
+                <h3 class="text-xs font-bold text-midnight-violet-900 dark:text-silver-200 uppercase tracking-widest"><%= t('deck.mcuSensors') %></h3>
                 <div class="ml-auto flex items-center gap-1.5">
                     <button type="button" data-check="mcu" class="deck-check-all px-2 py-1 rounded text-[10px] font-medium bg-vintage-grape-100 dark:bg-vintage-grape-900/30 text-vintage-grape-600 dark:text-vintage-grape-400 hover:bg-vintage-grape-200 dark:hover:bg-vintage-grape-800/40 transition">
-                        <i class="fas fa-check-double mr-0.5"></i> Check
+                        <i class="fas fa-check-double mr-0.5"></i> <%= t('deck.checkAll') %>
                     </button>
                     <button type="button" data-uncheck="mcu" class="deck-uncheck-all px-2 py-1 rounded text-[10px] font-medium bg-ash-grey-100 dark:bg-midnight-violet-800 text-ash-grey-600 dark:text-silver-400 hover:bg-ash-grey-200 dark:hover:bg-midnight-violet-700 transition">
-                        <i class="fas fa-times mr-0.5"></i> Uncheck
+                        <i class="fas fa-times mr-0.5"></i> <%= t('deck.uncheckAll') %>
                     </button>
                 </div>
             </div>
             <div id="deckInlineMcus" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto custom-scrollbar">
-                <p class="text-sm text-silver-400 italic col-span-2">Načítání...</p>
+                <p class="text-sm text-silver-400 italic col-span-2"><%= t('deck.loading') %></p>
             </div>
         </div>
 

@@ -6,9 +6,9 @@
             <div class="flex flex-col gap-1">
                 <div class="flex items-center gap-2">
                     <i class="fas fa-bolt text-yellow-500 text-xl"></i>
-                    <h2 class="text-2xl font-bold tracking-tight text-midnight-violet-900 dark:text-silver-50">Flash MCU</h2>
+                    <h2 class="text-2xl font-bold tracking-tight text-midnight-violet-900 dark:text-silver-50"><%= t('flash.title') %></h2>
                 </div>
-                <p class="text-sm text-gray-500 dark:text-silver-400">Nahrajte MicroPython kód na zařízení přes USB.</p>
+                <p class="text-sm text-gray-500 dark:text-silver-400"><%= t('flash.desc') %></p>
             </div>
             <button type="button" id="flashModalClose" class="text-gray-400 dark:text-silver-400 hover:text-gray-600 dark:hover:text-silver-100 transition-colors p-2 rounded-lg hover:bg-ash-grey-100 dark:hover:bg-midnight-violet-800">
                 <i class="fas fa-times text-xl"></i>
@@ -17,99 +17,97 @@
 
         <div class="flex-1 overflow-y-auto p-8 space-y-6 bg-silver-50 dark:bg-[#150f18]">
 
-            <!-- Chybový banner -->
             <div id="flashError" class="hidden bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg">
                 <p class="text-sm font-medium"></p>
             </div>
 
             <!-- Web Serial API warning -->
             <div id="webSerialWarning" class="hidden bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 text-yellow-700 dark:text-yellow-300 px-4 py-3 rounded-lg">
-                <p class="text-sm font-medium"><i class="fas fa-exclamation-triangle mr-2"></i>Web Serial API není podporováno v tomto prohlížeči. Použijte <strong>Chrome</strong> nebo <strong>Edge</strong>.</p>
+                <p class="text-sm font-medium"><i class="fas fa-exclamation-triangle mr-2"></i><%= t('flash.webSerialWarning') %></p>
             </div>
 
-            <!-- Krok 1: USB připojení -->
+            <!-- Step 1: USB -->
             <div class="space-y-3">
                 <label class="flex items-center gap-2 text-sm font-medium text-midnight-violet-900 dark:text-silver-200">
                     <i class="fas fa-usb text-vintage-grape-500"></i>
-                    USB zařízení <span class="text-red-500">*</span>
+                    <%= t('flash.usbDevice') %> <span class="text-red-500">*</span>
                 </label>
 
-                <!-- Port status -->
                 <div id="flashPortStatus" class="flex items-center px-4 py-3 bg-ash-grey-100 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-900 dark:text-silver-100 transition-all">
                     <i class="fas fa-usb text-gray-400 mr-2"></i>
-                    <span class="text-gray-500 dark:text-silver-400">Žádné zařízení připojeno</span>
+                    <span class="text-gray-500 dark:text-silver-400"><%= t('flash.noDevice') %></span>
                 </div>
 
                 <div class="flex gap-2">
                     <button type="button" id="flashConnectUsb"
                         class="flex items-center gap-2 px-4 py-2.5 bg-vintage-grape-600 text-white rounded-lg hover:bg-vintage-grape-700 transition-colors text-sm font-medium">
                         <i class="fas fa-plug"></i>
-                        Připojit USB
+                        <%= t('flash.connectUsb') %>
                     </button>
                     <button type="button" id="flashDisconnectUsb"
                         class="hidden flex items-center gap-2 px-4 py-2.5 bg-ash-grey-200 dark:bg-midnight-violet-800 text-gray-600 dark:text-silver-300 rounded-lg hover:bg-ash-grey-300 dark:hover:bg-midnight-violet-700 transition-colors text-sm">
                         <i class="fas fa-unlink"></i>
-                        Odpojit
+                        <%= t('flash.disconnect') %>
                     </button>
                 </div>
             </div>
 
-            <!-- Krok 2: WiFi credentials -->
+            <!-- Step 2: WiFi -->
             <div class="space-y-4 pt-4 border-t border-ash-grey-200 dark:border-midnight-violet-800">
                 <h3 class="text-sm font-bold text-midnight-violet-900 dark:text-silver-200 uppercase tracking-widest">
-                    <i class="fas fa-wifi mr-1"></i> WiFi konfigurace
+                    <i class="fas fa-wifi mr-1"></i> <%= t('flash.wifiConfig') %>
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div class="space-y-2">
-                        <label for="flashWifiSsid" class="text-sm font-medium text-gray-700 dark:text-silver-300">SSID <span class="text-red-500">*</span></label>
-                        <input id="flashWifiSsid" type="text" placeholder="Název WiFi sítě"
+                        <label for="flashWifiSsid" class="text-sm font-medium text-gray-700 dark:text-silver-300"><%= t('flash.ssid') %> <span class="text-red-500">*</span></label>
+                        <input id="flashWifiSsid" type="text" placeholder="<%= t('flash.ssidPlaceholder') %>"
                             class="w-full px-4 py-3 bg-ash-grey-100 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-900 dark:text-silver-100 focus:outline-none focus:border-vintage-grape-500 transition-all" />
                     </div>
                     <div class="space-y-2">
-                        <label for="flashWifiPass" class="text-sm font-medium text-gray-700 dark:text-silver-300">Heslo <span class="text-red-500">*</span></label>
-                        <input id="flashWifiPass" type="password" placeholder="Heslo WiFi sítě"
+                        <label for="flashWifiPass" class="text-sm font-medium text-gray-700 dark:text-silver-300"><%= t('flash.password') %> <span class="text-red-500">*</span></label>
+                        <input id="flashWifiPass" type="password" placeholder="<%= t('flash.passwordPlaceholder') %>"
                             class="w-full px-4 py-3 bg-ash-grey-100 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-900 dark:text-silver-100 focus:outline-none focus:border-vintage-grape-500 transition-all" />
                     </div>
                 </div>
             </div>
 
-            <!-- Krok 3: Šablona -->
+            <!-- Step 3: Template -->
             <div class="space-y-4 pt-4 border-t border-ash-grey-200 dark:border-midnight-violet-800">
                 <div class="flex items-center justify-between">
                     <h3 class="text-sm font-bold text-midnight-violet-900 dark:text-silver-200 uppercase tracking-widest">
-                        <i class="fas fa-file-code mr-1"></i> MicroPython šablona
+                        <i class="fas fa-file-code mr-1"></i> <%= t('flash.template') %>
                     </h3>
                 </div>
 
                 <div class="space-y-2">
-                    <label class="text-sm font-medium text-gray-700 dark:text-silver-300">Vyberte šablonu <span class="text-red-500">*</span></label>
+                    <label class="text-sm font-medium text-gray-700 dark:text-silver-300"><%= t('flash.selectTemplate') %> <span class="text-red-500">*</span></label>
                     <select id="flashTemplate" class="w-full px-4 py-3 bg-ash-grey-100 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-900 dark:text-silver-100 focus:outline-none focus:border-vintage-grape-500 transition-all">
-                        <option value="">Načítám šablony...</option>
+                        <option value=""><%= t('flash.loadingTemplates') %></option>
                     </select>
                 </div>
 
                 <div class="flex items-center gap-3">
                     <label class="flex items-center gap-2 px-4 py-2.5 bg-ash-grey-200 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-600 dark:text-silver-300 hover:bg-ash-grey-300 dark:hover:bg-midnight-violet-700 transition-colors cursor-pointer text-sm">
                         <i class="fas fa-upload"></i>
-                        <span>Nahrát novou šablonu (.py)</span>
+                        <span><%= t('flash.uploadTemplate') %></span>
                         <input type="file" id="templateUpload" accept=".py" class="hidden" />
                     </label>
-                    <button type="button" id="deleteTemplate" class="hidden px-3 py-2.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors text-sm" title="Smazat vybranou šablonu">
+                    <button type="button" id="deleteTemplate" class="hidden px-3 py-2.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors text-sm" title="<%= t('flash.deleteTemplate') %>">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
 
                 <div id="placeholderInfo" class="hidden">
-                    <p class="text-xs text-gray-500 dark:text-silver-400 mb-2">Nalezené placeholdery v šabloně:</p>
+                    <p class="text-xs text-gray-500 dark:text-silver-400 mb-2"><%= t('flash.placeholderFound') %></p>
                     <div id="placeholderList" class="flex flex-wrap gap-1.5"></div>
                 </div>
             </div>
 
-            <!-- Síťová konfigurace (rozšířená) -->
+            <!-- Network config -->
             <div class="space-y-4 pt-4 border-t border-ash-grey-200 dark:border-midnight-violet-800">
                 <button type="button" id="toggleNetworkConfig" class="flex items-center gap-2 text-sm font-bold text-midnight-violet-900 dark:text-silver-200 uppercase tracking-widest hover:text-vintage-grape-500 transition-colors">
                     <i class="fas fa-chevron-right text-xs transition-transform" id="networkConfigArrow"></i>
-                    <i class="fas fa-network-wired mr-1"></i> Síťová konfigurace (volitelné)
+                    <i class="fas fa-network-wired mr-1"></i> <%= t('flash.networkConfig') %>
                 </button>
                 <div id="networkConfig" class="hidden space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -132,10 +130,10 @@
                 </div>
             </div>
 
-            <!-- Progress sekce -->
+            <!-- Progress -->
             <div id="flashProgress" class="hidden space-y-4 pt-4 border-t border-ash-grey-200 dark:border-midnight-violet-800">
                 <h3 class="text-sm font-bold text-midnight-violet-900 dark:text-silver-200 uppercase tracking-widest">
-                    <i class="fas fa-spinner fa-spin mr-1" id="flashSpinner"></i> Průběh
+                    <i class="fas fa-spinner fa-spin mr-1" id="flashSpinner"></i> <%= t('flash.progress') %>
                 </h3>
                 <div class="w-full bg-ash-grey-200 dark:bg-midnight-violet-800 rounded-full h-3 overflow-hidden">
                     <div id="flashProgressBar" class="bg-vintage-grape-500 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
@@ -149,12 +147,12 @@
         <div class="p-6 border-t border-ash-grey-200 dark:border-midnight-violet-800 bg-white dark:bg-midnight-violet-900 flex justify-end gap-3 shrink-0">
             <button type="button" id="flashCancel"
                 class="px-6 py-2.5 rounded-lg bg-ash-grey-200 dark:bg-midnight-violet-800 text-ash-grey-800 dark:text-silver-300 font-medium hover:bg-ash-grey-300 dark:hover:bg-midnight-violet-700 transition-colors">
-                Zavřít
+                <%= t('flash.close') %>
             </button>
             <button type="button" id="flashStartBtn"
                 class="px-6 py-2.5 rounded-lg bg-yellow-500 text-white font-medium hover:bg-yellow-600 transition-colors flex items-center gap-2">
                 <i class="fas fa-bolt"></i>
-                Flashnout
+                <%= t('flash.flash') %>
             </button>
         </div>
     </div>

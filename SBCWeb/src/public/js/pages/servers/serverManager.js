@@ -115,7 +115,7 @@ export async function loadServers(isBackground = false) {
             minimumDelay
         ]);
         
-        if (!response.ok) throw new Error("API server neodpověděl správně.");
+        if (!response.ok) throw new Error("API server did not respond correctly.");
 
         const result = await response.json();
         
@@ -152,7 +152,7 @@ export async function loadServers(isBackground = false) {
                                         
                                         <div class="flex items-center gap-2">
                                             <span class="font-bold text-gray-900 dark:text-silver-100 text-base truncate max-w-[120px] md:max-w-[150px]">${cmd.name}</span>
-                                            <button onclick="window.toggleFavoriteCommand(event, ${cmd.id})" class="focus:outline-none transition-transform hover:scale-110" title="Oblíbené">
+                                            <button onclick="window.toggleFavoriteCommand(event, ${cmd.id})" class="focus:outline-none transition-transform hover:scale-110" title="${window.i18n?.favorite ?? 'Favorite'}">
                                                 <i class="${isFav ? 'fas fa-star text-yellow-400' : 'far fa-star text-gray-400 dark:text-silver-500 hover:text-yellow-400'} text-sm"></i>
                                             </button>
                                         </div>
@@ -165,7 +165,7 @@ export async function loadServers(isBackground = false) {
                                         <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] dark:bg-midnight-violet-800 border border-[#d1d1d1] dark:border-midnight-violet-700 text-gray-600 dark:text-silver-300 hover:bg-gray-200 dark:hover:bg-midnight-violet-700 rounded-md transition-colors" title="Upravit" onclick="window.openEditCommandModal(${server.id}, ${cmd.id})">
                                             <i class="fas fa-edit text-xs"></i>
                                         </button>
-                                        <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] dark:bg-midnight-violet-800 border border-[#d1d1d1] dark:border-midnight-violet-700 text-gray-600 dark:text-silver-300 hover:bg-gray-200 dark:hover:bg-midnight-violet-700 rounded-md transition-colors" title="Smazat" onclick="window.openDeleteModal(${cmd.id}, 'command', '${safeCmdName}')">
+                                        <button class="w-8 h-8 flex items-center justify-center bg-[#f0f0f0] dark:bg-midnight-violet-800 border border-[#d1d1d1] dark:border-midnight-violet-700 text-gray-600 dark:text-silver-300 hover:bg-gray-200 dark:hover:bg-midnight-violet-700 rounded-md transition-colors" title="${window.i18n?.deleteCommandHistory ?? 'Delete command history'}" onclick="window.openDeleteModal(${cmd.id}, 'command', '${safeCmdName}')">
                                             <i class="fas fa-trash text-xs"></i>
                                         </button>
                                     </div>
@@ -182,7 +182,7 @@ export async function loadServers(isBackground = false) {
                 } else {
                     commandsHtml = `
                         <div class="flex items-center justify-center p-6 border-2 border-dashed border-ash-grey-200 dark:border-midnight-violet-800 rounded-xl text-ash-grey-400 dark:text-silver-500 bg-white/50 dark:bg-midnight-violet-900/30 min-h-[130px] col-span-full">
-                            <span class="text-[11px] font-medium">Tento server nemá další akce</span>
+                            <span class="text-[11px] font-medium">${window.i18n?.noActions ?? "This server has no additional actions"}</span>
                         </div>
                     `;
                 }
@@ -211,8 +211,8 @@ export async function loadServers(isBackground = false) {
                             
                             <div class="flex gap-2 w-full md:w-auto">
                                 <button onclick="window.openAddCommandModal(${server.id})" 
-                                    class="flex-1 md:flex-none px-4 py-2 bg-vintage-grape-50 dark:bg-vintage-grape-900/30 border border-vintage-grape-200 dark:border-vintage-grape-700 text-vintage-grape-700 dark:text-vintage-grape-300 font-semibold rounded-lg hover:bg-vintage-grape-100 dark:hover:bg-vintage-grape-800/40 transition-colors shadow-sm flex items-center justify-center gap-2" title="Nový příkaz">
-                                    <i class="fas fa-plus"></i> Nový příkaz
+                                    class="flex-1 md:flex-none px-4 py-2 bg-vintage-grape-50 dark:bg-vintage-grape-900/30 border border-vintage-grape-200 dark:border-vintage-grape-700 text-vintage-grape-700 dark:text-vintage-grape-300 font-semibold rounded-lg hover:bg-vintage-grape-100 dark:hover:bg-vintage-grape-800/40 transition-colors shadow-sm flex items-center justify-center gap-2" title="${window.i18n?.newCommand ?? "New command"}">
+                                    <i class="fas fa-plus"></i> ${window.i18n?.newCommand ?? "New command"}
                                 </button>
 
 
@@ -244,15 +244,15 @@ export async function loadServers(isBackground = false) {
             if (typeof window.renderMiniLogFilter === 'function') {
                 window.renderMiniLogFilter([]);
             }
-            showErrorOrEmptyState("Zatím tu nic není", "Seznam serverů je prázdný. Přidej svůj první server přes tlačítko v levém menu.");
+            showErrorOrEmptyState((window.i18n?.noServersTitle ?? "Nothing here yet"), (window.i18n?.noServersDesc ?? "The server list is empty. Add your first server via the button in the left menu."));
         } else {
             updateStatistics([]);
-            showErrorOrEmptyState("Data se nepodařilo načíst", result.message || "Server hlásí neznámou chybu.");
+            showErrorOrEmptyState("Data se nepodařilo načíst", (result.message || window.i18n?.errorUnknown ?? "Unknown error."));
         }
     } catch (error) {
         console.error("Chyba loadServers:", error);
         updateStatistics([]);
-        showErrorOrEmptyState("Chyba při komunikaci", "Nepodařilo se připojit k backendu. Zkontrolujte připojení nebo zkuste obnovit stránku.");
+        showErrorOrEmptyState((window.i18n?.errorConnTitle ?? "Connection error"), (window.i18n?.errorConnDesc ?? "Could not connect to backend. Check your connection or try refreshing the page."));
     }
 }
 

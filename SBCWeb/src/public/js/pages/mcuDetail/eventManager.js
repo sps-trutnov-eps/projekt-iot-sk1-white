@@ -19,7 +19,7 @@ window.removeMcuEvent = async (e, eventId, btnElement) => {
         feedContainer.innerHTML = `
             <div class="flex flex-col items-center justify-center py-8 text-center animate-fade-in" id="empty-events-state">
                 <i class="fas fa-inbox text-2xl text-ash-grey-300 dark:text-silver-600 mb-2"></i>
-                <p class="text-[11px] text-silver-500">Zatím se tu nic neudálo.</p>
+                <p class="text-[11px] text-silver-500">${window.i18n?.noEventsYet ?? "Nothing has happened here yet."}</p>
             </div>
         `;
     }
@@ -100,7 +100,7 @@ async function fetchEventHistory(mcuId) {
                 feedContainer.innerHTML = `
                     <div class="flex flex-col items-center justify-center py-8 text-center" id="empty-events-state">
                         <i class="fas fa-inbox text-2xl text-ash-grey-300 dark:text-silver-600 mb-2"></i>
-                        <p class="text-[11px] text-silver-500">Zatím se tu nic neudálo.</p>
+                        <p class="text-[11px] text-silver-500">${window.i18n?.noEventsYet ?? "Nothing has happened here yet."}</p>
                     </div>
                 `;
                 return;
@@ -113,7 +113,7 @@ async function fetchEventHistory(mcuId) {
         }
     } catch (error) {
         console.error("Chyba při načítání historie eventů:", error);
-        feedContainer.innerHTML = '<p class="text-[10px] text-red-400 text-center py-4">Chyba při načítání logů.</p>';
+        feedContainer.innerHTML = `<p class="text-[10px] text-red-400 text-center py-4">${window.i18n?.errorLoadingLogs ?? "Error loading logs."}</p>`;
     }
 }
 

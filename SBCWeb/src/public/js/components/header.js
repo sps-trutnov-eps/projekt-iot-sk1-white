@@ -87,9 +87,9 @@ function initNotifications() {
                     });
                     emptyState.classList.remove('hidden');
                     updateNotificationBadge();
-                    if (window.openToast) window.openToast("Logy byly trvale smazány.", true);
+                    if (window.openToast) window.openToast(window.i18n?.successLogsCleaned ?? "Logs permanently deleted.", true);
                 } else {
-                    if (window.openToast) window.openToast("Chyba při mazání logů.", false);
+                    if (window.openToast) window.openToast(window.i18n?.errorLogsCleaned ?? "Error deleting logs.", false);
                 }
             } catch (err) {
                 console.error("Chyba při volání DELETE (clearAll):", err);

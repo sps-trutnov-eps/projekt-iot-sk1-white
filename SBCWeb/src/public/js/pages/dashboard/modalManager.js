@@ -32,13 +32,13 @@ window.addCommandModal.form.addEventListener('submit', async (e) => {
 
     // ZMĚNA: Používáme data.server (kvůli name="server" v HTML)
     if (!data.name || !finalCommand || !data.server) {
-        return window.addCommandModal.showError('Vyplňte prosím všechny údaje (jméno, server, příkaz/MAC).');
+        return window.addCommandModal.showError(window.i18n?.errorFillAllCmd ?? 'Please fill in all fields.');
     }
 
     try {
         const submitBtn = window.addCommandModal.submitBtn;
         const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Vytvářím...';
+        submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${window.i18n?.adding ?? "Adding..."}`;
         submitBtn.disabled = true;
 
         // PAYLOAD
@@ -68,7 +68,7 @@ window.addCommandModal.form.addEventListener('submit', async (e) => {
             window.addCommandModal.close(); 
             window.DashboardManager.loadData(); 
         } else {
-            window.addCommandModal.showError(result.message || 'Chyba při vytváření příkazu.');
+            window.addCommandModal.showError(result.message || window.i18n?.errorSavingCmd ?? 'Error saving command.');
         }
         
         submitBtn.innerHTML = originalText;
@@ -91,13 +91,13 @@ window.addCommandModal.form.addEventListener('submit', async (e) => {
             const finalCommand = data.type === 'wol' ? data.macAddress : data.command;
 
             if (!data.name || !finalCommand) {
-                return window.editModal.showError('Vyplňte prosím všechny údaje.');
+                return window.editModal.showError(window.i18n?.errorFillAllCmd ?? 'Please fill in all fields.');
             }
 
             try {
                 const submitBtn = window.editModal.submitBtn;
                 const originalText = submitBtn.innerHTML;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
+                submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${window.i18n?.saving ?? "Saving..."}`;
                 submitBtn.disabled = true;
 
                 const res = await fetch(`/command/edit/${data.id}`, {
@@ -116,7 +116,7 @@ window.addCommandModal.form.addEventListener('submit', async (e) => {
                     window.editModal.close(); 
                     window.DashboardManager.loadData(); 
                 } else {
-                    window.editModal.showError(result.message || 'Chyba při úpravě.');
+                    window.editModal.showError(result.message || window.i18n?.errorEditCmd ?? 'Error editing command.');
                 }
                 
                 submitBtn.innerHTML = originalText;
@@ -152,7 +152,7 @@ window.addCommandModal.form.addEventListener('submit', async (e) => {
                 }
                 submitBtn.disabled = false;
             } catch (err) { 
-                window.deleteModal.showError('Smazání selhalo.'); 
+                window.deleteModal.showError(window.i18n?.errorDeleteFailed ?? 'Deletion failed.'); 
             }
         });
     }

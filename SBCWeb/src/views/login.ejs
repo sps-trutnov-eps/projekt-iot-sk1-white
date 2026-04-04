@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="<%= lng %>">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -32,16 +32,14 @@
 
   <div class="w-full max-w-md px-4">
 
-    <!-- Logo / hlavička -->
     <div class="text-center mb-8">
       <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-vintage-grape-400 to-midnight-violet-600 rounded-2xl shadow-xl mb-4">
         <i class="fas fa-microchip text-white text-2xl"></i>
       </div>
-      <h1 class="text-3xl font-bold text-midnight-violet-900 dark:text-ash-grey-50">IoT Control Panel</h1>
-      <p class="text-ash-grey-500 dark:text-ash-grey-400 mt-1 text-sm">Přihlaste se pro přístup do systému</p>
+      <h1 class="text-3xl font-bold text-midnight-violet-900 dark:text-ash-grey-50"><%= t('app.title') %></h1>
+      <p class="text-ash-grey-500 dark:text-ash-grey-400 mt-1 text-sm"><%= t('auth.tagline') %></p>
     </div>
 
-    <!-- Přihlašovací karta -->
     <div class="bg-white dark:bg-midnight-violet-900 rounded-2xl shadow-2xl border border-ash-grey-200 dark:border-midnight-violet-800 p-8">
 
       <% if (error) { %>
@@ -53,10 +51,9 @@
 
       <form method="POST" action="/login" class="space-y-5">
 
-        <!-- Uživatelské jméno -->
         <div>
           <label for="username" class="block text-sm font-medium text-ash-grey-700 dark:text-ash-grey-300 mb-1.5">
-            Uživatelské jméno
+            <%= t('auth.username') %>
           </label>
           <div class="relative">
             <span class="absolute inset-y-0 left-3 flex items-center text-ash-grey-400 dark:text-ash-grey-500">
@@ -74,10 +71,9 @@
           </div>
         </div>
 
-        <!-- Heslo -->
         <div>
           <label for="password" class="block text-sm font-medium text-ash-grey-700 dark:text-ash-grey-300 mb-1.5">
-            Heslo
+            <%= t('auth.password') %>
           </label>
           <div class="relative">
             <span class="absolute inset-y-0 left-3 flex items-center text-ash-grey-400 dark:text-ash-grey-500">
@@ -98,20 +94,25 @@
           </div>
         </div>
 
-        <!-- Tlačítko přihlásit -->
         <button
           type="submit"
           class="w-full py-2.5 px-4 bg-gradient-to-r from-vintage-grape-500 to-midnight-violet-600 hover:from-vintage-grape-400 hover:to-midnight-violet-500 text-white font-semibold rounded-xl shadow-lg transition duration-200 focus:outline-none focus:ring-2 focus:ring-vintage-grape-400 focus:ring-offset-2 dark:focus:ring-offset-midnight-violet-900"
         >
-          <i class="fas fa-sign-in-alt mr-2"></i>Přihlásit se
+          <i class="fas fa-sign-in-alt mr-2"></i><%= t('auth.loginBtn') %>
         </button>
 
       </form>
     </div>
 
-    <p class="text-center text-xs text-ash-grey-400 dark:text-ash-grey-600 mt-6">
-      Projekt IoT SK1 White &copy; <%= new Date().getFullYear() %>
-    </p>
+    <div class="flex items-center justify-between mt-6">
+      <p class="text-xs text-ash-grey-400 dark:text-ash-grey-600">
+        <%= t('app.copyright') %> &copy; <%= new Date().getFullYear() %>
+      </p>
+      <div class="flex gap-2">
+        <a href="/lang/en" class="text-xs px-2 py-1 rounded <%= lng === 'en' ? 'bg-vintage-grape-600 text-white' : 'text-ash-grey-400 hover:text-vintage-grape-500' %>">EN</a>
+        <a href="/lang/cs" class="text-xs px-2 py-1 rounded <%= lng === 'cs' ? 'bg-vintage-grape-600 text-white' : 'text-ash-grey-400 hover:text-vintage-grape-500' %>">CS</a>
+      </div>
+    </div>
   </div>
 
   <script>

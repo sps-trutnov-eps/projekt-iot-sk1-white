@@ -85,7 +85,7 @@ export async function refreshTypeStats() {
                 <div class="flex items-center space-x-2.5 overflow-hidden flex-1">
                     <i class="fas fa-layer-group text-[10px] text-vintage-grape-400 group-hover:text-vintage-grape-300 flex-shrink-0"></i>
                     <span class="sidebar-text text-[14px] whitespace-nowrap overflow-hidden text-ellipsis flex-1 text-left font-medium">
-                        Všechny typy
+                        ${window.i18n?.allTypes ?? 'All types'}
                     </span>
                 </div>
                 <span class="text-[12px] bg-midnight-violet-700 text-ash-grey-300 px-2 py-0.5 rounded-md min-w-[22px] text-center ml-4">

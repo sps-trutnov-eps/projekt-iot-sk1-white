@@ -8,7 +8,7 @@
                     <i class="fas fa-pen text-midnight-violet-900 dark:text-silver-300 text-xl"></i>
                     <h2 class="text-2xl font-bold tracking-tight text-midnight-violet-900 dark:text-silver-50">Edit MCU</h2>
                 </div>
-                <p class="text-sm text-gray-500 dark:text-silver-400">Upravte podrobnosti o mikrokontroléru v síti.</p>
+                <p class="text-sm text-gray-500 dark:text-silver-400"><%= t('mcu.editDetails') %></p>
             </div>
             <button type="button" id="editMCUClose" class="text-gray-400 dark:text-silver-400 hover:text-gray-600 dark:hover:text-silver-100 transition-colors p-2 rounded-lg hover:bg-ash-grey-100 dark:hover:bg-midnight-violet-800">
                 <i class="fas fa-times text-xl"></i>
@@ -63,7 +63,7 @@
                 </div>
 
                 <div class="space-y-4 pt-4 border-t border-ash-grey-200 dark:border-midnight-violet-800">
-                    <h3 class="text-sm font-bold text-midnight-violet-900 dark:text-silver-200 uppercase tracking-widest">Adresace</h3>
+                    <h3 class="text-sm font-bold text-midnight-violet-900 dark:text-silver-200 uppercase tracking-widest"><%= t('mcu.addressing') %></h3>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div class="space-y-2">
@@ -94,14 +94,14 @@
             </div>
 
             <div class="p-6 border-t border-ash-grey-200 dark:border-midnight-violet-800 bg-white dark:bg-midnight-violet-900 flex justify-end gap-3 shrink-0">
-                <button type="button" id="editMCUCancel" 
+                <button type="button" id="editMCUCancel"
                     class="px-6 py-2.5 rounded-lg bg-ash-grey-200 dark:bg-midnight-violet-800 text-ash-grey-800 dark:text-silver-300 font-medium hover:bg-ash-grey-300 dark:hover:bg-midnight-violet-700 transition-colors">
-                    Cancel
+                    <%= t('common.cancel') %>
                 </button>
-                <button type="submit" id="editMCUSubmit" 
+                <button type="submit" id="editMCUSubmit"
                     class="px-6 py-2.5 rounded-lg bg-vintage-grape-600 text-white font-medium hover:bg-vintage-grape-700 transition-colors flex items-center gap-2">
                     <i class="fas fa-save"></i>
-                    Update MCU
+                    <%= t('mcu.updateMCU') %>
                 </button>
             </div>
         </form>

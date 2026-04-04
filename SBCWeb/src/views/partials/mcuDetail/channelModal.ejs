@@ -1,11 +1,11 @@
 <div id="addChannelModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm transition-opacity">
     <div class="bg-white dark:bg-midnight-violet-900 rounded-xl shadow-xl w-full max-w-md mx-4 overflow-hidden flex flex-col transition-colors duration-300">
-        
+
         <div class="px-5 py-4 border-b border-ash-grey-100 dark:border-midnight-violet-800 flex justify-between items-center bg-ash-grey-50 dark:bg-midnight-violet-900/50">
             <div>
-                <h3 class="font-bold text-midnight-violet-900 dark:text-silver-50">Přidat měřenou veličinu</h3>
+                <h3 class="font-bold text-midnight-violet-900 dark:text-silver-50"><%= t('channel.addTitle') %></h3>
                 <p class="text-[10px] text-silver-500 uppercase mt-0.5 tracking-wide">
-                    Senzor: <span id="addChannelSensorModelLabel" class="font-bold text-midnight-violet-700 dark:text-vintage-grape-400"></span>
+                    <%= t('channel.sensor') %> <span id="addChannelSensorModelLabel" class="font-bold text-midnight-violet-700 dark:text-vintage-grape-400"></span>
                 </p>
             </div>
             <button id="addChannelClose" class="text-silver-400 dark:text-silver-500 hover:text-midnight-violet-600 transition-colors w-8 h-8 flex items-center justify-center rounded-lg hover:bg-ash-grey-200 dark:hover:bg-midnight-violet-800">
@@ -21,37 +21,37 @@
 
             <form id="addChannelForm" class="flex flex-col gap-4">
                 <input type="hidden" id="addChannelSensorIdInput" value="">
-                
+
                 <div>
-                    <label class="block text-xs font-bold text-midnight-violet-900 dark:text-silver-200 mb-1.5 uppercase tracking-wide">Typ veličiny</label>
+                    <label class="block text-xs font-bold text-midnight-violet-900 dark:text-silver-200 mb-1.5 uppercase tracking-wide"><%= t('channel.metricType') %></label>
                     <select id="addChannelTypeInput" class="w-full text-sm p-2.5 bg-ash-grey-50 dark:bg-midnight-violet-800 border border-ash-grey-200 dark:border-midnight-violet-700 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-midnight-violet-900 dark:text-silver-100 font-medium cursor-pointer">
-                        <option value="">-- Vyberte typ --</option>
-                        <option value="temperature">Teplota (°C)</option>
-                        <option value="humidity">Vlhkost (%)</option>
-                        <option value="voltage">Napětí (V)</option>
-                        <option value="current">Proud (A)</option>
-                        <option value="power">Výkon (W)</option>
-                        <option value="energy">Spotřeba (kWh)</option>
-                        <option value="fan">Otáčky ventilátoru (RPM)</option>
-                        <option value="pressure">Tlak (hPa)</option>
-                        <option value="signal">Síla signálu (dBm)</option>
-                        <option value="co2">CO2 (ppm)</option>
+                        <option value=""><%= t('channel.selectType') %></option>
+                        <option value="temperature"><%= t('channel.temperature') %></option>
+                        <option value="humidity"><%= t('channel.humidity') %></option>
+                        <option value="voltage"><%= t('channel.voltage') %></option>
+                        <option value="current"><%= t('channel.current') %></option>
+                        <option value="power"><%= t('channel.power') %></option>
+                        <option value="energy"><%= t('channel.energy') %></option>
+                        <option value="fan"><%= t('channel.fan') %></option>
+                        <option value="pressure"><%= t('channel.pressure') %></option>
+                        <option value="signal"><%= t('channel.signal') %></option>
+                        <option value="co2"><%= t('channel.co2') %></option>
                     </select>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-midnight-violet-900 dark:text-silver-200 mb-1.5 uppercase tracking-wide">Jednotka</label>
-                    <input type="text" id="addChannelUnitInput" placeholder="např. °C, %, hPa, V, A..." class="w-full text-sm p-2.5 bg-ash-grey-50 dark:bg-midnight-violet-800 border border-ash-grey-200 dark:border-midnight-violet-700 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-midnight-violet-900 dark:text-silver-100 font-medium placeholder-silver-300">
+                    <label class="block text-xs font-bold text-midnight-violet-900 dark:text-silver-200 mb-1.5 uppercase tracking-wide"><%= t('channel.unit') %></label>
+                    <input type="text" id="addChannelUnitInput" placeholder="<%= t('channel.unitPlaceholder') %>" class="w-full text-sm p-2.5 bg-ash-grey-50 dark:bg-midnight-violet-800 border border-ash-grey-200 dark:border-midnight-violet-700 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-midnight-violet-900 dark:text-silver-100 font-medium placeholder-silver-300">
                 </div>
             </form>
         </div>
 
         <div class="px-5 py-4 border-t border-ash-grey-100 dark:border-midnight-violet-800 flex justify-end gap-2 bg-gray-50 dark:bg-midnight-violet-900/50">
             <button type="button" id="addChannelCancel" class="px-4 py-2 text-sm font-bold text-silver-500 dark:text-silver-400 hover:text-midnight-violet-900 dark:hover:text-silver-100 hover:bg-ash-grey-200 dark:hover:bg-midnight-violet-800 rounded-lg transition-all">
-                Zrušit
+                <%= t('channel.cancelBtn') %>
             </button>
             <button type="button" id="addChannelSubmit" class="px-4 py-2 text-sm font-bold text-white bg-emerald-500 hover:bg-emerald-600 rounded-lg transition-all shadow-sm flex items-center justify-center min-w-[120px]">
-                Přidat kanál
+                <%= t('channel.addChannel') %>
             </button>
         </div>
 

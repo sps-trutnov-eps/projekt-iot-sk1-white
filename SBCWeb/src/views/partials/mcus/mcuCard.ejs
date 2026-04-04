@@ -49,13 +49,13 @@
     
     <!-- Actions -->
     <div class="flex items-center space-x-2">
-      <button class="view-data-btn w-9 h-9 text-vintage-grape-600 hover:bg-vintage-grape-50 rounded-lg flex items-center justify-center transition" data-id="{{id}}" title="Zobrazit data">
+      <button class="view-data-btn w-9 h-9 text-vintage-grape-600 hover:bg-vintage-grape-50 rounded-lg flex items-center justify-center transition" data-id="{{id}}" title="<%= t('mcuDetail.title') %>">
         <i class="fas fa-chart-line"></i>
       </button>
-      <button class="edit-mcu-btn w-9 h-9 text-silver-600 hover:bg-ash-grey-100 rounded-lg flex items-center justify-center transition" data-id="{{id}}" title="Upravit">
+      <button class="edit-mcu-btn w-9 h-9 text-silver-600 hover:bg-ash-grey-100 rounded-lg flex items-center justify-center transition" data-id="{{id}}" title="<%= t('common.edit') %>">
         <i class="fas fa-pen"></i>
       </button>
-      <button class="delete-mcu-btn w-9 h-9 text-red-500 hover:bg-red-50 rounded-lg flex items-center justify-center transition" data-id="{{id}}" title="Smazat">
+      <button class="delete-mcu-btn w-9 h-9 text-red-500 hover:bg-red-50 rounded-lg flex items-center justify-center transition" data-id="{{id}}" title="<%= t('common.delete') %>">
         <i class="fas fa-trash"></i>
       </button>
     </div>

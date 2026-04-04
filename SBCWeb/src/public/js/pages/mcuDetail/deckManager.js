@@ -42,7 +42,7 @@ function renderServers(servers) {
     if (!container) return;
 
     if (!servers || servers.length === 0) {
-        container.innerHTML = '<p class="text-center text-silver-400 text-xs py-4">Žádné servery v systému.</p>';
+        container.innerHTML = `<p class="text-center text-silver-400 text-xs py-4">${window.i18n?.noServersList ?? "No servers in the system."}</p>`;
         return;
     }
 
@@ -74,11 +74,11 @@ function renderServers(servers) {
                         <span class="text-xs font-mono text-silver-400 ml-auto">${server.ip}</span>
                     </label>
                     <div class="flex items-center gap-1 shrink-0">
-                        <button data-server-check="${server.id}" title="Zaškrtnout vše"
+                        <button data-server-check="${server.id}" title="${window.i18n?.checkAll ?? 'Check all'}"
                             class="w-7 h-7 flex items-center justify-center rounded bg-vintage-grape-100 dark:bg-vintage-grape-900/30 text-vintage-grape-600 dark:text-vintage-grape-300 hover:bg-vintage-grape-200 dark:hover:bg-vintage-grape-900/50 transition-colors">
                             <i class="fas fa-check-double text-[10px]"></i>
                         </button>
-                        <button data-server-uncheck="${server.id}" title="Odškrtnout vše"
+                        <button data-server-uncheck="${server.id}" title="${window.i18n?.uncheckAll ?? 'Uncheck all'}"
                             class="w-7 h-7 flex items-center justify-center rounded bg-ash-grey-100 dark:bg-midnight-violet-800 text-silver-500 hover:bg-ash-grey-200 dark:hover:bg-midnight-violet-700 transition-colors">
                             <i class="fas fa-times text-[10px]"></i>
                         </button>
@@ -95,7 +95,7 @@ function renderMcus(mcus) {
     if (!container) return;
 
     if (!mcus || mcus.length === 0) {
-        container.innerHTML = '<p class="text-center text-silver-400 text-xs py-4">Žádné senzorové MCU v systému.</p>';
+        container.innerHTML = `<p class="text-center text-silver-400 text-xs py-4">${window.i18n?.noMcuSensors ?? "No sensor MCUs in the system."}</p>`;
         return;
     }
 
@@ -150,7 +150,7 @@ async function saveDeckConfig() {
     const saveBtn = document.getElementById('deckSaveBtn');
     if (saveBtn) {
         saveBtn.disabled = true;
-        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
+        saveBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${window.i18n?.saving ?? "Saving..."}`;
     }
 
     try {
@@ -172,17 +172,17 @@ async function saveDeckConfig() {
         const data = await res.json();
 
         if (data.success) {
-            if (window.openToast) window.openToast(data.message || 'Konfigurace uložena.', true);
+            if (window.openToast) window.openToast(data.message || window.i18n?.successConfigSaved ?? 'Configuration saved.', true);
         } else {
-            if (window.openToast) window.openToast(data.message || 'Chyba při ukládání.', false);
+            if (window.openToast) window.openToast(data.message || window.i18n?.errorSaving ?? 'Error saving.', false);
         }
     } catch (e) {
         console.error('[DeckManager] Save error:', e);
-        if (window.openToast) window.openToast('Chyba komunikace se serverem.', false);
+        if (window.openToast) window.openToast(window.i18n?.errorComm ?? 'Communication error.', false);
     } finally {
         if (saveBtn) {
             saveBtn.disabled = false;
-            saveBtn.innerHTML = '<i class="fas fa-save"></i> Uložit konfiguraci';
+            saveBtn.innerHTML = '<i class="fas fa-save"></i> ' + (window.i18n?.saveConfigBtn ?? 'Save configuration');
         }
     }
 }

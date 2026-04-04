@@ -5,12 +5,12 @@
             <span class="text-ash-grey-50 font-bold text-lg">IoT Control</span>
         </div>
         <nav class="flex-1 overflow-y-auto p-4 space-y-4">
-            <h3 class="text-xs font-semibold text-ash-grey-400 uppercase tracking-wider mb-3">Menu</h3>
+            <h3 class="text-xs font-semibold text-ash-grey-400 uppercase tracking-wider mb-3"><%= t('mcuDetail.menu') %></h3>
             <a href="#" class="flex items-center space-x-3 px-4 py-2 rounded-lg bg-midnight-violet-800 text-ash-grey-50 transition">
-                <i class="fas fa-microchip w-4"></i><span>Detail Zařízení</span>
+                <i class="fas fa-microchip w-4"></i><span><%= t('mcuDetail.title') %></span>
             </a>
             <a href="/mcu" class="flex items-center space-x-3 px-4 py-2 rounded-lg text-ash-grey-300 hover:bg-midnight-violet-800 transition">
-                <i class="fas fa-arrow-left w-4"></i><span>Zpět na přehled</span>
+                <i class="fas fa-arrow-left w-4"></i><span><%= t('mcuDetail.backToList') %></span>
             </a>
         </nav>
     </div>

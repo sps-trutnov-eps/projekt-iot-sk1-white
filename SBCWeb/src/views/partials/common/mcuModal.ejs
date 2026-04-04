@@ -1,14 +1,14 @@
 <div id="MCUModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-midnight-violet-950/40 backdrop-blur-sm">
-    
+
     <div class="relative w-full max-w-2xl flex flex-col bg-silver-50 dark:bg-midnight-violet-950 rounded-xl shadow-2xl overflow-hidden max-h-[90vh]">
-        
+
         <div class="flex items-center justify-between p-6 border-b border-ash-grey-200 dark:border-midnight-violet-800 bg-white dark:bg-midnight-violet-900 shrink-0">
             <div class="flex flex-col gap-1">
                 <div class="flex items-center gap-2">
                     <i class="fas fa-microchip text-midnight-violet-900 dark:text-silver-100 text-xl"></i>
-                    <h2 class="text-2xl font-bold tracking-tight text-midnight-violet-900 dark:text-silver-50">Add New MCU</h2>
+                    <h2 class="text-2xl font-bold tracking-tight text-midnight-violet-900 dark:text-silver-50"><%= t('mcu.addNewMCU') %></h2>
                 </div>
-                <p class="text-sm text-gray-500 dark:text-silver-400">Zadejte podrobnosti pro přidání mikrokontroléru do sítě.</p>
+                <p class="text-sm text-gray-500 dark:text-silver-400"><%= t('mcu.addDetails') %></p>
             </div>
             <button type="button" id="MCUClose" class="text-gray-400 dark:text-silver-500 hover:text-gray-600 dark:hover:text-silver-200 transition-colors p-2 rounded-lg hover:bg-ash-grey-100 dark:hover:bg-midnight-violet-800">
                 <i class="fas fa-times text-xl"></i>
@@ -17,24 +17,24 @@
 
         <form id="addMCUForm" class="flex flex-col flex-1 overflow-hidden">
             <div class="flex-1 overflow-y-auto p-8 space-y-6 bg-silver-50 dark:bg-[#150f18]">
-                
+
                 <div id="MCUError" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
                     <p class="text-sm font-medium"></p>
                 </div>
 
                 <div class="space-y-2">
                     <label for="mcuName" class="flex items-center gap-2 text-sm font-medium text-midnight-violet-900 dark:text-silver-200">
-                        MCU Name <span class="text-red-500">*</span>
+                        <%= t('mcu.name') %> <span class="text-red-500">*</span>
                     </label>
-                    <input id="mcuName" name="name" required type="text" 
-                        class="w-full px-4 py-3 bg-ash-grey-100 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-900 dark:text-silver-100 placeholder-gray-400 dark:placeholder-silver-600 focus:outline-none focus:border-vintage-grape-500 dark:focus:border-vintage-grape-400 focus:ring-1 focus:ring-vintage-grape-500 dark:focus:ring-vintage-grape-400 transition-all" 
-                        placeholder="Např. ESP32-Living-Room"/>
+                    <input id="mcuName" name="name" required type="text"
+                        class="w-full px-4 py-3 bg-ash-grey-100 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-900 dark:text-silver-100 placeholder-gray-400 dark:placeholder-silver-600 focus:outline-none focus:border-vintage-grape-500 dark:focus:border-vintage-grape-400 focus:ring-1 focus:ring-vintage-grape-500 dark:focus:ring-vintage-grape-400 transition-all"
+                        placeholder="e.g. ESP32-Living-Room"/>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div class="space-y-2">
                         <label for="mcuType" class="flex items-center gap-2 text-sm font-medium text-midnight-violet-900 dark:text-silver-200">
-                            Type <span class="text-red-500">*</span>
+                            <%= t('mcu.type') %> <span class="text-red-500">*</span>
                         </label>
                         <select id="TypeSelectorMCUForm" name="type" required
                             class="w-full px-4 py-3 bg-ash-grey-100 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-900 dark:text-silver-100 focus:outline-none focus:border-vintage-grape-500 dark:focus:border-vintage-grape-400 transition-all appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%20fill%3D%22none%22%20stroke%3D%22%236b7280%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:1.25rem] bg-[right_1rem_center] bg-no-repeat">
@@ -44,7 +44,7 @@
 
                     <div class="space-y-2">
                         <label for="mcuRole" class="flex items-center gap-2 text-sm font-medium text-midnight-violet-900 dark:text-silver-200">
-                            Role
+                            <%= t('mcu.role') %>
                         </label>
                         <select id="mcuRole" name="role"
                             class="w-full px-4 py-3 bg-ash-grey-100 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-900 dark:text-silver-100 focus:outline-none focus:border-vintage-grape-500 dark:focus:border-vintage-grape-400 transition-all appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%20fill%3D%22none%22%20stroke%3D%22%236b7280%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:1.25rem] bg-[right_1rem_center] bg-no-repeat">
@@ -56,35 +56,34 @@
 
                 <div class="space-y-2">
                     <label for="mcuLocation" class="flex items-center gap-2 text-sm font-medium text-midnight-violet-900 dark:text-silver-200">
-                        Location
+                        <%= t('mcu.location') %>
                     </label>
                     <input id="mcuLocation" name="location" type="text"
                         class="w-full px-4 py-3 bg-ash-grey-100 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-900 dark:text-silver-100 placeholder-gray-400 dark:placeholder-silver-600 focus:outline-none focus:border-vintage-grape-500 dark:focus:border-vintage-grape-400 transition-all"
                         placeholder="e.g., Living Room"/>
                 </div>
 
-
                 <div class="space-y-4 pt-4 border-t border-ash-grey-200 dark:border-midnight-violet-800">
                     <div class="flex items-center gap-2">
-                        <h3 class="text-sm font-bold text-midnight-violet-900 dark:text-silver-200 uppercase tracking-widest">Adresace</h3>
+                        <h3 class="text-sm font-bold text-midnight-violet-900 dark:text-silver-200 uppercase tracking-widest"><%= t('mcu.addressing') %></h3>
                     </div>
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div class="space-y-2">
                             <label for="mcuIP" class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-silver-300">
-                            IP address
+                            <%= t('mcu.ipAddress') %>
                             </label>
-                            <input id="mcuIP" name="ipAddress" type="text" 
-                                class="w-full px-4 py-3 bg-ash-grey-100 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-900 dark:text-silver-100 font-mono text-sm placeholder-gray-400 dark:placeholder-silver-600 focus:outline-none focus:border-vintage-grape-500 dark:focus:border-vintage-grape-400 transition-all" 
+                            <input id="mcuIP" name="ipAddress" type="text"
+                                class="w-full px-4 py-3 bg-ash-grey-100 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-900 dark:text-silver-100 font-mono text-sm placeholder-gray-400 dark:placeholder-silver-600 focus:outline-none focus:border-vintage-grape-500 dark:focus:border-vintage-grape-400 transition-all"
                                 placeholder="192.168.1.xxx"/>
                         </div>
 
                         <div class="space-y-2">
                             <label for="mcuMAC" class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-silver-300">
-                            MAC address
+                            <%= t('mcu.macAddress') %>
                             </label>
-                            <input id="mcuMAC" name="macAddress" required type="text" 
-                                class="w-full px-4 py-3 bg-ash-grey-100 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-900 dark:text-silver-100 font-mono text-sm placeholder-gray-400 dark:placeholder-silver-600 focus:outline-none focus:border-vintage-grape-500 dark:focus:border-vintage-grape-400 transition-all" 
+                            <input id="mcuMAC" name="macAddress" required type="text"
+                                class="w-full px-4 py-3 bg-ash-grey-100 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-900 dark:text-silver-100 font-mono text-sm placeholder-gray-400 dark:placeholder-silver-600 focus:outline-none focus:border-vintage-grape-500 dark:focus:border-vintage-grape-400 transition-all"
                                 placeholder="00:1A:2B:3C:4D:5E"/>
                         </div>
                     </div>
@@ -92,23 +91,23 @@
 
                 <div class="space-y-2">
                     <label for="mcuDescription" class="flex items-center gap-2 text-sm font-medium text-midnight-violet-900 dark:text-silver-200">
-                        Description
+                        <%= t('mcu.description') %>
                     </label>
                     <textarea id="mcuDescription" name="description" rows="3"
-                        class="w-full px-4 py-3 bg-ash-grey-100 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-900 dark:text-silver-100 placeholder-gray-400 dark:placeholder-silver-600 focus:outline-none focus:border-vintage-grape-500 dark:focus:border-vintage-grape-400 transition-all resize-none" 
-                        placeholder="Stručný popis zařízení..."></textarea>
+                        class="w-full px-4 py-3 bg-ash-grey-100 dark:bg-midnight-violet-800 border border-ash-grey-300 dark:border-midnight-violet-700 rounded-lg text-gray-900 dark:text-silver-100 placeholder-gray-400 dark:placeholder-silver-600 focus:outline-none focus:border-vintage-grape-500 dark:focus:border-vintage-grape-400 transition-all resize-none"
+                        placeholder="<%= t('mcu.descriptionPlaceholder') %>"></textarea>
                 </div>
             </div>
 
             <div class="p-6 border-t border-ash-grey-200 dark:border-midnight-violet-800 bg-white dark:bg-midnight-violet-900 flex justify-end gap-3 shrink-0">
-                <button type="button" id="MCUCancel" 
+                <button type="button" id="MCUCancel"
                     class="px-6 py-2.5 rounded-lg bg-ash-grey-200 dark:bg-midnight-violet-800 text-ash-grey-800 dark:text-silver-200 font-medium hover:bg-ash-grey-300 dark:hover:bg-midnight-violet-700 transition-colors">
-                    Cancel
+                    <%= t('common.cancel') %>
                 </button>
-                <button type="submit" id="MCUSubmit" 
+                <button type="submit" id="MCUSubmit"
                     class="px-6 py-2.5 rounded-lg bg-vintage-grape-600 text-white font-medium hover:bg-vintage-grape-700 transition-colors flex items-center gap-2">
                     <i class="fas fa-plus"></i>
-                    Add MCU
+                    <%= t('mcu.addBtn') %>
                 </button>
             </div>
         </form>

@@ -45,7 +45,7 @@ export async function runCommand(cmdId, btnElement) {
 
         // OPRAVA 2: Odchycení Wake on LAN a okamžité ukončení bez čekání
         if (data.type === 'wol') {
-            showNotification('WOL paket byl úspěšně odeslán do sítě!', 'success');
+            showNotification((window.i18n?.successWol ?? 'WOL packet sent successfully to the network!'), 'success');
             
             if (btnElement) btnElement.innerHTML = '<i class="fas fa-paper-plane text-green-500 text-[10px] ml-0.5"></i>';
             if (typeof loadMiniLog === 'function') loadMiniLog();
@@ -77,10 +77,10 @@ export async function runCommand(cmdId, btnElement) {
                 // Pokud to už není pending, vyskočíme ze smyčky
                 if (finalStatus === 'success' || finalStatus === 'error') {
                     if (finalStatus === 'success') {
-                        showNotification('Příkaz úspěšně dokončen!', 'success');
+                        showNotification((window.i18n?.successCommandDone ?? 'Command completed successfully!'), 'success');
                         if (btnElement) btnElement.innerHTML = '<i class="fas fa-check text-green-500 text-[10px] ml-0.5"></i>';
                     } else {
-                        showNotification(`Příkaz selhal: ${statusData.error_output || 'Neznámá chyba'}`, 'error');
+                        showNotification(`${window.i18n?.errorCommandFailed ?? 'Command failed: '}${statusData.error_output || window.i18n?.errorUnknown ?? 'Unknown error'}`, 'error');
                         if (btnElement) btnElement.innerHTML = '<i class="fas fa-times text-red-500 text-[10px] ml-0.5"></i>';
                     }
                     
@@ -93,14 +93,14 @@ export async function runCommand(cmdId, btnElement) {
 
         // Pokud to vypršelo i na frontendu
         if (finalStatus === 'pending') {
-            showNotification('Vypršel časový limit pro odpověď od serveru.', 'error');
+            showNotification((window.i18n?.errorTimeout ?? 'Request timed out.'), 'error');
             if (btnElement) btnElement.innerHTML = '<i class="fas fa-times text-red-500 text-[10px] ml-0.5"></i>';
         }
 
     } catch (error) {
         console.error("[Frontend] Chyba:", error);
         if (btnElement) btnElement.innerHTML = '<i class="fas fa-exclamation-triangle text-red-500 text-[10px] ml-0.5"></i>';
-        showNotification(error.message || 'Došlo k chybě při komunikaci se serverem.', 'error');
+        showNotification((error.message || window.i18n?.errorComm ?? 'Communication error.'), 'error');
     } finally {
         // 3. Po 3 vteřinách vrátíme tlačítko do výchozího stavu (ikona Play) pro WOL i pro normální příkazy
         if (btnElement) {
@@ -130,7 +130,7 @@ export async function loadMiniLog(serverId = undefined) {
         const json = await res.json();
 
         if (!json.success || json.data.length === 0) {
-            container.innerHTML = `<div class="text-sm text-ash-grey-400 text-center py-4">Zatím žádné akce.</div>`;
+            container.innerHTML = `<div class="text-sm text-ash-grey-400 text-center py-4">${window.i18n?.noActionsYet ?? "No actions yet."}</div>`;
             return;
         }
 
@@ -174,7 +174,7 @@ export async function loadMiniLog(serverId = undefined) {
             </div>
             <button onclick="window.deleteCommandLog(event, ${item.id}, this)" 
                     class="absolute right-0 top-0 text-silver-300 hover:text-red-500 transition-colors p-1 opacity-0 group-hover:opacity-100 focus:opacity-100" 
-                    title="Smazat historii příkazu">
+                    title="${window.i18n?.deleteCommandHistory ?? 'Delete command history'}">
                 <i class="fas fa-times text-xs"></i>
             </button>
         </div>
@@ -183,7 +183,7 @@ export async function loadMiniLog(serverId = undefined) {
 
     } catch (err) {
         console.error(err);
-        container.innerHTML = `<div class="text-xs text-red-500 bg-red-500/10 p-2 rounded border border-red-500/20">Chyba načítání historie.</div>`;
+        container.innerHTML = `<div class="text-xs text-red-500 bg-red-500/10 p-2 rounded border border-red-500/20">${window.i18n?.errorLoadingHistory ?? "Error loading history."}</div>`;
     }
 }
 
@@ -195,7 +195,7 @@ export function renderMiniLogFilter(servers) {
     filterContainer.innerHTML = `
         <select onchange="window.setMiniLogFilter(this.value ? parseInt(this.value) : null)"
                 class="w-full text-[11px] p-1.5 bg-midnight-violet-800 border border-midnight-violet-700 rounded-md text-silver-300 outline-none cursor-pointer focus:ring-1 focus:ring-midnight-violet-600 transition-all">
-            <option value="">Všechny servery</option>
+            <option value="">${window.i18n?.allServers ?? 'All servers'}</option>
             ${servers.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
         </select>
     `;
@@ -238,7 +238,7 @@ window.deleteAllCommandLogs = () => {
     
     document.getElementById('deleteTargetId').value = 'all';
     document.getElementById('deleteTargetType').value = 'command_history_all';
-    document.getElementById('deleteTargetName').textContent = 'celá historie příkazů';
+    document.getElementById('deleteTargetName').textContent = (window.i18n?.allCommandHistory ?? 'all command history');
     
     window.deleteModal.open();
 };

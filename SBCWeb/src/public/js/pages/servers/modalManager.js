@@ -155,7 +155,7 @@ if (serverModal && serverModal.submitBtn) {
         serverModal.hideError();
         const data = Object.fromEntries(new FormData(serverModal.form).entries());
 
-        if (!data.name || !data.ip) return serverModal.showError('Název a IP adresa jsou povinné!');
+        if (!data.name || !data.ip) return serverModal.showError((window.i18n?.errorNameIp ?? 'Name and IP address are required!'));
 
         try {
             const response = await fetch('/server/add', {
@@ -166,9 +166,9 @@ if (serverModal && serverModal.submitBtn) {
             if (result.success) {
                 serverModal.close(); loadServers(); 
             } else {
-                serverModal.showError(result.message || 'Chyba při ukládání serveru.');
+                serverModal.showError((result.message || window.i18n?.errorSavingServer ?? 'Error saving server.'));
             }
-        } catch (err) { serverModal.showError('Nepodařilo se připojit k API.'); }
+        } catch (err) { serverModal.showError((window.i18n?.errorApi ?? 'Could not connect to API.')); }
     });
 }
 
@@ -179,7 +179,7 @@ if (editServerModal && editServerModal.submitBtn) {
         editServerModal.hideError();
         const data = Object.fromEntries(new FormData(editServerModal.form).entries());
 
-        if (!data.name || !data.ip) return editServerModal.showError('Název a IP adresa jsou povinné!');
+        if (!data.name || !data.ip) return editServerModal.showError((window.i18n?.errorNameIp ?? 'Name and IP address are required!'));
 
         try {
             const res = await fetch(`/server/edit/${data.id}`, {
@@ -189,9 +189,9 @@ if (editServerModal && editServerModal.submitBtn) {
             if (result.success) { 
                 editServerModal.close(); loadServers(); 
             } else {
-                editServerModal.showError(result.message || 'Chyba při úpravě serveru.');
+                editServerModal.showError((result.message || window.i18n?.errorEditServer ?? 'Error editing server.'));
             }
-        } catch (err) { editServerModal.showError('Chyba komunikace s API.'); }
+        } catch (err) { editServerModal.showError((window.i18n?.errorComm ?? 'Communication error.')); }
     });
 }
 
@@ -202,7 +202,7 @@ if (commandModal && commandModal.submitBtn) {
         commandModal.hideError();
         const data = Object.fromEntries(new FormData(commandModal.form).entries());
 
-        if (!data.name || (!data.command && !data.macAddress)) return commandModal.showError('Vyplňte prosím všechny potřebné údaje.');
+        if (!data.name || (!data.command && !data.macAddress)) return commandModal.showError((window.i18n?.errorFillAll ?? 'Please fill in all required fields.'));
 
         try {
             const response = await fetch('/command/add', {
@@ -213,9 +213,9 @@ if (commandModal && commandModal.submitBtn) {
             if (result.success) {
                 commandModal.close(); loadServers(); 
             } else {
-                commandModal.showError(result.message || 'Chyba při ukládání příkazu.');
+                commandModal.showError((result.message || window.i18n?.errorSavingCmd ?? 'Error saving command.'));
             }
-        } catch (err) { commandModal.showError('Nepodařilo se připojit k API.'); }
+        } catch (err) { commandModal.showError((window.i18n?.errorApi ?? 'Could not connect to API.')); }
     });
 }
 
@@ -227,8 +227,8 @@ if (editCommandModal && editCommandModal.submitBtn) {
         const data = Object.fromEntries(new FormData(editCommandModal.form).entries());
         const finalCommand = data.type === 'wol' ? data.macAddress : data.command;
         
-        if (!data.name || !finalCommand) return editCommandModal.showError('Vyplňte prosím všechny údaje.');
-        if (!data.server_id) return editCommandModal.showError('Chybí ID serveru, zkuste modal zavřít a otevřít znovu.');
+        if (!data.name || !finalCommand) return editCommandModal.showError((window.i18n?.errorFillAllCmd ?? 'Please fill in all fields.'));
+        if (!data.server_id) return editCommandModal.showError((window.i18n?.errorMissingServerId ?? 'Missing server ID, try closing and reopening the modal.'));
 
         try {
             const res = await fetch(`/command/edit/${data.id}`, {
@@ -245,9 +245,9 @@ if (editCommandModal && editCommandModal.submitBtn) {
             if (result.success) { 
                 editCommandModal.close(); loadServers(); 
             } else {
-                editCommandModal.showError(result.message || 'Chyba při úpravě příkazu.');
+                editCommandModal.showError((result.message || window.i18n?.errorEditCmd ?? 'Error editing command.'));
             }
-        } catch (err) { editCommandModal.showError('Chyba komunikace s API.'); }
+        } catch (err) { editCommandModal.showError((window.i18n?.errorComm ?? 'Communication error.')); }
     });
 }
 
@@ -278,16 +278,16 @@ if (deleteModalObj && deleteModalObj.submitBtn) {
                     loadServers();
                 }
             } else {
-                deleteModalObj.showError(result.message || 'Nelze smazat.');
+                deleteModalObj.showError((result.message || window.i18n?.errorSaving ?? 'Error saving.'));
             }
-        } catch (err) { deleteModalObj.showError('Smazání selhalo.'); }
+        } catch (err) { deleteModalObj.showError((window.i18n?.errorDeleteFailed ?? 'Deletion failed.')); }
     });
 }
 
 // Globální funkce pro smazání celé historie přes delete modal
 window.deleteAllCommandLogs = () => {
     if (!window.openDeleteModal) return;
-    window.openDeleteModal('all', 'command_history_all', 'celá historie příkazů');
+    window.openDeleteModal('all', 'command_history_all', (window.i18n?.allCommandHistory ?? 'all command history'));
 };
 
 
