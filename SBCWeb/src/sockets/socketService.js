@@ -47,13 +47,15 @@ class SocketService {
     // ==========================================
     
     // Pro události konkrétního MCU (přidání, smazání, offline, alert)
-    broadcastAlert(mcuId, type, message) {
+    broadcastAlert(mcuId, type, messageKey, params = {}) {
         if (!this.io) return;
-        
+
         const payload = {
             mcuId: mcuId,
             type: type,
-            message: message,
+            message: messageKey,
+            message_key: messageKey,
+            message_params: params,
             timestamp: new Date().toISOString()
         };
 
@@ -67,13 +69,15 @@ class SocketService {
     }
 
     // Pro události serverů
-    broadcastServerAlert(serverId, type, message) {
+    broadcastServerAlert(serverId, type, messageKey, params = {}) {
         if (!this.io) return;
-        
+
         const payload = {
             serverId: serverId,
             type: type,
-            message: message,
+            message: messageKey,
+            message_key: messageKey,
+            message_params: params,
             timestamp: new Date().toISOString()
         };
 
@@ -81,12 +85,14 @@ class SocketService {
     }
 
     // Pro události celého systému
-    broadcastSystemAlert(type, message) {
+    broadcastSystemAlert(type, messageKey, params = {}) {
         if (!this.io) return;
-        
+
         const payload = {
             type: type,
-            message: message,
+            message: messageKey,
+            message_key: messageKey,
+            message_params: params,
             timestamp: new Date().toISOString()
         };
 

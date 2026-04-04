@@ -247,7 +247,7 @@ export async function loadServers(isBackground = false) {
             showErrorOrEmptyState((window.i18n?.noServersTitle ?? "Nothing here yet"), (window.i18n?.noServersDesc ?? "The server list is empty. Add your first server via the button in the left menu."));
         } else {
             updateStatistics([]);
-            showErrorOrEmptyState("Data se nepodařilo načíst", (result.message || window.i18n?.errorUnknown ?? "Unknown error."));
+            showErrorOrEmptyState("Data se nepodařilo načíst", result.message || (window.i18n?.errorUnknown ?? "Unknown error."));
         }
     } catch (error) {
         console.error("Chyba loadServers:", error);

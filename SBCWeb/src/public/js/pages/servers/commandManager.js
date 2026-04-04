@@ -80,7 +80,7 @@ export async function runCommand(cmdId, btnElement) {
                         showNotification((window.i18n?.successCommandDone ?? 'Command completed successfully!'), 'success');
                         if (btnElement) btnElement.innerHTML = '<i class="fas fa-check text-green-500 text-[10px] ml-0.5"></i>';
                     } else {
-                        showNotification(`${window.i18n?.errorCommandFailed ?? 'Command failed: '}${statusData.error_output || window.i18n?.errorUnknown ?? 'Unknown error'}`, 'error');
+                        showNotification(`${window.i18n?.errorCommandFailed ?? 'Command failed: '}${statusData.error_output || (window.i18n?.errorUnknown ?? 'Unknown error')}`, 'error');
                         if (btnElement) btnElement.innerHTML = '<i class="fas fa-times text-red-500 text-[10px] ml-0.5"></i>';
                     }
                     
@@ -100,7 +100,7 @@ export async function runCommand(cmdId, btnElement) {
     } catch (error) {
         console.error("[Frontend] Chyba:", error);
         if (btnElement) btnElement.innerHTML = '<i class="fas fa-exclamation-triangle text-red-500 text-[10px] ml-0.5"></i>';
-        showNotification((error.message || window.i18n?.errorComm ?? 'Communication error.'), 'error');
+        showNotification(error.message || (window.i18n?.errorComm ?? 'Communication error.'), 'error');
     } finally {
         // 3. Po 3 vteřinách vrátíme tlačítko do výchozího stavu (ikona Play) pro WOL i pro normální příkazy
         if (btnElement) {

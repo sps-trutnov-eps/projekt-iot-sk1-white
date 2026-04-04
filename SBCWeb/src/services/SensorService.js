@@ -36,11 +36,7 @@ class SensorService {
             const newSensorId = SensorRepository.create(data.deviceId, data.model, cleanChannels);
             
             // LOGOVÁNÍ: Vytvoření senzoru
-            EventService.logEvent(
-                data.deviceId, 
-                'info', 
-                `K zařízení byl přidán nový senzor: ${data.model}`
-            );
+            EventService.logEvent(data.deviceId, 'info', 'sensorAdded', { model: data.model });
 
             return this.getSensorById(newSensorId);
         } catch (error) {
@@ -81,11 +77,7 @@ class SensorService {
         );
 
         // LOGOVÁNÍ: Přidání kanálu (z repository víme device_id ze sensoru)
-        EventService.logEvent(
-            sensor.device_id, 
-            'info', 
-            `K senzoru ${sensor.model} bylo přidáno měření: ${channelData.type.trim()}`
-        );
+        EventService.logEvent(sensor.device_id, 'info', 'channelAdded', { model: sensor.model, channelType: channelData.type.trim() });
 
         return newChannelId;
     }
@@ -103,11 +95,7 @@ class SensorService {
 
         // LOGOVÁNÍ: Smazání senzoru
         if (success && sensor) {
-            EventService.logEvent(
-                sensor.device_id, 
-                'warning', 
-                `Senzor typu ${sensor.model} byl kompletně odebrán.`
-            );
+            EventService.logEvent(sensor.device_id, 'warning', 'sensorRemoved', { model: sensor.model });
         }
 
         return success;
@@ -131,11 +119,7 @@ class SensorService {
 
         // LOGOVÁNÍ: Smazání kanálu
         if (success && channelInfo) {
-            EventService.logEvent(
-                channelInfo.device_id, 
-                'warning', 
-                `Měření "${channelInfo.type}" bylo odebráno ze senzoru ${channelInfo.model}.`
-            );
+            EventService.logEvent(channelInfo.device_id, 'warning', 'channelRemoved', { channelType: channelInfo.type, model: channelInfo.model });
         }
 
         return success;
@@ -163,14 +147,11 @@ class SensorService {
 
         // LOGOVÁNÍ: Úprava limitů
         if (channelInfo) {
-            const minStr = min_value !== null ? min_value : 'vypnuto';
-            const maxStr = max_value !== null ? max_value : 'vypnuto';
-            
-            EventService.logEvent(
-                channelInfo.device_id, 
-                'info', 
-                `Byly upraveny varovné limity pro ${channelInfo.type} (Min: ${minStr}, Max: ${maxStr}).`
-            );
+            EventService.logEvent(channelInfo.device_id, 'info', 'thresholdUpdated', {
+                channelType: channelInfo.type,
+                min: min_value !== null ? min_value : '-',
+                max: max_value !== null ? max_value : '-'
+            });
         }
 
         return result;

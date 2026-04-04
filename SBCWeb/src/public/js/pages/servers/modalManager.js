@@ -166,7 +166,7 @@ if (serverModal && serverModal.submitBtn) {
             if (result.success) {
                 serverModal.close(); loadServers(); 
             } else {
-                serverModal.showError((result.message || window.i18n?.errorSavingServer ?? 'Error saving server.'));
+                serverModal.showError(result.message || (window.i18n?.errorSavingServer ?? 'Error saving server.'));
             }
         } catch (err) { serverModal.showError((window.i18n?.errorApi ?? 'Could not connect to API.')); }
     });
@@ -189,7 +189,7 @@ if (editServerModal && editServerModal.submitBtn) {
             if (result.success) { 
                 editServerModal.close(); loadServers(); 
             } else {
-                editServerModal.showError((result.message || window.i18n?.errorEditServer ?? 'Error editing server.'));
+                editServerModal.showError(result.message || (window.i18n?.errorEditServer ?? 'Error editing server.'));
             }
         } catch (err) { editServerModal.showError((window.i18n?.errorComm ?? 'Communication error.')); }
     });
@@ -213,7 +213,7 @@ if (commandModal && commandModal.submitBtn) {
             if (result.success) {
                 commandModal.close(); loadServers(); 
             } else {
-                commandModal.showError((result.message || window.i18n?.errorSavingCmd ?? 'Error saving command.'));
+                commandModal.showError(result.message || (window.i18n?.errorSavingCmd ?? 'Error saving command.'));
             }
         } catch (err) { commandModal.showError((window.i18n?.errorApi ?? 'Could not connect to API.')); }
     });
@@ -245,7 +245,7 @@ if (editCommandModal && editCommandModal.submitBtn) {
             if (result.success) { 
                 editCommandModal.close(); loadServers(); 
             } else {
-                editCommandModal.showError((result.message || window.i18n?.errorEditCmd ?? 'Error editing command.'));
+                editCommandModal.showError(result.message || (window.i18n?.errorEditCmd ?? 'Error editing command.'));
             }
         } catch (err) { editCommandModal.showError((window.i18n?.errorComm ?? 'Communication error.')); }
     });
@@ -278,7 +278,7 @@ if (deleteModalObj && deleteModalObj.submitBtn) {
                     loadServers();
                 }
             } else {
-                deleteModalObj.showError((result.message || window.i18n?.errorSaving ?? 'Error saving.'));
+                deleteModalObj.showError(result.message || (window.i18n?.errorSaving ?? 'Error saving.'));
             }
         } catch (err) { deleteModalObj.showError((window.i18n?.errorDeleteFailed ?? 'Deletion failed.')); }
     });

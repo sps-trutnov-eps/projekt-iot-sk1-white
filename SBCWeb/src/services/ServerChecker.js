@@ -45,7 +45,7 @@ class ServerChecker {
 
                     const statusLabel = isOnline ? 'online' : 'offline';
                     const eventType = isOnline ? 'info' : 'warning';
-                    EventService.logServerEvent(server.id, eventType, `Přešlo do stavu ${statusLabel}.`);
+                    EventService.logServerEvent(server.id, eventType, 'serverStatusChanged', { status: statusLabel });
 
                     console.log(`[ServerChecker] Server ${server.name} (${ipToPing}) změnil stav na: ${isOnline ? 'ONLINE 🟢' : 'OFFLINE 🔴'}`);
                 }

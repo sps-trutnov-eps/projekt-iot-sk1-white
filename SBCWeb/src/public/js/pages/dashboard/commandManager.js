@@ -22,7 +22,7 @@ export const CommandManager = {
         grid.innerHTML = commands.map(item => {
             const safeName = window.DashboardManager.escapeQuotes(item.name);
             const iconClass = item.type === 'wol' ? 'fa-power-off' : (item.icon || 'fa-terminal');
-            const serverNameText = item.server_name || window.i18n?.unknownServer ?? "Unknown server";
+            const serverNameText = item.server_name || (window.i18n?.unknownServer ?? "Unknown server");
             const cmdValue = item.value || item.command;
             
             return `
@@ -110,7 +110,7 @@ window.runCommand = async (id, btnElement) => {
                     if (btnElement) btnElement.innerHTML = '<i class="fas fa-check text-green-500 text-[10px] ml-0.5"></i>';
                     break;
                 } else if (finalStatus === 'error') {
-                    window.openToast?.(`${window.i18n?.errorCommandFailed ?? 'Command failed: '}${statusData.error_output || window.i18n?.errorUnknown ?? 'Unknown error'}`, false);
+                    window.openToast?.(`${window.i18n?.errorCommandFailed ?? 'Command failed: '}${statusData.error_output || (window.i18n?.errorUnknown ?? 'Unknown error')}`, false);
                     if (btnElement) btnElement.innerHTML = '<i class="fas fa-times text-red-500 text-[10px] ml-0.5"></i>';
                     break;
                 }
@@ -123,7 +123,7 @@ window.runCommand = async (id, btnElement) => {
         }
 
     } catch (error) {
-        window.openToast?.(error.message || window.i18n?.errorComm ?? 'Communication error.', false);
+        window.openToast?.(error.message || (window.i18n?.errorComm ?? 'Communication error.'), false);
         if (btnElement) btnElement.innerHTML = '<i class="fas fa-exclamation-triangle text-red-500 text-[10px] ml-0.5"></i>';
     } finally {
         if (btnElement) {

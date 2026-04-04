@@ -24,7 +24,7 @@ export async function fetchMcuInfo() {
 
             const apiKeyEl = document.getElementById('mcu-api-key');
             if (apiKeyEl && apiKeyEl.textContent !== mcu.apiKey) {
-                apiKeyEl.textContent = mcu.apiKey || window.i18n?.noKey ?? 'No key';
+                apiKeyEl.textContent = mcu.apiKey || (window.i18n?.noKey ?? 'No key');
                 apiKeyEl.style.webkitTextSecurity = 'disc';
                 apiKeyEl.classList.add('blur-[4px]');
             }

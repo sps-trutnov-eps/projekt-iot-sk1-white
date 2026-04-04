@@ -7,12 +7,12 @@ const EventService = require('./EventService');
 class ServerService {
     static createServer(data) {
         if (!data.name || !data.ip) {
-            throw new Error('Název a IP adresa jsou povinné.');
+            throw new Error('errors.nameIpRequired');
         }
         const ipRegex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
 
         if (!ipRegex.test(data.ip)) {
-            throw new Error('Neplatný formát IP adresy. Zadejte platnou IPv4 adresu (např. 192.168.1.100).');
+            throw new Error('errors.invalidIpFormat');
         }
 
         const server = new Server(data);
@@ -20,7 +20,7 @@ class ServerService {
         server.id = newId;
 
         // PŘIDÁNO: Zalogování vytvoření přímo k novému serveru
-        EventService.logServerEvent(newId, 'info', `Server byl přidán do systému.`);
+        EventService.logServerEvent(newId, 'info', 'serverAdded');
 
         setImmediate(() => { const MH = require('../sockets/mqttHandler'); MH.pushDashboardConfig(); });
         return server;
@@ -59,19 +59,19 @@ class ServerService {
         }
         
         // PŘIDÁNO: Zalogování smazání jako globální systémová událost
-        EventService.logSystemEvent('warning', `Server "${existing.name}" (${existing.ipAddress}) byl odstraněn.`);
+        EventService.logSystemEvent('warning', 'serverRemoved', { name: existing.name, ip: existing.ipAddress });
         const deleted = ServerRepository.delete(id);
         setImmediate(() => { const MH = require('../sockets/mqttHandler'); MH.pushDashboardConfig(); });
         return deleted;
     }
 
     static updateServer(id, data) {
-        if (!data.name || !data.ip) throw new Error('Název a IP jsou povinné.');
+        if (!data.name || !data.ip) throw new Error('errors.nameIpRequired');
         
         const ipRegex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
 
         if (!ipRegex.test(data.ip)) {
-            throw new Error('Neplatný formát IP adresy. Zadejte platnou IPv4 adresu (např. 192.168.1.100).');
+            throw new Error('errors.invalidIpFormat');
         }
 
         const result = ServerRepository.update(id, {
@@ -81,7 +81,7 @@ class ServerService {
         });
 
         // PŘIDÁNO: Zalogování editace
-        EventService.logServerEvent(id, 'info', `Konfigurace serveru byla upravena.`);
+        EventService.logServerEvent(id, 'info', 'serverUpdated');
 
         setImmediate(() => { const MH = require('../sockets/mqttHandler'); MH.pushDashboardConfig(); });
         return result;

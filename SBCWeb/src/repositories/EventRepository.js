@@ -4,14 +4,16 @@ const Event = require('../models/Event');
 class EventRepository {
     static create(eventData) {
         const query = `
-            INSERT INTO event_logs (mcu_id, server_id, type, message, timestamp, is_read)
-            VALUES (?, ?, ?, ?, datetime('now'), 0)
+            INSERT INTO event_logs (mcu_id, server_id, type, message, message_key, message_params, timestamp, is_read)
+            VALUES (?, ?, ?, ?, ?, ?, datetime('now'), 0)
         `;
         const result = db.prepare(query).run(
-            eventData.mcu_id || null,    // Pokud není, vloží se NULL
-            eventData.server_id || null, // Pokud není, vloží se NULL
+            eventData.mcu_id || null,
+            eventData.server_id || null,
             eventData.type,
-            eventData.message
+            eventData.message,
+            eventData.message_key || null,
+            eventData.message_params ? JSON.stringify(eventData.message_params) : null
         );
         return result.lastInsertRowid;
     }
@@ -43,12 +45,17 @@ class EventRepository {
     }
 
     // Systémové (globální) události nemají mcu_id ani server_id
-    static logSystem(type, message) {
+    static logSystem(type, message, messageKey = null, messageParams = null) {
         const query = `
-            INSERT INTO event_logs (mcu_id, server_id, type, message, timestamp, is_read)
-            VALUES (NULL, NULL, ?, ?, datetime('now'), 0)
+            INSERT INTO event_logs (mcu_id, server_id, type, message, message_key, message_params, timestamp, is_read)
+            VALUES (NULL, NULL, ?, ?, ?, ?, datetime('now'), 0)
         `;
-        db.prepare(query).run(type, message);
+        db.prepare(query).run(
+            type,
+            message,
+            messageKey,
+            messageParams ? JSON.stringify(messageParams) : null
+        );
     }
 
     // Přidej do EventRepository.js

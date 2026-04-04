@@ -8,14 +8,13 @@ class EventService {
     // ==========================================
     // MCU UDÁLOSTI
     // ==========================================
-    static logEvent(mcuId, type, message) {
-        const event = new Event({ mcuId, type, message });
+    static logEvent(mcuId, type, messageKey, params = {}) {
+        const event = new Event({ mcuId, type, message: messageKey, message_key: messageKey, message_params: params });
         const newId = EventRepository.create(event.toDatabase());
         event.id = newId;
 
-        // Odeslání přes WebSocket - zavolá metodu v SocketService
         if (SocketService.broadcastAlert) {
-            SocketService.broadcastAlert(mcuId, type, message);
+            SocketService.broadcastAlert(mcuId, type, messageKey, params);
         }
 
         return event;
@@ -28,14 +27,13 @@ class EventService {
     // ==========================================
     // SERVER UDÁLOSTI
     // ==========================================
-    static logServerEvent(serverId, type, message) {
-        const event = new Event({ serverId, type, message });
+    static logServerEvent(serverId, type, messageKey, params = {}) {
+        const event = new Event({ serverId, type, message: messageKey, message_key: messageKey, message_params: params });
         const newId = EventRepository.create(event.toDatabase());
         event.id = newId;
 
-        // Odeslání přes WebSocket 
         if (SocketService.broadcastServerAlert) {
-            SocketService.broadcastServerAlert(serverId, type, message);
+            SocketService.broadcastServerAlert(serverId, type, messageKey, params);
         }
 
         return event;
@@ -48,13 +46,12 @@ class EventService {
     // ==========================================
     // GLOBÁLNÍ / SYSTÉMOVÉ UDÁLOSTI
     // ==========================================
-    static logSystemEvent(type, message) {
+    static logSystemEvent(type, messageKey, params = {}) {
         try {
-            EventRepository.logSystem(type, message); 
-            
-            // Odeslání přes WebSocket všem klientům (do horní lišty s notifikacemi)
+            EventRepository.logSystem(type, messageKey, messageKey, params);
+
             if (SocketService.broadcastSystemAlert) {
-                 SocketService.broadcastSystemAlert(type, message);
+                SocketService.broadcastSystemAlert(type, messageKey, params);
             }
         } catch (e) {
             console.error("Chyba při zápisu do event_logs (logSystemEvent):", e);

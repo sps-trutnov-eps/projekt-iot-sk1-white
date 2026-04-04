@@ -172,9 +172,9 @@ async function saveDeckConfig() {
         const data = await res.json();
 
         if (data.success) {
-            if (window.openToast) window.openToast(data.message || window.i18n?.successConfigSaved ?? 'Configuration saved.', true);
+            if (window.openToast) window.openToast(data.message || (window.i18n?.successConfigSaved ?? 'Configuration saved.'), true);
         } else {
-            if (window.openToast) window.openToast(data.message || window.i18n?.errorSaving ?? 'Error saving.', false);
+            if (window.openToast) window.openToast(data.message || (window.i18n?.errorSaving ?? 'Error saving.'), false);
         }
     } catch (e) {
         console.error('[DeckManager] Save error:', e);

@@ -142,41 +142,35 @@ class MeasurementService {
 
         const state = this.thresholdStates[channelId];
         let isCurrentlyExceeded = false;
-        let reason = "";
+        let criticalKey = null;
+        let criticalParams = {};
 
         // Kontrola minima
         if (channel.min_value !== null && value < channel.min_value) {
             isCurrentlyExceeded = true;
-            reason = `klesla na ${value} ${channel.unit || ''} (Limit: min ${channel.min_value} ${channel.unit || ''})`;
-        } 
+            criticalKey = 'criticalValueMin';
+            criticalParams = { sensorType: channel.type, value, unit: channel.unit || '', limit: channel.min_value };
+        }
         // Kontrola maxima
         else if (channel.max_value !== null && value > channel.max_value) {
             isCurrentlyExceeded = true;
-            reason = `stoupla na ${value} ${channel.unit || ''} (Limit: max ${channel.max_value} ${channel.unit || ''})`;
+            criticalKey = 'criticalValueMax';
+            criticalParams = { sensorType: channel.type, value, unit: channel.unit || '', limit: channel.max_value };
         }
 
         // Pokud to PRÁVĚ TEĎ překročilo limit a předtím to bylo OK
         if (isCurrentlyExceeded && !state.isExceeded) {
             state.isExceeded = true;
-            
-            // Voláme PŘÍMO EventService pro uložení a rozeslání notifikace
-            EventService.logEvent(
-                mcuId, 
-                'alert', 
-                `Kritická hodnota! Senzor "${channel.type}" ${reason}.`
-            );
-            
-        } 
+            EventService.logEvent(mcuId, 'alert', criticalKey, criticalParams);
+        }
         // Pokud se to PRÁVĚ TEĎ vrátilo do normálu a předtím to hlásilo chybu
         else if (!isCurrentlyExceeded && state.isExceeded) {
             state.isExceeded = false;
-            
-            EventService.logEvent(
-                mcuId, 
-                'info', 
-                `Hodnota senzoru "${channel.type}" se úspěšně vrátila do normálu (${value} ${channel.unit || ''}).`
-            );
-            
+            EventService.logEvent(mcuId, 'info', 'valueNormal', {
+                sensorType: channel.type,
+                value,
+                unit: channel.unit || ''
+            });
         }
     }
 

@@ -68,7 +68,7 @@ window.addCommandModal.form.addEventListener('submit', async (e) => {
             window.addCommandModal.close(); 
             window.DashboardManager.loadData(); 
         } else {
-            window.addCommandModal.showError(result.message || window.i18n?.errorSavingCmd ?? 'Error saving command.');
+            window.addCommandModal.showError(result.message || (window.i18n?.errorSavingCmd ?? 'Error saving command.'));
         }
         
         submitBtn.innerHTML = originalText;
@@ -116,7 +116,7 @@ window.addCommandModal.form.addEventListener('submit', async (e) => {
                     window.editModal.close(); 
                     window.DashboardManager.loadData(); 
                 } else {
-                    window.editModal.showError(result.message || window.i18n?.errorEditCmd ?? 'Error editing command.');
+                    window.editModal.showError(result.message || (window.i18n?.errorEditCmd ?? 'Error editing command.'));
                 }
                 
                 submitBtn.innerHTML = originalText;

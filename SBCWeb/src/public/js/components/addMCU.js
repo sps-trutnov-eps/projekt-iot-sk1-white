@@ -69,7 +69,7 @@ if (data.success) {
     window.openToast && window.openToast(window.i18n?.successAdded ?? "Device added successfully!", true);
 
 } else {
-    mcuModal.showError(data.message || window.i18n?.errorSaving ?? "Error saving.");
+    mcuModal.showError(data.message || (window.i18n?.errorSaving ?? "Error saving."));
 }
                         try {
                             window.openToast(window.i18n?.successAdded ?? "Device added successfully!", true);

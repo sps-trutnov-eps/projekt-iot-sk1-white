@@ -64,7 +64,7 @@ function initAddMcuModal() {
                     mcuModal.close(); 
                     window.openToast?.((window.i18n?.successAdded ?? "Device added successfully!"), true);
                 } else {
-                    mcuModal.showError((data.message || window.i18n?.errorSaving ?? "Error saving."));
+                    mcuModal.showError(data.message || (window.i18n?.errorSaving ?? "Error saving."));
                 }
                 
             } catch (error) {
@@ -123,7 +123,7 @@ function initDeleteMcuModal() {
                     window.openToast?.(window.i18n?.successDeleted ?? "Device deleted successfully!", true);
                     deleteMcuModal.close(); 
                 } else {
-                    deleteMcuModal.showError(data.message || (data.message || window.i18n?.errorSaving ?? 'Error saving.'));
+                    deleteMcuModal.showError(data.message || (window.i18n?.errorSaving ?? 'Error saving.'));
                 }
             } catch (error) {
                 deleteMcuModal.showError(window.i18n?.errorServer ?? 'Cannot connect to server.');
@@ -320,7 +320,7 @@ function initEditMcuModal() {
 
                     editModal.close();
                 } else {
-                    editModal.showError(result.message || window.i18n?.errorSaving ?? 'Error saving.');
+                    editModal.showError(result.message || (window.i18n?.errorSaving ?? 'Error saving.'));
                 }
             } catch (error) {
                 console.error("Fetch error:", error);

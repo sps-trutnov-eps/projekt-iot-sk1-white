@@ -48,6 +48,14 @@ async function updateNotificationBadge() {
     }
 }
 
+function translateEventMessage(payload) {
+    const key = payload.message_key;
+    if (!key || !window.i18n?.events?.[key]) return payload.message;
+    const template = window.i18n.events[key];
+    const params = payload.message_params || {};
+    return template.replace(/\{\{(\w+)\}\}/g, (_, k) => params[k] ?? '');
+}
+
 function initNotifications() {
     const bellBtn = document.getElementById('notificationBellBtn');
     const badge = document.getElementById('notificationBadge');
@@ -214,22 +222,13 @@ function initNotifications() {
 
     if (notifySocket) {
         notifySocket.on('global_alert', (payload) => {
-            addNotification(payload, true);
+            const translatedPayload = { ...payload, message: translateEventMessage(payload) };
+            addNotification(translatedPayload, true);
             updateNotificationBadge();
 
             if (window.openToast) {
-                let toastPrefix = "";
-                let isSuccessToast = true;
-                
-                if (payload.type === 'alert') {
-                    toastPrefix = "Kritická chyba: ";
-                    isSuccessToast = false;
-                } else if (payload.type === 'warning') {
-                    toastPrefix = "Upozornění: ";
-                    isSuccessToast = false;
-                }
-                
-                window.openToast(`${toastPrefix}${payload.message}`, isSuccessToast);
+                let isSuccessToast = payload.type === 'info';
+                window.openToast(translatedPayload.message, isSuccessToast);
             }
         });
 

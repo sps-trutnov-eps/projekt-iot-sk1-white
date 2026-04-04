@@ -411,5 +411,37 @@
     "successLogsCleaned": "Logs permanently deleted.",
     "errorLogsCleaned": "Error deleting logs.",
     "allTypes": "All types"
+  },
+  "errors": {
+    "nameRequired": "Device name is required.",
+    "macNotUnique": "MAC address must be unique.",
+    "invalidMac": "Invalid MAC address. Use format AA:BB:CC:DD:EE:FF.",
+    "invalidIp": "Invalid IP address. Enter a valid IPv4 address (e.g. 192.168.1.100).",
+    "mcuNotFound": "Device with this ID was not found.",
+    "nameIpRequired": "Name and IP address are required.",
+    "invalidIpFormat": "Invalid IP address format. Enter a valid IPv4 address (e.g. 192.168.1.100).",
+    "typeNameRequired": "Type name is required.",
+    "typeAlreadyExists": "This type already exists.",
+    "missingCommandData": "Missing required fields for command.",
+    "invalidMacCommand": "Invalid MAC address format. Use e.g. AA:BB:CC:DD:EE:FF."
+  },
+  "events": {
+    "deviceStatusChanged": "Device changed status to {{status}}.",
+    "deviceConnected": "Device connected to the network and is sending data.",
+    "deviceRegistered": "New device \"{{name}}\" registered in the system.",
+    "deviceSettingsUpdated": "Device settings have been updated.",
+    "deviceRemoved": "Device \"{{name}}\" (IP: {{ip}}) removed from the system.",
+    "criticalValueMin": "Critical value! Sensor \"{{sensorType}}\" dropped to {{value}} {{unit}} (Min limit: {{limit}} {{unit}}).",
+    "criticalValueMax": "Critical value! Sensor \"{{sensorType}}\" rose to {{value}} {{unit}} (Max limit: {{limit}} {{unit}}).",
+    "valueNormal": "Sensor \"{{sensorType}}\" returned to normal ({{value}} {{unit}}).",
+    "sensorAdded": "A new sensor was added to the device: {{model}}.",
+    "channelAdded": "Measurement {{channelType}} was added to sensor {{model}}.",
+    "sensorRemoved": "Sensor {{model}} was completely removed.",
+    "channelRemoved": "Measurement \"{{channelType}}\" was removed from sensor {{model}}.",
+    "thresholdUpdated": "Warning limits for {{channelType}} updated (Min: {{min}}, Max: {{max}}).",
+    "serverAdded": "Server was added to the system.",
+    "serverRemoved": "Server \"{{name}}\" ({{ip}}) has been removed.",
+    "serverUpdated": "Server configuration has been updated.",
+    "serverStatusChanged": "Changed to state {{status}}."
   }
 }

@@ -80,6 +80,14 @@ function initDB() {
     db.exec('ALTER TABLE event_logs ADD COLUMN is_read INTEGER DEFAULT 0');
   } catch (_) { /* sloupec již existuje */ }
 
+  // Migrace: přidání sloupců pro i18n překlad eventů
+  try {
+    db.exec('ALTER TABLE event_logs ADD COLUMN message_key TEXT');
+  } catch (_) { /* sloupec již existuje */ }
+  try {
+    db.exec('ALTER TABLE event_logs ADD COLUMN message_params TEXT');
+  } catch (_) { /* sloupec již existuje */ }
+
   // Migrace: přidání sloupce role do mcus (sensor | deck)
   try {
     db.exec("ALTER TABLE mcus ADD COLUMN role TEXT DEFAULT 'sensor'");

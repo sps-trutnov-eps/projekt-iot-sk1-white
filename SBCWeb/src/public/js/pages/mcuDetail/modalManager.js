@@ -76,11 +76,11 @@ export function initModals() {
                 const data = await response.json();
                 
                 if (response.ok) {
-                    if(window.openToast) window.openToast(data.message || window.i18n?.successSensorAdded ?? "Sensor added", true);
+                    if(window.openToast) window.openToast(data.message || (window.i18n?.successSensorAdded ?? "Sensor added"), true);
                     sensorModal.close();
                     if(window.updateView) window.updateView(false); 
                 } else {
-                    sensorModal.showError(data.error || window.i18n?.errorSaving ?? "Error saving.");
+                    sensorModal.showError(data.error || (window.i18n?.errorSaving ?? "Error saving."));
                 }
             } catch (error) {
                 sensorModal.showError(window.i18n?.errorComm ?? "Communication error.");
@@ -137,7 +137,7 @@ export function initModals() {
                     deleteSensorModal.close();
                     if (window.updateView) window.updateView(false);
                 } else {
-                    deleteSensorModal.showError(data.message || data.error || window.i18n?.errorDeletingSensor ?? "Error deleting sensor.");
+                    deleteSensorModal.showError(data.message || data.error || (window.i18n?.errorDeletingSensor ?? "Error deleting sensor."));
                 }
             } catch (error) {
                 deleteSensorModal.showError(window.i18n?.errorComm ?? "Communication error.");
@@ -179,10 +179,10 @@ export function initModals() {
                 const data = await response.json();
 
                 if (response.ok) {
-                    if (window.openToast) window.openToast(data.message || window.i18n?.successLimitsSaved ?? "Limits saved", true);
+                    if (window.openToast) window.openToast(data.message || (window.i18n?.successLimitsSaved ?? "Limits saved"), true);
                     thresholdModal.close(); 
                 } else {
-                    thresholdModal.showError(data.error || data.message || window.i18n?.errorSavingLimits ?? "Error saving limits.");
+                    thresholdModal.showError(data.error || data.message || (window.i18n?.errorSavingLimits ?? "Error saving limits."));
                 }
             } catch (error) {
                 thresholdModal.showError(window.i18n?.errorComm ?? "Communication error.");
@@ -223,11 +223,11 @@ export function initModals() {
                 const data = await response.json();
 
                 if (response.ok) {
-                    if (window.openToast) window.openToast(data.message || window.i18n?.successChannelAdded ?? "Channel added", true);
+                    if (window.openToast) window.openToast(data.message || (window.i18n?.successChannelAdded ?? "Channel added"), true);
                     addChannelModal.close();
                     if (window.updateView) window.updateView(false);
                 } else {
-                    addChannelModal.showError(data.error || data.message || window.i18n?.errorSavingChannel ?? "Error saving channel.");
+                    addChannelModal.showError(data.error || data.message || (window.i18n?.errorSavingChannel ?? "Error saving channel."));
                 }
             } catch (error) {
                 addChannelModal.showError(window.i18n?.errorComm ?? "Communication error.");
@@ -260,7 +260,7 @@ export function initModals() {
                     deleteChannelModal.close();
                     if (window.updateView) window.updateView(false);
                 } else {
-                    deleteChannelModal.showError(data.message || data.error || window.i18n?.errorDeletingChannel ?? "Error deleting channel.");
+                    deleteChannelModal.showError(data.message || data.error || (window.i18n?.errorDeletingChannel ?? "Error deleting channel."));
                 }
             } catch (error) {
                 deleteChannelModal.showError(window.i18n?.errorComm ?? "Communication error.");
@@ -307,7 +307,7 @@ export function initModals() {
                     // Po editaci načteme znovu aktuální info do hlavičky (funkce v main.js)
                     if (window.updateView) await window.updateView(false); 
                 } else {
-                    editMCUModal.showError(result.message || window.i18n?.errorSaving ?? "Error saving.");
+                    editMCUModal.showError(result.message || (window.i18n?.errorSaving ?? "Error saving."));
                 }
             } catch (error) {
                 console.error("Fetch error:", error);

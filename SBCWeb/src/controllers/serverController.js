@@ -21,7 +21,7 @@ class ServerController {
                 result: createdServer 
             });
         } catch (error) {
-            res.status(400).json({ success: false, message: error.message });
+            res.status(400).json({ success: false, message: req.t(error.message, { defaultValue: error.message }) });
         }
     }
 
@@ -45,7 +45,7 @@ class ServerController {
             ServerService.deleteServer(id);
             res.status(200).json({ success: true, message: 'Server úspěšně smazán.' });
         } catch (error) {
-            res.status(400).json({ success: false, message: error.message });
+            res.status(400).json({ success: false, message: req.t(error.message, { defaultValue: error.message }) });
         }
     }
 
@@ -54,7 +54,7 @@ class ServerController {
             ServerService.updateServer(req.params.id, req.body);
             res.json({ success: true, message: 'Server upraven.' });
         } catch (error) {
-            res.status(400).json({ success: false, message: error.message });
+            res.status(400).json({ success: false, message: req.t(error.message, { defaultValue: error.message }) });
         }
     }
 }

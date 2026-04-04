@@ -1,5 +1,6 @@
 // controllers/EventController.js
 const EventService = require('../services/EventService');
+const translateEvents = require('../middleware/translateEvents');
 
 class EventController {
     
@@ -11,11 +12,11 @@ class EventController {
                 return res.status(400).json({ success: false, message: 'Chybí ID zařízení (mcuId).' });
             }
 
-            const events = await EventService.getHistory(mcuId);
-            
+            const events = translateEvents(await EventService.getHistory(mcuId), req.t);
+
             res.json({
                 success: true,
-                events: events
+                events
             });
         } catch (error) {
             console.error('Chyba při načítání eventů pro MCU:', error);
@@ -31,11 +32,11 @@ class EventController {
                 return res.status(400).json({ success: false, message: 'Chybí ID serveru (serverId).' });
             }
 
-            const events = await EventService.getServerHistory(serverId);
-            
+            const events = translateEvents(await EventService.getServerHistory(serverId), req.t);
+
             res.json({
                 success: true,
-                events: events
+                events
             });
         } catch (error) {
             console.error('Chyba při načítání eventů pro Server:', error);
@@ -46,12 +47,12 @@ class EventController {
     // Získání nejnovějších událostí (všeobecný mix pro dashboard / notifikační zvoneček)
     static async getRecent(req, res) {
         try {
-            const limit = parseInt(req.query.limit) || 20; 
-            const events = EventService.getRecentEvents(limit);
-            
-            res.status(200).json({ 
-                success: true, 
-                events: events 
+            const limit = parseInt(req.query.limit) || 20;
+            const events = translateEvents(EventService.getRecentEvents(limit), req.t);
+
+            res.status(200).json({
+                success: true,
+                events
             });
         } catch (error) {
             console.error('Chyba při načítání nedávných eventů:', error);

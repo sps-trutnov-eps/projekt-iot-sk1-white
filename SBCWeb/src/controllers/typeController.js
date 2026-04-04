@@ -13,7 +13,7 @@ const createType = (req,res) =>{
             data: newType
         });
     } catch (error) {
-        return res.status(400).json({message: error.message });
+        return res.status(400).json({ message: req.t(error.message, { defaultValue: error.message }) });
     }
 };
 

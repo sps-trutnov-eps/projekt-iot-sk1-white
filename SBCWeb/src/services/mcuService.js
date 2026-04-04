@@ -104,7 +104,7 @@ class MCUService {
                         else if (newStatus === 2) { statusText = 'Passive'; type = 'warning'; }
                         else { statusText = 'Offline'; type = 'alert'; }
 
-                        EventService.logEvent(mcu.id, type, `Device changed status to ${statusText}.`);
+                        EventService.logEvent(mcu.id, type, 'deviceStatusChanged', { status: statusText });
                     }
                 }
             } catch (error) {
@@ -134,7 +134,7 @@ class MCUService {
             const previousState = mcuBefore.is_online !== undefined ? mcuBefore.is_online : (mcuBefore.isOnline || 0);
             
             if (previousState === 0) {
-                EventService.logEvent(id, 'info', `Device connected to the network and is sending data.`);
+                EventService.logEvent(id, 'info', 'deviceConnected');
             } 
         }
         return true;
@@ -143,7 +143,7 @@ class MCUService {
     // CREATE
     static createMCU(data) {
         if(!data.name || data.name.trim() ===''){
-            throw new Error('Name is required');
+            throw new Error('errors.nameRequired');
         }
         const ipAddress = data.ipAddress || data.ip_address;
         this.checkIP(ipAddress);
@@ -151,7 +151,7 @@ class MCUService {
         this.checkMAC(macAddress);
 
         if(!MCURepository.uniqueMac(macAddress)){
-            throw new Error('MAC address must be unique.');
+            throw new Error('errors.macNotUnique');
         }
 
         const mcu = new MCU({
@@ -171,7 +171,7 @@ class MCUService {
         mcu.id = newId;
 
         // SPRÁVNĚ ZAPOJENO
-        EventService.logEvent(newId, 'info', `New device "${data.name}" registered in the system.`);
+        EventService.logEvent(newId, 'info', 'deviceRegistered', { name: data.name });
 
         setImmediate(() => { const MH = require('../sockets/mqttHandler'); MH.pushDashboardConfig(); });
         return mcu;
@@ -206,7 +206,7 @@ class MCUService {
         }
 
         // SPRÁVNĚ ZAPOJENO
-        EventService.logEvent(id, 'info', `Nastavení zařízení bylo upraveno.`);
+        EventService.logEvent(id, 'info', 'deviceSettingsUpdated');
 
         const updateResult = MCURepository.update(id, updateData);
         setImmediate(() => { const MH = require('../sockets/mqttHandler'); MH.pushDashboardConfig(); });
@@ -220,7 +220,7 @@ class MCUService {
 
         // PŘEDĚLÁNO: Protože MCU bude smazáno a ID z tabulky event_logs zmizí (cascade set null), 
         // použijeme globální systémový log, aby informace o smazání v historii zůstala.
-        EventService.logSystemEvent('warning', `Device "${mcu.name}" (IP: ${mcu.ipAddress || mcu.ip_address || 'N/A'}) removed from the system.`);
+        EventService.logSystemEvent('warning', 'deviceRemoved', { name: mcu.name, ip: mcu.ipAddress || mcu.ip_address || 'N/A' });
 
         const deleteResult = MCURepository.delete(id);
         setImmediate(() => { const MH = require('../sockets/mqttHandler'); MH.pushDashboardConfig(); });
@@ -235,20 +235,20 @@ class MCUService {
 
     static checkMAC(mac){
         // ... stávající validace ...
-        if(!mac || mac.trim() ==="" || typeof mac !== "string") throw new Error('Invalid MAC address');
+        if(!mac || mac.trim() ==="" || typeof mac !== "string") throw new Error('errors.invalidMac');
         const normalized = mac.trim().replace(/[-.]/g, ':');
         const parts = normalized.split(":");
-        if (parts.length !== 6) throw new Error('Neplatná hodnota zadané MAC adresy');
-        if (!parts.every(part => part.length === 2 && /^[0-9A-Fa-f]{2}$/.test(part))) throw new Error('Invalid MAC address');
+        if (parts.length !== 6) throw new Error('errors.invalidMac');
+        if (!parts.every(part => part.length === 2 && /^[0-9A-Fa-f]{2}$/.test(part))) throw new Error('errors.invalidMac');
         return true;
     }
 
     static checkIP(ip){
         // ... stávající validace ...
-        if(!ip || ip.trim() ==="" || typeof ip!=="string") throw new Error('Invalid IP address');
+        if(!ip || ip.trim() ==="" || typeof ip!=="string") throw new Error('errors.invalidIp');
         const parts = ip.trim().split(".");
-        if (parts.length !== 4) throw new Error('Neplatná hodnota IP adresy');
-        if (!parts.every(p => { const n = Number(p); return p === n.toString() && n >= 0 && n <= 255; })) throw new Error('Invalid IP address');
+        if (parts.length !== 4) throw new Error('errors.invalidIp');
+        if (!parts.every(p => { const n = Number(p); return p === n.toString() && n >= 0 && n <= 255; })) throw new Error('errors.invalidIp');
         return true;
     }
 

@@ -8,7 +8,7 @@ const renderMCU = (req, res) =>{
   try{
     res.render('mcus', { projectName: 'IoT Control' });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ message: req.t(error.message, { defaultValue: error.message }) });
   }
 }
 
@@ -54,7 +54,7 @@ const createMCU = (req, res) => {
         data: newMCU
     });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ message: req.t(error.message, { defaultValue: error.message }) });
   }
 };
 
@@ -76,7 +76,7 @@ const getMCU = (req, res) => {
     });
   }
   catch(error) {
-    res.status(400).json({ success: false, message: error.message });
+    res.status(400).json({ success: false, message: req.t(error.message, { defaultValue: error.message }) });
   }
 }
 
@@ -90,7 +90,7 @@ const getALLMCUs = (req,res) =>{
     })
   }
   catch(error){
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ message: req.t(error.message, { defaultValue: error.message }) });
   }
 }
 
@@ -131,7 +131,7 @@ const updateMCU = (req,res) => {
     })
   }
   catch(error){
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ message: req.t(error.message, { defaultValue: error.message }) });
   }
 
 }
@@ -151,7 +151,7 @@ const updateApiKey = (req, res) => {
     }
     res.json({ success: true, message: 'API key updated.', apiKey: newKey });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: req.t(error.message, { defaultValue: error.message }) });
   }
 };
 

@@ -4,11 +4,11 @@ const TypeRepository = require('../repositories/TypeRepository');
 class TypeService {
     static createType(data) {
         if (!data.type || data.type.trim() === '') {
-            throw new Error('Název typu je povinné pole.');  
+            throw new Error('errors.typeNameRequired');
         }
-        
+
         if (TypeRepository.findByName(data.type)) {
-            throw new Error('Tento typ již existuje.');  
+            throw new Error('errors.typeAlreadyExists');
         }
 
         const type = new Type({ type: data.type });

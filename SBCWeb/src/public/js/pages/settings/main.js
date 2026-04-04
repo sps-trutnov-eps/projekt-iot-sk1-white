@@ -94,7 +94,7 @@ async function saveSettings() {
         if (result.success) {
             showToast('success', window.i18n?.successSettingsSaved ?? 'Settings saved successfully.');
         } else {
-            showToast('error', result.message || window.i18n?.errorSavingSettings ?? 'Error saving settings.');
+            showToast('error', result.message || (window.i18n?.errorSavingSettings ?? 'Error saving settings.'));
         }
     } catch (error) {
         console.error('Chyba při ukládání nastavení:', error);

@@ -1,6 +1,14 @@
 // public/js/pages/mcuDetail/eventManager.js
 import { getMcuId } from './utils.js';
 
+function translateEventMessage(payload) {
+    const key = payload.message_key;
+    if (!key || !window.i18n?.events?.[key]) return payload.message;
+    const template = window.i18n.events[key];
+    const params = payload.message_params || {};
+    return template.replace(/\{\{(\w+)\}\}/g, (_, k) => params[k] ?? '');
+}
+
 // =========================================================
 // GLOBÁLNÍ FUNKCE PRO SMAZÁNÍ LOGU (voláno z HTML onclick)
 // =========================================================
@@ -72,9 +80,9 @@ export async function initEventManager(socket) {
         // Vypneme předchozí listenery, abychom zamezili duplikacím při přepínání
         socket.off('new_event'); 
         socket.on('new_event', (payload) => {
-            // Ověříme, že event patří k tomuto konkrétnímu MCU
             if (payload.mcuId == mcuId) {
-                renderEventLog(payload, true); // true = je to nový live event, dej ho nahoru
+                const translated = { ...payload, message: translateEventMessage(payload) };
+                renderEventLog(translated, true);
             }
         });
     }
@@ -145,7 +153,7 @@ function renderEventLog(event, isNew = false) {
         iconColor = 'text-red-500';
         bgColor = 'bg-red-50 dark:bg-red-900/30';
     } else if (event.type === 'info') {
-        if (event.message.includes('Online')) {
+        if (event.message_key === 'deviceConnected' || event.message_key === 'deviceStatusChanged') {
             iconClass = 'fa-wifi';
             iconColor = 'text-green-500';
             bgColor = 'bg-green-50 dark:bg-green-900/30';

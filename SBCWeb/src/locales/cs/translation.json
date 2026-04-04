@@ -411,5 +411,37 @@
     "successLogsCleaned": "Logy byly trvale smazány.",
     "errorLogsCleaned": "Chyba při mazání logů.",
     "allTypes": "Všechny typy"
+  },
+  "errors": {
+    "nameRequired": "Název zařízení je povinný.",
+    "macNotUnique": "MAC adresa musí být jedinečná.",
+    "invalidMac": "Neplatná MAC adresa. Použijte formát AA:BB:CC:DD:EE:FF.",
+    "invalidIp": "Neplatná IP adresa. Zadejte platnou IPv4 adresu (např. 192.168.1.100).",
+    "mcuNotFound": "Zařízení s tímto ID nebylo nalezeno.",
+    "nameIpRequired": "Název a IP adresa jsou povinné.",
+    "invalidIpFormat": "Neplatný formát IP adresy. Zadejte platnou IPv4 adresu (např. 192.168.1.100).",
+    "typeNameRequired": "Název typu je povinné pole.",
+    "typeAlreadyExists": "Tento typ již existuje.",
+    "missingCommandData": "Chybějí povinné údaje pro příkaz.",
+    "invalidMacCommand": "Neplatný formát MAC adresy. Použijte např. AA:BB:CC:DD:EE:FF."
+  },
+  "events": {
+    "deviceStatusChanged": "Zařízení změnilo stav na {{status}}.",
+    "deviceConnected": "Zařízení se připojilo k síti a odesílá data.",
+    "deviceRegistered": "Nové zařízení \"{{name}}\" bylo registrováno v systému.",
+    "deviceSettingsUpdated": "Nastavení zařízení bylo upraveno.",
+    "deviceRemoved": "Zařízení \"{{name}}\" (IP: {{ip}}) bylo odebráno ze systému.",
+    "criticalValueMin": "Kritická hodnota! Senzor \"{{sensorType}}\" klesl na {{value}} {{unit}} (Min limit: {{limit}} {{unit}}).",
+    "criticalValueMax": "Kritická hodnota! Senzor \"{{sensorType}}\" stoupl na {{value}} {{unit}} (Max limit: {{limit}} {{unit}}).",
+    "valueNormal": "Hodnota senzoru \"{{sensorType}}\" se vrátila do normálu ({{value}} {{unit}}).",
+    "sensorAdded": "K zařízení byl přidán nový senzor: {{model}}.",
+    "channelAdded": "K senzoru {{model}} bylo přidáno měření: {{channelType}}.",
+    "sensorRemoved": "Senzor {{model}} byl kompletně odebrán.",
+    "channelRemoved": "Měření \"{{channelType}}\" bylo odebráno ze senzoru {{model}}.",
+    "thresholdUpdated": "Byly upraveny varovné limity pro {{channelType}} (Min: {{min}}, Max: {{max}}).",
+    "serverAdded": "Server byl přidán do systému.",
+    "serverRemoved": "Server \"{{name}}\" ({{ip}}) byl odstraněn.",
+    "serverUpdated": "Konfigurace serveru byla upravena.",
+    "serverStatusChanged": "Přešlo do stavu {{status}}."
   }
 }
