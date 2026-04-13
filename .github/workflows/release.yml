@@ -1,0 +1,152 @@
+name: Build Release Binaries
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── Node.js: SBCWeb ──────────────────────────────────────────────────────
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install SBCWeb production dependencies
+        working-directory: SBCWeb
+        run: npm ci --omit=dev
+
+      - name: Download Node.js linux-x64 binary
+        run: |
+          NODE_VERSION=20.19.1
+          wget -q "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz"
+          tar xJf "node-v${NODE_VERSION}-linux-x64.tar.xz"
+          cp "node-v${NODE_VERSION}-linux-x64/bin/node" node-linux
+
+      - name: Prepare SBCWeb bundle
+        run: |
+          mkdir -p sbcweb-bundle
+
+          # Copy app (skip dev-only dirs)
+          rsync -a --exclude='.claude' --exclude='.env' SBCWeb/ sbcweb-bundle/app/
+
+          # Copy bundled node binary
+          cp node-linux sbcweb-bundle/node
+          chmod +x sbcweb-bundle/node
+
+          # Launcher: cd back to user's CWD so .env is found and data/ lands there
+          # makeself sets $MAKESELF_INVOCATION_DIR to the original working directory
+          cat > sbcweb-bundle/start.sh << 'LAUNCHER'
+          #!/bin/bash
+          set -e
+          BUNDLE_DIR="$(cd "$(dirname "$0")" && pwd)"
+          # makeself exports MAKESELF_INVOCATION_DIR; fall back to OLDPWD, then HOME
+          START_DIR="${MAKESELF_INVOCATION_DIR:-${OLDPWD:-$HOME}}"
+          cd "$START_DIR"
+          exec "$BUNDLE_DIR/node" "$BUNDLE_DIR/app/server.js" "$@"
+          LAUNCHER
+          chmod +x sbcweb-bundle/start.sh
+
+      - name: Install makeself
+        run: sudo apt-get install -y makeself
+
+      - name: Get project version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./SBCWeb/package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Create SBCWeb self-extracting archive
+        run: |
+          makeself --nox11 sbcweb-bundle sbcweb-linux.run \
+            "SBCWeb IoT Dashboard v${{ steps.version.outputs.version }}" \
+            ./start.sh
+
+      # ── Python: VirtualPico & debian_executor ────────────────────────────────
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python build dependencies
+        run: pip install pyinstaller paho-mqtt python-dotenv
+
+      - name: Build VirtualPico binary
+        run: |
+          pyinstaller --onefile MCUs/DHT11/virtualPico.py \
+            --name virtualPico-linux \
+            --distpath dist/
+
+      - name: Build debian_executor binary
+        run: |
+          pip install -r ServerScript/requirements.txt
+          pyinstaller --onefile ServerScript/debian_executor.py \
+            --name debian_executor-linux \
+            --distpath dist/
+
+      # ── Upload artifacts (pro každý push/dispatch) ───────────────────────────
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-binaries
+          path: |
+            sbcweb-linux.run
+            dist/virtualPico-linux
+            dist/debian_executor-linux
+
+      # ── GitHub Release (jen při push na tag v*) ──────────────────────────────
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            sbcweb-linux.run
+            dist/virtualPico-linux
+            dist/debian_executor-linux
+          generate_release_notes: true
+          body: |
+            ## Binaries pro Linux x64
+
+            | Soubor | Popis | Velikost |
+            |--------|-------|---------|
+            | `sbcweb-linux.run` | Webový dashboard — self-extracting archiv s Node.js | ~50 MB |
+            | `virtualPico-linux` | Simulátor DHT11 MCU senzoru | ~10 MB |
+            | `debian_executor-linux` | Server agent (MQTT → bash příkazy) | ~10 MB |
+
+            ### Požadavky
+            - Linux x64 (Debian/Ubuntu)
+            - Spuštěný Mosquitto MQTT broker (`mosquitto -d`)
+            - `openssl` pro automatické vygenerování HTTPS certifikátu
+
+            ### Spuštění
+
+            **Webový dashboard:**
+            ```bash
+            chmod +x sbcweb-linux.run
+            cp /cesta/k/repo/SBCWeb/.env.example .env
+            # Upravit .env — nastavit MQTT_BROKER_IP, SESSION_SECRET, atp.
+            ./sbcweb-linux.run
+            # → http://localhost:3000  |  https://localhost:3443
+            ```
+
+            **Simulátor MCU (náhrada za fyzické Pico):**
+            ```bash
+            chmod +x virtualPico-linux
+            cp /cesta/k/repo/MCUs/DHT11/.env.example .env
+            # Upravit .env — nastavit BROKER_IP, API_KEY, MAC
+            ./virtualPico-linux
+            ```
+
+            **Server agent (na cílovém serveru):**
+            ```bash
+            chmod +x debian_executor-linux
+            ./debian_executor-linux
+            ```
