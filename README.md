@@ -42,6 +42,37 @@ The dashboard supports **Czech and English**. Language can be switched in the se
 
 ## Quick Start
 
+### Pre-built binaries (Linux, no dependencies required)
+
+Download the latest binaries from the [Releases](../../releases/latest) page:
+
+| Binary | Run |
+|--------|-----|
+| `sbcweb-linux.run` | Web dashboard (bundled Node.js, no install needed) |
+| `virtualPico-linux` | MCU sensor simulator |
+| `debian_executor-linux` | Server agent |
+
+```bash
+# 1. Copy and edit config
+cp SBCWeb/.env.example .env
+# Set MQTT_BROKER_IP, SESSION_SECRET, etc.
+
+# 2. Start the dashboard
+chmod +x sbcweb-linux.run
+./sbcweb-linux.run
+# → http://localhost:3000   (login: admin / admin)
+
+# 3. Start the MCU simulator (separate terminal)
+cp MCUs/DHT11/.env.example .env.pico
+# Set BROKER_IP, API_KEY, MAC — get API_KEY from the dashboard after creating an MCU entry
+chmod +x virtualPico-linux
+./virtualPico-linux
+```
+
+> Mosquitto must be running: `mosquitto -d`
+
+---
+
 ### Windows
 
 **Start the dashboard:**
