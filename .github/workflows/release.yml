@@ -113,39 +113,39 @@ jobs:
             dist/debian_executor-linux
           generate_release_notes: true
           body: |
-            ## Binaries pro Linux x64
+            ## Linux x64 Binaries
 
-            | Soubor | Popis | Velikost |
-            |--------|-------|---------|
-            | `sbcweb-linux.run` | Webový dashboard — self-extracting archiv s Node.js | ~50 MB |
-            | `virtualPico-linux` | Simulátor DHT11 MCU senzoru | ~10 MB |
-            | `debian_executor-linux` | Server agent (MQTT → bash příkazy) | ~10 MB |
+            | File | Description | Size |
+            |------|-------------|------|
+            | `sbcweb-linux.run` | Web dashboard — self-extracting archive with bundled Node.js | ~50 MB |
+            | `virtualPico-linux` | DHT11 MCU sensor simulator | ~10 MB |
+            | `debian_executor-linux` | Server agent (MQTT → bash commands) | ~10 MB |
 
-            ### Požadavky
-            - Linux x64 (Debian/Ubuntu)
-            - Spuštěný Mosquitto MQTT broker (`mosquitto -d`)
-            - `openssl` pro automatické vygenerování HTTPS certifikátu
+            ### Requirements
+            - Linux x64 (any distro)
+            - Mosquitto MQTT broker running (`mosquitto -d`)
+            - `openssl` available for automatic HTTPS certificate generation
 
-            ### Spuštění
+            ### Quick Start
 
-            **Webový dashboard:**
+            **Web dashboard:**
             ```bash
             chmod +x sbcweb-linux.run
-            cp /cesta/k/repo/SBCWeb/.env.example .env
-            # Upravit .env — nastavit MQTT_BROKER_IP, SESSION_SECRET, atp.
+            cp SBCWeb/.env.example .env
+            # Edit .env — set MQTT_BROKER_IP, SESSION_SECRET, etc.
             ./sbcweb-linux.run
             # → http://localhost:3000  |  https://localhost:3443
             ```
 
-            **Simulátor MCU (náhrada za fyzické Pico):**
+            **MCU simulator (replacement for physical Pico):**
             ```bash
             chmod +x virtualPico-linux
-            cp /cesta/k/repo/MCUs/DHT11/.env.example .env
-            # Upravit .env — nastavit BROKER_IP, API_KEY, MAC
+            cp MCUs/DHT11/.env.example .env
+            # Edit .env — set BROKER_IP, API_KEY, MAC
             ./virtualPico-linux
             ```
 
-            **Server agent (na cílovém serveru):**
+            **Server agent (run on the target server):**
             ```bash
             chmod +x debian_executor-linux
             ./debian_executor-linux
