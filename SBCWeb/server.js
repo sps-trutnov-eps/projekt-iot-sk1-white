@@ -123,7 +123,7 @@ if (DEMO_MODE) {
   app.get('/', (req, res) => {
     res.render('demoLanding', {
       ytEmbed: process.env.YT_DEMO_URL || '',
-      ghRepo: process.env.GITHUB_REPO_URL || 'https://github.com/forbelskym22/projekt-iot-sk1-white',
+      ghRepo: process.env.GITHUB_REPO_URL || 'https://github.com/sps-trutnov-eps/projekt-iot-server_deck',
     });
   });
 }
