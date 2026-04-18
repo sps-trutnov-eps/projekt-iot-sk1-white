@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Server Deck — Live Demo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { colors: {
+        'ash-grey': {'50':'#f2f3f1','100':'#e6e7e4','200':'#ccd0c8','300':'#b3b8ad','400':'#9aa092','500':'#808877','600':'#676d5f','700':'#4d5247','800':'#33372f','900':'#1a1b18','950':'#121311'},
+        'vintage-grape': {'50':'#f3f0f4','100':'#e7e2e9','200':'#cfc4d4','300':'#b7a7be','400':'#a08aa8','500':'#886c93','600':'#6d5775','700':'#514158','800':'#362b3b','900':'#1b161d','950':'#130f15'},
+        'midnight-violet': {'50':'#f3eff5','100':'#e8e0eb','200':'#d0c1d7','300':'#b9a2c3','400':'#a183af','500':'#8a639c','600':'#6e507c','700':'#533c5d','800':'#37283e','900':'#1c141f','950':'#130e16'}
+      } } }
+    };
+    if (localStorage.getItem('ui_theme') === 'dark') document.documentElement.classList.add('dark');
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="bg-ash-grey-100 dark:bg-midnight-violet-950 min-h-screen text-ash-grey-900 dark:text-ash-grey-100 transition-colors duration-300">
+
+  <header class="border-b border-ash-grey-200 dark:border-midnight-violet-800">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-vintage-grape-400 to-midnight-violet-600 rounded-xl shadow-md">
+          <i class="fas fa-microchip text-white"></i>
+        </div>
+        <span class="font-bold text-lg">Server Deck</span>
+        <span class="text-xs px-2 py-0.5 rounded-full bg-vintage-grape-100 dark:bg-vintage-grape-900 text-vintage-grape-700 dark:text-vintage-grape-200">DEMO</span>
+      </div>
+      <nav class="flex items-center gap-4 text-sm">
+        <a href="<%= ghRepo %>" target="_blank" class="hover:text-vintage-grape-600 dark:hover:text-vintage-grape-400"><i class="fab fa-github mr-1"></i>GitHub</a>
+        <a href="/login" class="px-4 py-2 bg-gradient-to-r from-vintage-grape-500 to-midnight-violet-600 text-white rounded-xl font-semibold shadow hover:shadow-lg transition">Open Dashboard <i class="fas fa-arrow-right ml-1"></i></a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-6 py-12">
+
+    <section class="text-center mb-16">
+      <h1 class="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-vintage-grape-600 to-midnight-violet-600 bg-clip-text text-transparent">
+        Physical Interface for Server Management
+      </h1>
+      <p class="text-lg text-ash-grey-600 dark:text-ash-grey-300 max-w-2xl mx-auto mb-8">
+        A web dashboard paired with microcontroller-driven hardware: temperature/humidity monitoring,
+        OLED control panel with rotary encoder, and remote shell command launcher over MQTT.
+      </p>
+      <div class="flex items-center justify-center gap-3 flex-wrap">
+        <a href="/login" class="px-6 py-3 bg-gradient-to-r from-vintage-grape-500 to-midnight-violet-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition">
+          <i class="fas fa-play mr-2"></i>Try the Demo
+        </a>
+        <span class="text-sm text-ash-grey-500 dark:text-ash-grey-400">Login: <code class="px-2 py-1 bg-ash-grey-200 dark:bg-midnight-violet-800 rounded">admin / admin</code></span>
+      </div>
+    </section>
+
+    <section class="mb-16">
+      <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i class="fab fa-youtube text-red-600"></i>Hardware demo (video)</h2>
+      <p class="text-ash-grey-600 dark:text-ash-grey-300 mb-6">
+        The web demo below runs without any hardware. To see the physical control panel in action — DHT11 sensor reporting,
+        OLED display, rotary encoder navigation, and a physical button triggering a remote command — watch the recording:
+      </p>
+      <div class="aspect-video w-full max-w-3xl mx-auto rounded-2xl overflow-hidden shadow-2xl bg-black">
+        <% if (ytEmbed) { %>
+          <iframe class="w-full h-full" src="<%= ytEmbed %>" title="Server Deck — Hardware demo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+        <% } else { %>
+          <div class="w-full h-full flex flex-col items-center justify-center text-ash-grey-400 gap-3 p-6 text-center">
+            <i class="fab fa-youtube text-6xl text-red-600/60"></i>
+            <p class="text-sm">Video bude doplněno — set <code class="px-1 bg-midnight-violet-800 rounded">YT_DEMO_URL</code> env var (full <code>https://www.youtube.com/embed/...</code> URL).</p>
+          </div>
+        <% } %>
+      </div>
+    </section>
+
+    <section class="grid md:grid-cols-2 gap-6 mb-16">
+      <div class="bg-white dark:bg-midnight-violet-900 rounded-2xl p-6 shadow border border-ash-grey-200 dark:border-midnight-violet-800">
+        <h3 class="text-xl font-bold mb-3 flex items-center gap-2"><i class="fas fa-check-circle text-green-500"></i>What works in the demo</h3>
+        <ul class="space-y-2 text-sm text-ash-grey-700 dark:text-ash-grey-300">
+          <li><i class="fas fa-chevron-right text-vintage-grape-500 text-xs mr-2"></i>Each visitor gets an isolated in-memory database</li>
+          <li><i class="fas fa-chevron-right text-vintage-grape-500 text-xs mr-2"></i>Pre-seeded MCUs, DHT11 sensor, server with whitelisted commands</li>
+          <li><i class="fas fa-chevron-right text-vintage-grape-500 text-xs mr-2"></i>Live simulated sensor readings every 10s (charts update in real-time)</li>
+          <li><i class="fas fa-chevron-right text-vintage-grape-500 text-xs mr-2"></i>24h of historical readings backfilled on session start</li>
+          <li><i class="fas fa-chevron-right text-vintage-grape-500 text-xs mr-2"></i>Threshold alerts (try setting limits — they fire on the simulated stream)</li>
+          <li><i class="fas fa-chevron-right text-vintage-grape-500 text-xs mr-2"></i>Command Launcher and Wake-on-LAN — mocked success responses</li>
+          <li><i class="fas fa-chevron-right text-vintage-grape-500 text-xs mr-2"></i>Czech / English UI, event log, settings</li>
+        </ul>
+      </div>
+      <div class="bg-white dark:bg-midnight-violet-900 rounded-2xl p-6 shadow border border-ash-grey-200 dark:border-midnight-violet-800">
+        <h3 class="text-xl font-bold mb-3 flex items-center gap-2"><i class="fas fa-microchip text-vintage-grape-500"></i>Hardware-only (see video)</h3>
+        <ul class="space-y-2 text-sm text-ash-grey-700 dark:text-ash-grey-300">
+          <li><i class="fas fa-chevron-right text-vintage-grape-500 text-xs mr-2"></i>Real DHT11 readings from a Raspberry Pi Pico over MQTT</li>
+          <li><i class="fas fa-chevron-right text-vintage-grape-500 text-xs mr-2"></i>OLED display (128×64) with rotary encoder menu</li>
+          <li><i class="fas fa-chevron-right text-vintage-grape-500 text-xs mr-2"></i>Physical buttons triggering shell commands on a Linux server</li>
+          <li><i class="fas fa-chevron-right text-vintage-grape-500 text-xs mr-2"></i>Wake-on-LAN magic packet sent from a Pico</li>
+          <li><i class="fas fa-chevron-right text-vintage-grape-500 text-xs mr-2"></i>Web Serial API flashing of MicroPython firmware from the dashboard</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="mb-16">
+      <h2 class="text-2xl font-bold mb-4">Stack</h2>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+        <div class="bg-white dark:bg-midnight-violet-900 rounded-xl p-4 border border-ash-grey-200 dark:border-midnight-violet-800">
+          <h4 class="font-semibold mb-2 text-vintage-grape-600 dark:text-vintage-grape-400">Web</h4>
+          <p class="text-ash-grey-600 dark:text-ash-grey-300">Node.js · Express · EJS · Socket.io · Tailwind · i18next</p>
+        </div>
+        <div class="bg-white dark:bg-midnight-violet-900 rounded-xl p-4 border border-ash-grey-200 dark:border-midnight-violet-800">
+          <h4 class="font-semibold mb-2 text-vintage-grape-600 dark:text-vintage-grape-400">Storage</h4>
+          <p class="text-ash-grey-600 dark:text-ash-grey-300">SQLite (better-sqlite3), per-session in-memory DB in demo mode</p>
+        </div>
+        <div class="bg-white dark:bg-midnight-violet-900 rounded-xl p-4 border border-ash-grey-200 dark:border-midnight-violet-800">
+          <h4 class="font-semibold mb-2 text-vintage-grape-600 dark:text-vintage-grape-400">Messaging</h4>
+          <p class="text-ash-grey-600 dark:text-ash-grey-300">MQTT (Mosquitto), bypassed in demo mode</p>
+        </div>
+        <div class="bg-white dark:bg-midnight-violet-900 rounded-xl p-4 border border-ash-grey-200 dark:border-midnight-violet-800">
+          <h4 class="font-semibold mb-2 text-vintage-grape-600 dark:text-vintage-grape-400">Hardware</h4>
+          <p class="text-ash-grey-600 dark:text-ash-grey-300">Raspberry Pi Pico (MicroPython) · DHT11 · SSD1306 OLED · rotary encoder</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="text-center">
+      <a href="/login" class="inline-block px-8 py-4 bg-gradient-to-r from-vintage-grape-500 to-midnight-violet-600 text-white rounded-2xl font-semibold shadow-lg hover:shadow-xl transition text-lg">
+        <i class="fas fa-rocket mr-2"></i>Open the Demo Dashboard
+      </a>
+    </section>
+  </main>
+
+  <footer class="border-t border-ash-grey-200 dark:border-midnight-violet-800 mt-16">
+    <div class="max-w-6xl mx-auto px-6 py-6 text-center text-xs text-ash-grey-500 dark:text-ash-grey-400">
+      Server Deck &copy; <%= new Date().getFullYear() %> ·
+      <a href="<%= ghRepo %>" target="_blank" class="hover:text-vintage-grape-500"><i class="fab fa-github"></i> Source on GitHub</a>
+    </div>
+  </footer>
+</body>
+</html>

@@ -118,6 +118,16 @@ app.get('/lang/:lng', (req, res) => {
   }
 });
 
+// V DEMO_MODE servíruje veřejnou landing page na "/" (před auth routami)
+if (DEMO_MODE) {
+  app.get('/', (req, res) => {
+    res.render('demoLanding', {
+      ytEmbed: process.env.YT_DEMO_URL || '',
+      ghRepo: process.env.GITHUB_REPO_URL || 'https://github.com/forbelskym22/projekt-iot-sk1-white',
+    });
+  });
+}
+
 const authRoutes = require('./src/routes/authRouter');
 app.use('/', authRoutes);
 
