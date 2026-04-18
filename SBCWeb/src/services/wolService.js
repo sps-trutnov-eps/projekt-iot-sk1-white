@@ -20,7 +20,14 @@ function getBroadcastAddress(localAddress) {
     return parts.join('.');
 }
 
+const DEMO_MODE = process.env.DEMO_MODE === '1' || process.env.DEMO_MODE === 'true';
+
 function sendMagicPacket(mac) {
+    if (DEMO_MODE) {
+        // Render free tier nemá broadcast UDP přístup; v demu jen logujeme.
+        console.log(`[DEMO][WOL] Simulovaný magic packet pro ${mac} (UDP broadcast přeskočen)`);
+        return Promise.resolve();
+    }
     return new Promise((resolve, reject) => {
         const macHex = mac.replace(/[:\-]/g, '');
         if (macHex.length !== 12) return reject(new Error('Neplatná MAC adresa'));

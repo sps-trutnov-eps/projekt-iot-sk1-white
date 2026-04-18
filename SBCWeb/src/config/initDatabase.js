@@ -178,8 +178,11 @@ db.exec(`
   } catch (_) { /* sloupec již existuje */ }
 
 }
-initDB();
 
-console.log('Databáze inicializována (s kaskádovým mazáním)');
+// V DEMO_MODE volá initDB až per-session middleware (nemáme tu DB kontext na module load).
+if (process.env.DEMO_MODE !== '1' && process.env.DEMO_MODE !== 'true') {
+  initDB();
+  console.log('Databáze inicializována (s kaskádovým mazáním)');
+}
 
 module.exports = initDB;

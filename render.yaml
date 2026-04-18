@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: sbcweb-demo
+    runtime: node
+    plan: free
+    rootDir: SBCWeb
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: DEMO_MODE
+        value: "1"
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: SERVER_HOST
+        value: "0.0.0.0"
+      - key: YT_DEMO_URL
+        sync: false  # Set to https://www.youtube.com/embed/<VIDEO_ID> in Render dashboard
+      - key: GITHUB_REPO_URL
+        sync: false  # Optional override for footer/header GitHub link

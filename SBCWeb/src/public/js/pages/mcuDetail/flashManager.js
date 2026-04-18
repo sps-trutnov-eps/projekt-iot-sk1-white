@@ -69,7 +69,7 @@ function closeFlashModal() {
 // === WEB SERIAL API ===
 async function connectUsb() {
     if (!('serial' in navigator)) {
-        showError((window.i18n?.errorWebSerial ?? 'Web Serial API is not supported. Please use Chrome or Edge.'));
+        showError(window.i18n?.errorWebSerial ?? 'Web Serial API is not supported. Please use Chrome or Edge.');
         return;
     }
 
@@ -81,7 +81,7 @@ async function connectUsb() {
         const info = serialPort.getInfo();
         updatePortStatus(info);
 
-        if (window.openToast) window.openToast((window.i18n?.usbConnected ?? 'USB device connected.'), true);
+        if (window.openToast) window.openToast(window.i18n?.usbConnected ?? 'USB device connected.', true);
     } catch (e) {
         if (e.name === 'NotAllowedError') return; // User cancelled
         showError((window.i18n?.errorConnect ?? 'Failed to connect: ') + e.message);
@@ -111,13 +111,19 @@ function updatePortStatus(info) {
         const vendorId = info?.usbVendorId ? `0x${info.usbVendorId.toString(16).toUpperCase()}` : '';
         const productId = info?.usbProductId ? `0x${info.usbProductId.toString(16).toUpperCase()}` : '';
         const label = vendorId === '0x2E8A' ? 'Raspberry Pi Pico' : `USB ${vendorId}`;
+        
         statusEl.innerHTML = `<i class="fas fa-check-circle text-green-500 mr-2"></i><span class="font-medium">${label}</span><span class="text-xs text-gray-400 ml-2">${vendorId}:${productId}</span>`;
         statusEl.className = statusEl.className.replace('border-ash-grey-300 dark:border-midnight-violet-700', 'border-green-500 dark:border-green-600');
+        
         if (connectBtn) connectBtn.classList.add('hidden');
         if (disconnectBtn) disconnectBtn.classList.remove('hidden');
     } else {
-        statusEl.innerHTML = '<i class="fas fa-usb text-gray-400 mr-2"></i><span class="text-gray-500 dark:text-silver-400">${window.i18n?.noDevice ?? 'No device connected'}</span>';
+        // OPRAVA CHYBY: Použití bezpečných proměnných a backticks místo kombinování apostrofů
+        const txtNoDevice = window.i18n?.noDevice ?? 'No device connected';
+        
+        statusEl.innerHTML = `<i class="fas fa-usb text-gray-400 mr-2"></i><span class="text-gray-500 dark:text-silver-400">${txtNoDevice}</span>`;
         statusEl.className = statusEl.className.replace('border-green-500 dark:border-green-600', 'border-ash-grey-300 dark:border-midnight-violet-700');
+        
         if (connectBtn) connectBtn.classList.remove('hidden');
         if (disconnectBtn) disconnectBtn.classList.add('hidden');
     }
@@ -137,7 +143,7 @@ async function readUntil(reader, marker, timeoutMs = 10000) {
     const start = Date.now();
     while (!buffer.includes(marker)) {
         if (Date.now() - start > timeoutMs) {
-            throw new Error(`Device response timeout.`);
+            throw new Error('Device response timeout.');
         }
         const { value, done } = await reader.read();
         if (done) throw new Error('Serial port was closed.');
@@ -268,7 +274,8 @@ async function uploadFileToDevice(port, fileContent, destPath, onProgress) {
 // === ŠABLONY ===
 async function loadTemplates() {
     const select = document.getElementById('flashTemplate');
-    select.innerHTML = `<option value="">${window.i18n?.loadingTemplates ?? 'Loading templates...'}</option>`;
+    const txtLoading = window.i18n?.loadingTemplates ?? 'Loading templates...';
+    select.innerHTML = `<option value="">${txtLoading}</option>`;
 
     try {
         const res = await fetch('/mcu/templates');
@@ -277,11 +284,14 @@ async function loadTemplates() {
         if (!data.success) throw new Error(data.message);
 
         if (data.templates.length === 0) {
-            select.innerHTML = `<option value="">${window.i18n?.noTemplates ?? 'No templates — upload a .py file'}</option>`;
+            const txtNoTemplates = window.i18n?.noTemplates ?? 'No templates — upload a .py file';
+            select.innerHTML = `<option value="">${txtNoTemplates}</option>`;
             return;
         }
 
-        select.innerHTML = `<option value="">${window.i18n?.selectTemplate ?? '-- Select template --'}</option>`;
+        const txtSelectTemplate = window.i18n?.selectTemplate ?? '-- Select template --';
+        select.innerHTML = `<option value="">${txtSelectTemplate}</option>`;
+        
         data.templates.forEach(tpl => {
             const opt = document.createElement('option');
             opt.value = tpl.filename;
@@ -290,7 +300,8 @@ async function loadTemplates() {
             select.appendChild(opt);
         });
     } catch (e) {
-        select.innerHTML = `<option value="">${window.i18n?.templateLoadError ?? 'Error loading templates'}</option>`;
+        const txtError = window.i18n?.templateLoadError ?? 'Error loading templates';
+        select.innerHTML = `<option value="">${txtError}</option>`;
     }
 }
 
@@ -366,7 +377,7 @@ async function handleDeleteTemplate() {
         const data = await res.json();
         if (!data.success) throw new Error(data.message);
 
-        if (window.openToast) window.openToast((window.i18n?.successTemplateDel ?? 'Template deleted.'), true);
+        if (window.openToast) window.openToast(window.i18n?.successTemplateDel ?? 'Template deleted.', true);
         await loadTemplates();
     } catch (err) {
         showError(err.message);
@@ -377,13 +388,13 @@ async function handleDeleteTemplate() {
 async function startFlash() {
     if (isFlashing) return;
 
-    if (!serialPort) return showError((window.i18n?.errorConnectUsb ?? 'Connect USB device.'));
+    if (!serialPort) return showError(window.i18n?.errorConnectUsb ?? 'Connect USB device.');
 
     const templateFilename = document.getElementById('flashTemplate').value;
     const wifiSsid = document.getElementById('flashWifiSsid').value.trim();
     const wifiPassword = document.getElementById('flashWifiPass').value.trim();
 
-    if (!templateFilename) return showError((window.i18n?.errorSelectTemplate ?? 'Select a template.'));
+    if (!templateFilename) return showError(window.i18n?.errorSelectTemplate ?? 'Select a template.');
     if (!wifiSsid) return showError('Zadejte WiFi SSID.');
     if (!wifiPassword) return showError('Zadejte WiFi heslo.');
 

@@ -3,7 +3,6 @@ import { getMcuId, getSensorStyle, translateType } from './utils.js';
 import { calculateAndRenderTrend } from './trendManager.js';
 
 function showSensorsLoadingState(listContainer, cardsContainer) {
-    // Levé menu (seznam senzorů)
     listContainer.innerHTML = Array(3).fill(`
         <div class="flex items-center justify-between px-3 py-2.5 border-b border-ash-grey-50 dark:border-midnight-violet-800 animate-pulse">
             <div class="flex items-center gap-2 w-full">
@@ -20,7 +19,6 @@ function showSensorsLoadingState(listContainer, cardsContainer) {
         </div>
     `).join('');
 
-    // Hlavní plocha (karty kanálů)
     cardsContainer.innerHTML = Array(4).fill(`
         <div class="bg-white dark:bg-midnight-violet-900 rounded-xl border border-ash-grey-200 dark:border-midnight-violet-800 p-5 shadow-sm min-h-[140px] animate-pulse">
             <div class="flex justify-between items-start mb-4 mt-1">
@@ -54,19 +52,36 @@ export async function loadSensors(isBackground = false) {
         showSensorsLoadingState(listContainer, cardsContainer);
     }
 
+    // Safely extract UI text to avoid parsing errors inside template literals
+    const txtChannelCount = window.i18n?.channelCount ?? "Channels:";
+    const txtAddChannel = window.i18n?.addChannelBtn ?? "Add channel";
+    const txtDeleteSensor = window.i18n?.deleteSensorBtn ?? "Delete sensor";
+    const txtDeleteChannel = window.i18n?.deleteChannelBtn ?? "Delete channel";
+    const txtNoChannels = window.i18n?.noChannels ?? "No channels have been created for the sensors yet.";
+    const txtNoSensorsShort = window.i18n?.noSensorsShort ?? "No sensors yet";
+    const txtNoSensors = window.i18n?.noSensors ?? "No sensors found";
+    const txtNoSensorsDesc = window.i18n?.noSensorsDesc ?? "Register the first sensor for this device.";
+
     try {
         const mcuId = getMcuId();
         const response = await fetch(`/sensor/device/${mcuId}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP Error: ${response.status}`);
+        }
+        
         const data = await response.json();
 
-        if (data.success && data.sensors && data.sensors.length > 0) {
-            listContainer.innerHTML = '';
-            cardsContainer.innerHTML = '';
-
+        if (data.success && data.sensors?.length > 0) {
             let hasAnyChannels = false;
+            let listHtml = '';
+            let cardsHtml = '';
+            const trendIdsToCalculate = [];
 
             data.sensors.forEach(sensor => {
-                const sensorHtml = `
+                const channelCount = sensor.channels?.length || 0;
+                
+                listHtml += `
                     <div class="group flex items-center justify-between px-3 py-2.5 hover:bg-ash-grey-50 dark:hover:bg-midnight-violet-800 border-b border-ash-grey-50 dark:border-midnight-violet-800 last:border-0 transition-colors">
                         <div class="flex items-center gap-2">
                             <div class="w-6 h-6 rounded bg-white dark:bg-midnight-violet-700 flex items-center justify-center border dark:border-midnight-violet-600 shadow-sm text-[10px] text-midnight-violet-500 dark:text-silver-300">
@@ -74,31 +89,29 @@ export async function loadSensors(isBackground = false) {
                             </div>
                             <div class="flex flex-col">
                                 <p class="text-[11px] font-bold text-midnight-violet-900 dark:text-silver-100 leading-tight uppercase">${sensor.model}</p>
-                                <p class="text-[9px] text-silver-400 font-medium">${window.i18n?.channelCount ?? "Channels:"} ${sensor.channels ? sensor.channels.length : 0}</p>
+                                <p class="text-[9px] text-silver-400 font-medium">${txtChannelCount} ${channelCount}</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-1">
-                            <button onclick="window.openAddChannelModal('${sensor.id}', '${sensor.model}')" title="${window.i18n?.addChannelBtn ?? \"Add channel\"}" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-emerald-500 hover:bg-emerald-50 transition-all">
+                            <button onclick="window.openAddChannelModal('${sensor.id}', '${sensor.model}')" title="${txtAddChannel}" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-emerald-500 hover:bg-emerald-50 transition-all">
                                 <i class="fas fa-plus text-[10px]"></i>
                             </button>
-                            <button onclick="window.openDeleteSensorModal('${sensor.id}')" title="${window.i18n?.deleteSensorBtn ?? \"Delete sensor\"}" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-red-500 hover:bg-red-50 transition-all">
+                            <button onclick="window.openDeleteSensorModal('${sensor.id}')" title="${txtDeleteSensor}" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-red-500 hover:bg-red-50 transition-all">
                                 <i class="fas fa-trash-alt text-[10px]"></i>
                             </button>
                         </div>
                     </div>`;
-                
-                listContainer.insertAdjacentHTML('beforeend', sensorHtml);
 
-                if (sensor.channels && Array.isArray(sensor.channels) && sensor.channels.length > 0) {
+                if (channelCount > 0) {
                     hasAnyChannels = true;
                     sensor.channels.forEach(channel => {
                         const style = getSensorStyle(channel.type);
                         const translated = translateType(channel.type);
+                        const displayValue = channel.current_value ?? '---';
                         
-                        const displayValue = (channel.current_value !== null && channel.current_value !== undefined) 
-                                             ? channel.current_value : '---';
+                        trendIdsToCalculate.push(channel.id);
 
-                        const cardHtml = `
+                        cardsHtml += `
                             <div class="bg-white dark:bg-midnight-violet-900 rounded-xl border border-ash-grey-200 dark:border-midnight-violet-800 p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden flex flex-col justify-between">
                                 <div class="absolute top-0 left-0 w-full h-1 ${style.color.replace('text-', 'bg-')} opacity-75"></div>
                                 
@@ -119,7 +132,7 @@ export async function loadSensors(isBackground = false) {
                                         <button onclick="window.updateChart(null, '${channel.id}', '${channel.unit}', '${sensor.model}', '${translated}')" title="View chart" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-midnight-violet-500 hover:bg-midnight-violet-50 transition-all">
                                             <i class="fas fa-chart-line text-xs"></i>
                                         </button>
-                                        <button onclick="window.openDeleteChannelModal('${channel.id}')" title="${window.i18n?.deleteChannelBtn ?? \"Delete channel\"}" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-red-500 hover:bg-red-50 transition-all">
+                                        <button onclick="window.openDeleteChannelModal('${channel.id}')" title="${txtDeleteChannel}" class="w-7 h-7 flex items-center justify-center rounded-lg text-silver-300 hover:text-red-500 hover:bg-red-50 transition-all">
                                             <i class="fas fa-trash-alt text-xs"></i>
                                         </button>
                                     </div>
@@ -132,26 +145,28 @@ export async function loadSensors(isBackground = false) {
 
                                 <div id="card-trend-text-${channel.id}" class="absolute bottom-3 right-4 flex items-center gap-1.5 text-silver-300"></div>
                             </div>`;
-                        cardsContainer.insertAdjacentHTML('beforeend', cardHtml);
-                        calculateAndRenderTrend(channel.id);
                     });
                 }
             });
 
-            // Co když senzory existují, ale nemají vůbec žádné kanály?
+            listContainer.innerHTML = listHtml;
+
             if (!hasAnyChannels) {
                 cardsContainer.innerHTML = `
                     <div class="col-span-full flex items-center justify-center p-6 border-2 border-dashed border-ash-grey-200 dark:border-midnight-violet-800 rounded-xl text-ash-grey-400 dark:text-silver-500 bg-white/50 dark:bg-midnight-violet-900/30 min-h-[160px]">
-                        <span class="text-xs font-semibold">${window.i18n?.noChannels ?? "No channels have been created for the sensors yet."}</span>
+                        <span class="text-xs font-semibold">${txtNoChannels}</span>
                     </div>`;
+            } else {
+                cardsContainer.innerHTML = cardsHtml;
+                trendIdsToCalculate.forEach(id => calculateAndRenderTrend(id));
             }
 
         } else {
-            // Prázdný stav
+            // Empty State
             listContainer.innerHTML = `
                 <div class="p-8 flex flex-col items-center justify-center text-silver-400">
                     <i class="fas fa-microchip mb-2 text-xl opacity-50"></i>
-                    <p class="text-[10px] italic">${window.i18n?.noSensorsShort ?? "No sensors yet"}</p>
+                    <p class="text-[10px] italic">${txtNoSensorsShort}</p>
                 </div>`;
             
             cardsContainer.innerHTML = `
@@ -159,16 +174,19 @@ export async function loadSensors(isBackground = false) {
                     <div class="w-16 h-16 bg-ash-grey-100 dark:bg-midnight-violet-800 rounded-full flex items-center justify-center mb-4 text-ash-grey-300 dark:text-silver-500">
                         <i class="fas fa-inbox text-2xl"></i>
                     </div>
-                    <p class="text-sm font-bold text-ash-grey-500 dark:text-silver-400">${window.i18n?.noSensors ?? "No sensors found"}</p>
-                    <p class="text-xs text-ash-grey-400 dark:text-silver-500 mt-1">${window.i18n?.noSensorsDesc ?? "Register the first sensor for this device."}</p>
+                    <p class="text-sm font-bold text-ash-grey-500 dark:text-silver-400">${txtNoSensors}</p>
+                    <p class="text-xs text-ash-grey-400 dark:text-silver-500 mt-1">${txtNoSensorsDesc}</p>
                 </div>`;
         }
     } catch (e) { 
-        console.error("Chyba loadSensors:", e);
-        listContainer.innerHTML = '<div class="p-4 text-center text-red-500 text-[10px] font-medium">${window.i18n?.loadError ?? "Loading error"}</div>';
+        console.error("Error in loadSensors:", e);
+        const txtLoadError = window.i18n?.loadError ?? "Loading error";
+        const txtSensorLoadError = window.i18n?.sensorLoadError ?? "Error downloading sensor data";
+        
+        listContainer.innerHTML = `<div class="p-4 text-center text-red-500 text-[10px] font-medium">${txtLoadError}</div>`;
         cardsContainer.innerHTML = `
             <div class="col-span-full py-10 text-center">
-                <p class="text-red-400 text-sm font-medium"><i class="fas fa-exclamation-triangle mr-2"></i>${window.i18n?.sensorLoadError ?? "Error downloading sensor data"}</p>
+                <p class="text-red-400 text-sm font-medium"><i class="fas fa-exclamation-triangle mr-2"></i>${txtSensorLoadError}</p>
             </div>`;
     }
 }
