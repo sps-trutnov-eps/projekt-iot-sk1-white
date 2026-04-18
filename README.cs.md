@@ -7,22 +7,19 @@ Systém propojuje webový dashboard s fyzickými ovládacími prvky pomocí mikr
 
 ---
 
-## 🌐 Live demo na Renderu
+## Live demo
 
-Reviewer-friendly demo verze žije na branchi [`demo-render`](../../tree/demo-render) — bez MQTT, bez HW, bez instalace.
-
-**Vlastní deploy (zdarma):**
-1. Forkni repo, pushni branch `demo-render`
-2. Na [render.com](https://render.com) vytvoř Web Service ze svého forku — Render si přečte [render.yaml](render.yaml)
-3. Po buildu otevři URL, přihlaš se `admin` / `admin`
+Reviewer-friendly demo běží na **https://iot-deck.forbelsky.net** — bez MQTT brokeru, bez HW, bez instalace. Přihlášení: `admin` / `admin`.
 
 **Co v demo módu funguje (`DEMO_MODE=1`):**
-- ✅ Každý návštěvník dostane vlastní in-memory SQLite naseedovanou demo MCU/senzory/serverem/příkazy/prahy + 24h historických měření
-- ✅ Per-session ticker generuje simulovaná DHT11 data každých 10s (live grafy, prahové alerty)
-- ✅ Spouštěč příkazů a Wake-on-LAN vrací mockované "success" odpovědi s realistickým delayem
-- ❌ MQTT broker je úplně přeskočený; flashing MCU, OLED panel, enkodér vyžadují reálný HW
+- Každý návštěvník dostane vlastní in-memory SQLite naseedovanou demo MCU/senzory/serverem/příkazy/prahy + 24h historických měření
+- Per-session ticker generuje simulovaná DHT11 data každých 10s (live grafy, prahové alerty)
+- Spouštěč příkazů a Wake-on-LAN vrací mockované "success" odpovědi s realistickým delayem
+- MQTT broker je úplně přeskočený; flashing MCU, OLED panel, enkodér vyžadují reálný HW
 
-Sessiony se promazávají po 30 min nečinnosti. Free tier Renderu uspí službu po 15 min — první request pak trvá ~30s.
+Sessiony se promazávají po 30 min nečinnosti.
+
+Pro lokální spuštění demo módu nastav `DEMO_MODE=1` v `.env` před startem serveru.
 
 ---
 
@@ -261,7 +258,7 @@ API klíč získáš z dashboardu po vytvoření záznamu MCU.
 
 Webové rozhraní umožňuje nahrát MicroPython kód přímo na Pico přes USB bez jakékoli instalace.
 
-1. V **detailu MCU** klikni na ⚡ (Flash)
+1. V **detailu MCU** klikni na **Flash**
 2. Připoj Pico přes USB a klikni **Připojit USB**
 3. Zadej **WiFi SSID a heslo**
 4. Vyber **šablonu** nebo nahraj vlastní `.py` soubor

@@ -7,26 +7,23 @@ The system connects a web dashboard with physical controls via microcontrollers 
 
 ---
 
-## 🌐 Live Demo on Render
+## Live Demo
 
-A reviewer-friendly demo is available on the [`demo-render`](../../tree/demo-render) branch — no MQTT broker, no hardware, no install needed.
-
-**Deploy your own (free):**
-1. Fork the repo, push the `demo-render` branch
-2. On [render.com](https://render.com), create a new Web Service from your fork — Render will auto-detect [render.yaml](render.yaml)
-3. Wait for build, open the URL, log in with `admin` / `admin`
+A reviewer-friendly demo runs at **https://iot-deck.forbelsky.net** — no MQTT broker, no hardware, no install needed. Log in with `admin` / `admin`.
 
 **What works in demo mode (`DEMO_MODE=1`):**
-- ✅ Each visitor gets an isolated in-memory SQLite DB seeded with demo MCUs, sensors, server, commands, threshold rules and 24h of historical readings
-- ✅ Per-session sensor ticker generates simulated DHT11 data every 10s (live charts, threshold alerts)
-- ✅ Command launcher and Wake-on-LAN return mocked "success" responses with realistic delay
-- ❌ MQTT broker is bypassed entirely; physical MCU flashing, OLED panel, encoder require real hardware
+- Each visitor gets an isolated in-memory SQLite DB seeded with demo MCUs, sensors, server, commands, threshold rules and 24h of historical readings
+- Per-session sensor ticker generates simulated DHT11 data every 10s (live charts, threshold alerts)
+- Command launcher and Wake-on-LAN return mocked "success" responses with realistic delay
+- MQTT broker is bypassed entirely; physical MCU flashing, OLED panel, encoder require real hardware
 
-Sessions evict after 30 min of inactivity. Free tier sleeps after 15 min idle — first request after sleep takes ~30s to spin up.
+Sessions evict after 30 min of inactivity.
+
+To run demo mode yourself, set `DEMO_MODE=1` in `.env` before starting the server.
 
 ---
 
-## ⚠️ Reviewer Notes
+## Reviewer Notes
 
 Setup instructions are below. Without physical hardware:
 - **Data monitoring** works fully via the virtual MCU simulator (`StartVirtualPico.bat` / `StartVirtualPico.sh`)
@@ -303,7 +300,7 @@ Get the API key from the dashboard after creating an MCU entry.
 
 The web interface lets you upload MicroPython code directly to a Pico over USB — no additional software needed.
 
-1. Open the **MCU detail** page and click ⚡ (Flash)
+1. Open the **MCU detail** page and click **Flash**
 2. Connect the Pico via USB and click **Connect USB**
 3. Enter your **WiFi SSID and password**
 4. Select a **template** or upload your own `.py` file
