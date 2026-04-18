@@ -7,7 +7,7 @@ const config = {
 
 
     // Server
-    server_port: process.env.SERVER_PORT || 3000,
+    server_port: process.env.PORT || process.env.SERVER_PORT || 3000,
     server_host: process.env.SERVER_HOST || '0.0.0.0',
     session_secret: process.env.SESSION_SECRET || 'iot-sk1-white-secret-key-change-in-production',
 

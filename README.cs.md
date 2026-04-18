@@ -7,6 +7,25 @@ Systém propojuje webový dashboard s fyzickými ovládacími prvky pomocí mikr
 
 ---
 
+## 🌐 Live demo na Renderu
+
+Reviewer-friendly demo verze žije na branchi [`demo-render`](../../tree/demo-render) — bez MQTT, bez HW, bez instalace.
+
+**Vlastní deploy (zdarma):**
+1. Forkni repo, pushni branch `demo-render`
+2. Na [render.com](https://render.com) vytvoř Web Service ze svého forku — Render si přečte [render.yaml](render.yaml)
+3. Po buildu otevři URL, přihlaš se `admin` / `admin`
+
+**Co v demo módu funguje (`DEMO_MODE=1`):**
+- ✅ Každý návštěvník dostane vlastní in-memory SQLite naseedovanou demo MCU/senzory/serverem/příkazy/prahy + 24h historických měření
+- ✅ Per-session ticker generuje simulovaná DHT11 data každých 10s (live grafy, prahové alerty)
+- ✅ Spouštěč příkazů a Wake-on-LAN vrací mockované "success" odpovědi s realistickým delayem
+- ❌ MQTT broker je úplně přeskočený; flashing MCU, OLED panel, enkodér vyžadují reálný HW
+
+Sessiony se promazávají po 30 min nečinnosti. Free tier Renderu uspí službu po 15 min — první request pak trvá ~30s.
+
+---
+
 ## Hlavní funkce
 
 ### 1. Spouštěč příkazů

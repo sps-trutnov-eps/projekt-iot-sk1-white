@@ -14,6 +14,8 @@ const app = express();
 const config = require('./src/config/config');
 const { server_port, server_host, session_secret } = config;
 
+const DEMO_MODE = process.env.DEMO_MODE === '1' || process.env.DEMO_MODE === 'true';
+
 const db = require('./src/config/database');
 const initDB = require('./src/config/initDatabase');
 const seedDB = require('./src/config/seedDatabase');
@@ -25,7 +27,7 @@ const MqttHandler = require('./src/sockets/mqttHandler');
 const WebSocketHandler = require('./src/sockets/webSocketHandler');
 const ServerChecker = require('./src/services/ServerChecker');
 
-// --- HTTPS (self-signed cert pro Web Serial API na LAN) ---
+// --- HTTPS (self-signed cert pro Web Serial API na LAN, mimo demo) ---
 const CERT_DIR = path.join(__dirname, 'data');
 const CERT_PATH = path.join(CERT_DIR, 'cert.pem');
 const KEY_PATH = path.join(CERT_DIR, 'key.pem');
@@ -63,19 +65,32 @@ i18next
 const server = http.createServer(app);
 const io = socketIo(server, { cors: { origin: "*" } });
 
-initDB();
-seedDB();
+// V non-demo módu seedujeme sdílenou DB. V demo módu seedu provádí
+// per-session middleware při prvním requestu nové session.
+if (!DEMO_MODE) {
+    initDB();
+    seedDB();
+}
 
 app.use(i18nextMiddleware.handle(i18next));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(session({
+
+const sessionMiddleware = session({
   secret: session_secret,
   resave: false,
-  saveUninitialized: false,
+  saveUninitialized: DEMO_MODE, // v demo potřebujeme session.id i pro nepřihlášené (seed/ticker/socket)
   cookie: { secure: false, httpOnly: true, maxAge: 8 * 60 * 60 * 1000 }, // 8 hodin
   proxy: true
-}));
+});
+app.use(sessionMiddleware);
+
+// V DEMO_MODE: per-session in-memory SQLite + sensor ticker (musí běžet PŘED route handlery)
+if (DEMO_MODE) {
+    const demoSession = require('./src/middleware/demoSession');
+    app.use(demoSession);
+}
+
 app.use(express.static(path.join(__dirname, './src/public')));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, './src/views'));
@@ -85,6 +100,7 @@ app.use((req, res, next) => {
   res.locals.currentUser = req.session.username || null;
   res.locals.t = req.t;
   res.locals.lng = req.language;
+  res.locals.demoMode = DEMO_MODE;
   next();
 });
 
@@ -127,27 +143,30 @@ app.use('/server', requireAuth, serverRoutes);
 app.use('/command', requireAuth, commandRoutes);
 app.use('/settings', requireAuth, settingRoutes);
 
-WebSocketHandler.init(io); 
+WebSocketHandler.init(io, sessionMiddleware);
 
-
-MeasurementService.startAggregationWorker();
-
-MqttHandler.init();
-
-MCUService.startStatusMonitor();
-
-ServerChecker.start(30000);
+if (DEMO_MODE) {
+    // Per-session ticker generuje data, žádné globální backgroundery nepotřebujeme.
+    // MQTT mock se nastaví uvnitř MqttHandler.init().
+    MqttHandler.init();
+    console.log('[DEMO] Globální agregace, MCU monitor a ServerChecker jsou vypnuté (per-session ticker zajišťuje data).');
+} else {
+    MeasurementService.startAggregationWorker();
+    MqttHandler.init();
+    MCUService.startStatusMonitor();
+    ServerChecker.start(30000);
+}
 
 app.use((req, res) => {
   res.status(404).render('404', { title: '404 - Stránka nenalezena' });
 });
 
 server.listen(server_port, server_host, () => {
-    console.log(`[HTTP] Server běží na http://localhost:${server_port}`);
+    console.log(`[HTTP] Server běží na http://localhost:${server_port}${DEMO_MODE ? ' (DEMO_MODE)' : ''}`);
 });
 
-// --- HTTPS server (pro Web Serial API na LAN) ---
-if (ensureSslCert()) {
+// --- HTTPS server (pro Web Serial API na LAN, vypnuté v demo) ---
+if (!DEMO_MODE && ensureSslCert()) {
     try {
         const sslOptions = {
             key: fs.readFileSync(KEY_PATH),
@@ -155,7 +174,7 @@ if (ensureSslCert()) {
         };
         const httpsServer = https.createServer(sslOptions, app);
         const ioHttps = socketIo(httpsServer, { cors: { origin: "*" } });
-        WebSocketHandler.init(ioHttps);
+        WebSocketHandler.init(ioHttps, sessionMiddleware);
 
         httpsServer.listen(HTTPS_PORT, server_host, () => {
             console.log(`[HTTPS] Server běží na https://localhost:${HTTPS_PORT}`);

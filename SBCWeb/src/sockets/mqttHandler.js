@@ -4,11 +4,20 @@ const MeasurementService = require('../services/MeasurementService');
 const SettingService = require('../services/SettingsService');
 const config = require('../config/config');
 
+const DEMO_MODE = process.env.DEMO_MODE === '1' || process.env.DEMO_MODE === 'true';
+
 class MqttHandler {
     static client = null;
     static currentIp = null;
 
     static init() {
+        if (DEMO_MODE) {
+            // V demo módu nepřipojujeme reálný broker. Falešný "připojený" klient
+            // zajistí, že existující kód `client.connected` checks projde.
+            this.client = { connected: true, publish: () => {} };
+            console.log('[MQTT] DEMO_MODE — broker connection skipped, using mock client.');
+            return;
+        }
         this.connect();
 
         SettingService.events.on('settingsUpdated', (newSettings) => {
@@ -189,12 +198,69 @@ class MqttHandler {
      * @param {object} payload  - { command, history_id }
      */
     static publishCommand(topic, payload) {
+        if (DEMO_MODE) {
+            return MqttHandler._fakeShellResponse(payload);
+        }
         if (!this.client || !this.client.connected) {
             console.error('[MQTT] Nelze odeslat příkaz: MQTT klient není připojen k brokeru.');
             throw new Error('MQTT klient není připojen k brokeru.');
         }
 
         this.client.publish(topic, JSON.stringify(payload));
+    }
+
+    static _fakeShellResponse(payload) {
+        const { current, run } = require('../demo/sessionContext');
+        const sessionStore = require('../demo/sessionStore');
+        const ctx = current();
+        const sessionId = ctx && ctx.sessionId;
+        if (!sessionId) return;
+        const cmdText = payload && payload.command ? payload.command : '(unknown)';
+        const historyId = payload && payload.history_id;
+        setTimeout(() => {
+            const entry = sessionStore.get(sessionId);
+            if (!entry) return;
+            run({ db: entry.db, sessionId }, () => {
+                try {
+                    const CommandHistoryService = require('../services/CommandHistoryService');
+                    const output = `[DEMO] $ ${cmdText}\n→ Simulovaný výstup\nExit code: 0`;
+                    CommandHistoryService.updateExecution(historyId, 'success', output, null);
+                    const SocketService = require('./socketService');
+                    if (SocketService.io) {
+                        SocketService.io.to(`s:${sessionId}`).emit('command_finished', { history_id: historyId, status: 'success' });
+                    }
+                } catch (e) {
+                    console.error('[DEMO] fake shell response error:', e.message);
+                }
+            });
+        }, 600 + Math.floor(Math.random() * 800));
+    }
+
+    static _fakeWolResponse(mac, historyId) {
+        const { current, run } = require('../demo/sessionContext');
+        const sessionStore = require('../demo/sessionStore');
+        const ctx = current();
+        const sessionId = ctx && ctx.sessionId;
+        if (!sessionId || !historyId) return;
+        setTimeout(() => {
+            const entry = sessionStore.get(sessionId);
+            if (!entry) return;
+            run({ db: entry.db, sessionId }, () => {
+                try {
+                    const CommandHistoryService = require('../services/CommandHistoryService');
+                    CommandHistoryService.updateExecution(
+                        historyId, 'success',
+                        `[DEMO] WOL magic packet simulovaně odeslán na ${mac}`, null
+                    );
+                    const SocketService = require('./socketService');
+                    if (SocketService.io) {
+                        SocketService.io.to(`s:${sessionId}`).emit('command_finished', { history_id: historyId, status: 'success' });
+                    }
+                } catch (e) {
+                    console.error('[DEMO] fake WOL response error:', e.message);
+                }
+            });
+        }, 400 + Math.floor(Math.random() * 400));
     }
 
     /**
@@ -207,6 +273,9 @@ class MqttHandler {
      * @param {number|null}   historyId - ID záznamu v historii příkazů (pro zpětný callback)
      */
     static publishWolCommand(mcuId, mac, historyId = null) {
+        if (DEMO_MODE) {
+            return MqttHandler._fakeWolResponse(mac, historyId);
+        }
         if (!this.client || !this.client.connected) {
             console.error('[MQTT] Nelze odeslat WOL příkaz: MQTT klient není připojen k brokeru.');
             throw new Error('MQTT klient není připojen k brokeru.');
@@ -234,6 +303,7 @@ class MqttHandler {
     }
 
     static publishConfig(topic, payload) {
+        if (DEMO_MODE) return; // V demo módu nikam neposíláme
         if (this.client && this.client.connected) {
             this.client.publish(topic, JSON.stringify(payload), { retain: true });
         } else {
