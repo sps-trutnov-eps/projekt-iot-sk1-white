@@ -17,6 +17,9 @@ class MeasurementService {
         }, config.measurement_aggregation_interval); 
     }
 
+
+    
+
     /**
      * Hlavní metoda volaná z MQTT Controlleru
      */
@@ -226,6 +229,21 @@ class MeasurementService {
     static getTodayReadingsCount() {
         return ReadingRepository.countTodayReadings();
     }
+
+
+    static async recordMeasurement(mcuId, channel, value) {
+        const parsedValue = parseFloat(value);
+
+        // 1. Tady se děje to kouzlo - KONTROLA LIMITŮ
+        this.checkThreshold(mcuId, channel, parsedValue);
+
+        // 2. Uložení do bufferu pro grafy (minutová agregace)
+        this.addToBuffer(channel.id, parsedValue);
+
+        // 3. Odeslání do prohlížeče (Live data)
+        SocketService.broadcastReading(mcuId, channel.id, parsedValue);
+    }
+
 }
 
 module.exports = MeasurementService;
